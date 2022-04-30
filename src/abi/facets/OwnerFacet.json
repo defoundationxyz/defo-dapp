@@ -1,0 +1,21 @@
+[
+    "function ChangePaymentToken(address)",
+    "function ToggleSaleLock()",
+    "function ToggleTransferLock()",
+    "function initialize(address,address,address,address,address,address,address)",
+    "function setAddressAndDistLiquidity(address,uint256,uint256)",
+    "function setAddressAndDistRewardPool(address,uint256)",
+    "function setAddressAndDistTeam(address,uint256,uint256)",
+    "function setAddressAndDistTreasury(address,uint256)",
+    "function setAddressDonation(address,uint256)",
+    "function setAddressVault(address)",
+    "function setBaseURI(string)",
+    "function setGemSettings(uint8,tuple(uint32,uint16,uint16,uint8,uint8,uint256,uint256))",
+    "function setLimiterAddress(address)",
+    "function setMinReward(uint256)",
+    "function setMinRewardTime(uint256)",
+    "function setMintLimitHours(uint8)",
+    "function setMinterAddress(address)",
+    "function setRewardTax(uint256[])",
+    "function setTaperRate(uint256)"
+]

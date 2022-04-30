@@ -1,0 +1,16 @@
+[
+    "function BoostGem(uint8,uint256)",
+    "function ClaimRewards(uint256) returns (uint256)",
+    "function Compound(uint256,uint8)",
+    "function Maintenance(uint256,uint256)",
+    "function MintGem(uint8)",
+    "function RedeemMint(uint8,address)",
+    "function RedeemMintBooster(uint8,uint8,address)",
+    "function checkPendingMaintenance(uint256) view returns (uint256)",
+    "function checkRawReward(uint256) view returns (uint256)",
+    "function checkTaperedReward(uint256) view returns (uint256)",
+    "function checkTaxedReward(uint256) view returns (uint256)",
+    "function getGemIdsOf(address) view returns (uint256[])",
+    "function getGemIdsOfWithType(address,uint8) view returns (uint256[])",
+    "function isActive(uint256) view returns (bool)"
+]

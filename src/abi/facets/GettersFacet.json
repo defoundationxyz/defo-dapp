@@ -1,0 +1,4 @@
+[
+    "function GemOf(uint256) view returns (tuple(uint32,uint32,uint32,uint8,uint8,uint8,uint256))",
+    "function GetGemTypeMetadata(uint8) view returns (tuple(uint32,uint16,uint16,uint8,uint8,uint256,uint256))"
+]

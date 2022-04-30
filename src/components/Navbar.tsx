@@ -1,10 +1,8 @@
-import { AppBar, Box, Button, Container, Grid, Divider, Toolbar, Typography, useTheme } from "@mui/material"
-import { BigNumber } from "ethers"
+import { AppBar, Box, Button, Container, Grid, Toolbar, Typography, useTheme } from "@mui/material"
 import { useWeb3 } from "./Web3Provider"
-import { formatUnits } from "ethers/lib/utils"
 import Link from "next/link"
 
-const Navbar = ({ daiBalance }: { daiBalance: BigNumber | undefined }) => {
+const Navbar = () => {
 
     const theme = useTheme()
 
