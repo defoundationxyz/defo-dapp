@@ -1,4 +1,4 @@
-import { Box, Button, Container, FormControlLabel, Grid, IconButton, Modal, Paper, Switch, Typography, useTheme } from '@mui/material'
+import { Box, Button, Container, FormControlLabel, Grid, IconButton, Modal, Paper, Switch, Tooltip, Typography, useTheme } from '@mui/material'
 import type { NextPage } from 'next'
 import Footer from '../components/Footer'
 import { CONTRACTS, GemType, GemTypeMetadata } from "../constants"
@@ -15,114 +15,43 @@ import DonationsBox from '../components/DonationsBox'
 import YourYieldGemsBox from '../components/YourYieldGemsBox'
 import P2VaultBox from '../components/P2VaultBox'
 import moment from 'moment'
+import { useSnackbar } from '../components/SnackbarProvider'
 
 
 const Home: NextPage = () => {
 
   const theme = useTheme()
+  const snackbar = useSnackbar()
+
   const { status, account, signer } = useWeb3()
 
-  const [selectedRows, setSelectedRows] = useState<any[]>()
+  const [selectedRows, setSelectedRows] = useState<string[]>([])
 
   const [claimRewardsModalOpen, setClaimRewardsModalOpen] = useState(false)
 
   const [yourDonations, setYourDonations] = useState<BigNumber>(BigNumber.from(0))
   const [totalDonations, setTotalDonations] = useState<BigNumber>(BigNumber.from(0))
 
-
   const [yourStake, setYourStake] = useState<BigNumber>(BigNumber.from(0))
   const [totalStaked, setTotalStaked] = useState<BigNumber>(BigNumber.from(0))
+
+  const [myGems, setMyGems] = useState<GemType[]>([])
+
+  const [meta, setMeta] = useState<any>()
 
   const [gem0Metadata, setGem0Metadata] = useState<GemTypeMetadata>()
   const [gem1Metadata, setGem1Metadata] = useState<GemTypeMetadata>()
   const [gem2Metadata, setGem2Metadata] = useState<GemTypeMetadata>()
 
-  const columns: GridColDef[] = [
-    {
-      flex: 1,
-      field: 'name',
-      headerName: 'Name',
-      renderCell: (params) => {
-        const gem: GemType = params.row;
-        if (gem.GemType === 0) {
-          return "Sapphire"
-        } else if (gem.GemType === 1) {
-          return "Ruby"
-        } else if (gem.GemType === 2) {
-          return "Diamond"
-        }
-      }
-    },
-    {
-      flex: 1,
-      field: 'created',
-      headerName: 'Created',
-      renderCell: (params) => {
-        const gem: GemType = params.row;
-        return moment(gem.MintTime).format("MMM DD YYYY HH:mm")
-      }
-    },
-    {
-      flex: 1,
-      field: 'rewards',
-      headerName: 'Rewards',
-      renderCell: (params) => {
-        const gem: GemType = params.row;
-        return `${formatUnits(gem.pendingReward, "ether")} DEFO`
-      }
-    },
-    {
-      flex: 0.8,
-      field: 'taxTier',
-      headerName: 'Tax Tier'
-    },
-    {
-      flex: 1,
-      field: 'tierCountdown',
-      headerName: 'Tier Countdown'
-    },
-    {
-      flex: 0.8,
-      field: 'feesDueIn',
-      headerName: 'Fees due in'
-    },
-    {
-      flex: 1.5,
-      field: 'payClaim',
-      headerName: 'Pay/Claim',
-      minWidth: 200,
-      renderCell: () => <Box sx={{
-      }}>
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{
-            marginLeft: {
-              xs: theme.spacing(0),
-              md: theme.spacing(2)
-            },
-            marginRight: theme.spacing(1),
 
-          }}>PAY FEE</Button>
-        <Button
-          variant="outlined"
-          sx={{
-            color: "white",
-            borderColor: "white",
-            "&:hover": {
-              color: "gray",
-              borderColor: "gray",
-            }
-          }}>CLAIM</Button>
-      </Box>
-    },
-  ]
-
-  const [myGems, setMyGems] = useState<GemType[]>([])
-
+  const [selectedVaultStrategy, setSelectedVaultStrategy] = useState(20)
+  const [vaultStrategyEnabled, setVaultStrategyEnabled] = useState(false)
 
   const fetchAccountData = async () => {
     const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+
+    setYourDonations(await contract.getTotalCharity(account))
+
     setYourStake(await contract.showStakedAmount())
 
     const _gem0Metadata = await contract.GetGemTypeMetadata(0)
@@ -189,6 +118,181 @@ const Home: NextPage = () => {
 
   }
 
+
+  const payFee = async (gemId: string) => {
+
+    const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+
+    try {
+      const tx = await contract.Maintenance(gemId, 0)
+      snackbar.execute("Maintenance on progress, please wait.", "info")
+      await tx.wait()
+      await fetchAccountData()
+
+    } catch (error: any) {
+      console.log(error)
+      snackbar.execute(error?.error?.message || error?.reason || "ERROR", "error")
+    }
+
+  }
+
+
+  const batchPayFee = async (gemIds: string[]) => {
+
+    const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+
+    try {
+      const tx = await contract.BatchMaintenance(gemIds, 0)
+      snackbar.execute("Maintenance on progress, please wait.", "info")
+      await tx.wait()
+      await fetchAccountData()
+
+    } catch (error: any) {
+      console.log(error)
+      snackbar.execute(error?.error?.message || error?.reason || "ERROR", "error")
+    }
+
+  }
+
+
+  const claimRewards = async (gemId: string) => {
+    const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+    try {
+      const tx = await contract.ClaimRewards(gemId)
+      snackbar.execute("Claiming on progress, please wait.", "info")
+      await tx.wait()
+      await fetchAccountData()
+
+    } catch (error: any) {
+      console.log(error)
+      snackbar.execute(error?.error?.message || error?.reason || "ERROR", "error")
+    }
+  }
+
+  const BatchClaimRewards = async (gemIds: string[]) => {
+
+    const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+    try {
+      const tx = await contract.BatchClaimRewards(gemIds)
+      snackbar.execute("Claiming on progress, please wait.", "info")
+      await tx.wait()
+      await fetchAccountData()
+      setClaimRewardsModalOpen(false)
+
+    } catch (error: any) {
+      console.log(error)
+      snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
+    }
+  }
+
+
+  const BatchAddToVault = async (gemIds: string[]) => {
+
+    const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+    try {
+      const tx = await contract.BatchAddToVault(gemIds)
+      snackbar.execute("Claiming on progress, please wait.", "info")
+      await tx.wait()
+      await fetchAccountData()
+      setClaimRewardsModalOpen(false)
+
+    } catch (error: any) {
+      console.log(error)
+      snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
+    }
+  }
+
+
+  const columns: GridColDef[] = [
+    {
+      flex: 1,
+      field: 'name',
+      headerName: 'Name',
+      renderCell: (params) => {
+        const gem: GemType = params.row;
+        if (gem.GemType === 0) {
+          return "Sapphire"
+        } else if (gem.GemType === 1) {
+          return "Ruby"
+        } else if (gem.GemType === 2) {
+          return "Diamond"
+        }
+      }
+    },
+    {
+      flex: 1,
+      field: 'created',
+      headerName: 'Created',
+      renderCell: (params) => {
+        const gem: GemType = params.row;
+        return moment(gem.MintTime, "X").format("MMM DD YYYY HH:mm")
+      }
+    },
+    {
+      flex: 1,
+      field: 'rewards',
+      headerName: 'Rewards',
+      renderCell: (params) => {
+        const gem: GemType = params.row;
+        return `${formatUnits(gem.pendingReward, "ether")} DEFO`
+      }
+    },
+    {
+      flex: 0.8,
+      field: 'taxTier',
+      headerName: 'Tax Tier'
+    },
+    {
+      flex: 1,
+      field: 'tierCountdown',
+      headerName: 'Tier Countdown'
+    },
+    {
+      flex: 0.8,
+      field: 'feesDueIn',
+      headerName: 'Fees due in'
+    },
+    {
+      flex: 1.5,
+      field: 'payClaim',
+      headerName: 'Pay/Claim',
+      minWidth: 200,
+      renderCell: ({ row }: { row: GemType }) => <Box sx={{
+      }}>
+        <Button
+          onClick={async () => {
+            setSelectedRows([])
+            await payFee(row.id)
+          }}
+          variant="contained"
+          color="primary"
+          sx={{
+            marginLeft: {
+              xs: theme.spacing(0),
+              md: theme.spacing(2)
+            },
+            marginRight: theme.spacing(1),
+
+          }}>PAY FEE</Button>
+        <Button
+          onClick={() => {
+            setSelectedRows([row.id])
+            setClaimRewardsModalOpen(true)
+          }}
+          variant="outlined"
+          sx={{
+            color: "white",
+            borderColor: "white",
+            "&:hover": {
+              color: "gray",
+              borderColor: "gray",
+            }
+          }}>CLAIM</Button>
+      </Box>
+    },
+  ]
+
+
   useEffect(() => {
 
     (async () => {
@@ -209,6 +313,10 @@ const Home: NextPage = () => {
     (async () => {
       const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
       console.log(mainContract)
+
+      const meta = await mainContract.getMeta()
+      setMeta(meta)
+      console.log(meta)
 
     })()
 
@@ -240,13 +348,17 @@ const Home: NextPage = () => {
           }}
         >
           <Grid item xs={12} md={5.8}>
-            <DonationsBox />
+            <DonationsBox
+              yourDonations={yourDonations}
+              totalDonations={totalDonations}
+            />
           </Grid>
 
           <Grid item xs={12} md={5.8}>
             <YourYieldGemsBox
               fetchAccountData={fetchAccountData}
               myGems={myGems}
+              meta={meta}
               gem0Metadata={gem0Metadata}
               gem1Metadata={gem1Metadata}
               gem2Metadata={gem2Metadata}
@@ -273,6 +385,7 @@ const Home: NextPage = () => {
               title="Rewards"
               color="#FCBD00"
               button={<Button
+                disabled={status !== "CONNECTED"}
                 variant="contained"
                 color="info"
               >
@@ -314,25 +427,36 @@ const Home: NextPage = () => {
               <Typography>{selectedRows?.length || 0} nodes selected</Typography>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="primary" sx={{
+              <Button
+                disabled={status !== "CONNECTED"}
+                onClick={() => batchPayFee(selectedRows)}
+                variant="contained"
+                color="primary"
+                sx={{
 
-                marginLeft: {
-                  xs: theme.spacing(0),
-                  md: theme.spacing(2)
-                },
-                marginRight: theme.spacing(1),
+                  marginLeft: {
+                    xs: theme.spacing(0),
+                    md: theme.spacing(2)
+                  },
+                  marginRight: theme.spacing(1),
 
-              }}>PAY FEES</Button>
+                }}>PAY FEES</Button>
             </Grid>
             <Grid item>
-              <Button onClick={() => setClaimRewardsModalOpen(true)} variant="outlined" sx={{
-                color: "white",
-                borderColor: "white",
-                "&:hover": {
-                  color: "gray",
-                  borderColor: "gray",
+              <Button
+                disabled={status !== "CONNECTED"}
+                onClick={
+                  () => setClaimRewardsModalOpen(true)
                 }
-              }}>CLAIM REWARDS</Button>
+                variant="outlined"
+                sx={{
+                  color: "white",
+                  borderColor: "white",
+                  "&:hover": {
+                    color: "gray",
+                    borderColor: "gray",
+                  }
+                }}>CLAIM REWARDS</Button>
             </Grid>
           </Grid>
 
@@ -348,6 +472,7 @@ const Home: NextPage = () => {
               rowsPerPageOptions={[5]}
               checkboxSelection
               hideFooterSelectedRowCount
+              selectionModel={selectedRows}
               onSelectionModelChange={(newSelection: any) => {
                 console.log("newSelection", newSelection)
                 setSelectedRows(newSelection);
@@ -442,39 +567,65 @@ const Home: NextPage = () => {
                 <Typography variant='body1'>PENDING REWARDS</Typography>
                 <Grid container alignItems="center" >
                   <Grid item>
-                    <Typography variant='h4' fontWeight={"500"} sx={{ marginRight: theme.spacing(1) }}> {formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether")} DEFO</Typography>
+                    <Typography
+                      variant='h4'
+                      fontWeight={"500"}
+                      sx={{
+                        marginRight: theme.spacing(1)
+                      }}>
+                      {
+                        formatUnits(
+                          myGems
+                            .filter(gem => selectedRows.includes(gem.id))
+                            .reduce(
+                              (
+                                n,
+                                { pendingReward }
+                              ) => pendingReward.add(n),
+                              BigNumber.from(0)
+                            ), "ether"
+                        )
+                      } DEFO</Typography>
                   </Grid>
                   <Grid item>
-                    <Typography variant='h6' fontWeight={"500"}>($90)</Typography>
+                    <Typography variant='h6' fontWeight={"500"}>($0)</Typography>
                   </Grid>
                 </Grid>
               </Grid>
               <Grid item xs={12} md={5.5}>
                 <Box sx={{
                 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    endIcon={<HelpOutline />}
-                    sx={{
-                      marginLeft: {
-                        xs: theme.spacing(0),
-                        md: theme.spacing(2)
-                      },
-                      marginRight: theme.spacing(1),
+                  <Tooltip title="Lorem Ipsum">
 
-                    }}>CLAIM</Button>
-                  <Button
-                    variant="outlined"
-                    endIcon={<HelpOutline />}
-                    sx={{
-                      color: "white",
-                      borderColor: "white",
-                      "&:hover": {
-                        color: "gray",
-                        borderColor: "gray",
-                      }
-                    }}>VAULT</Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      endIcon={<HelpOutline />}
+                      onClick={() => BatchClaimRewards(selectedRows)}
+                      sx={{
+                        marginLeft: {
+                          xs: theme.spacing(0),
+                          md: theme.spacing(2)
+                        },
+                        marginRight: theme.spacing(1),
+
+                      }}>CLAIM</Button>
+                  </Tooltip>
+                  <Tooltip title="Lorem Ipsum">
+
+                    <Button
+                      onClick={() => BatchAddToVault(selectedRows)}
+                      variant="outlined"
+                      endIcon={<HelpOutline />}
+                      sx={{
+                        color: "white",
+                        borderColor: "white",
+                        "&:hover": {
+                          color: "gray",
+                          borderColor: "gray",
+                        }
+                      }}>VAULT</Button>
+                  </Tooltip>
                 </Box>
               </Grid>
               <Grid item xs={12} md={5} sx={{
@@ -485,7 +636,7 @@ const Home: NextPage = () => {
                     <Typography fontWeight={"bold"} variant="body2">CHARITY TAX:</Typography>
                   </Grid>
                   <Grid item>
-                    <Typography variant="body2">1 DEFO ($25)</Typography>
+                    <Typography variant="body2">1 DEFO ($0)</Typography>
                   </Grid>
                 </Grid>
                 <Grid container justifyContent={"space-between"} >
@@ -493,7 +644,7 @@ const Home: NextPage = () => {
                     <Typography fontWeight={"bold"} variant="body2">CLAIM TAX:</Typography>
                   </Grid>
                   <Grid item>
-                    <Typography variant="body2">1 DEFO ($25)</Typography>
+                    <Typography variant="body2">1 DEFO ($0)</Typography>
                   </Grid>
                 </Grid>
               </Grid>
@@ -505,9 +656,17 @@ const Home: NextPage = () => {
                   alignItems: "center",
                   marginBottom: theme.spacing(2)
                 }}>
-                  <Typography variant="body1" sx={{ marginRight: theme.spacing(1) }}>VAULT STRATEGY</Typography>
-                  <HelpOutline sx={{ marginRight: theme.spacing(4) }} />
-                  <FormControlLabel control={<Switch defaultChecked color='success' />} label="On" />
+                  <Tooltip title="Lorem Ipsum">
+                    <Typography variant="body1" sx={{ marginRight: theme.spacing(1) }}>VAULT STRATEGY</Typography>
+                  </Tooltip>
+                  <Tooltip title="Lorem Ipsum">
+                    <HelpOutline sx={{ marginRight: theme.spacing(4) }} />
+                  </Tooltip>
+                  <FormControlLabel
+                    onClick={() => setVaultStrategyEnabled(!vaultStrategyEnabled)}
+                    control={<Switch color='success' checked={vaultStrategyEnabled} value={vaultStrategyEnabled} />}
+                    label={vaultStrategyEnabled ? "On" : "Off"}
+                  />
                 </Box>
 
                 <Grid
@@ -516,9 +675,19 @@ const Home: NextPage = () => {
                 >
                   <Grid item md={2.8}>
                     <Button
+                      disabled={!vaultStrategyEnabled}
                       fullWidth
                       variant="outlined"
-                      sx={{
+                      onClick={() => setSelectedVaultStrategy(20)}
+                      color={selectedVaultStrategy === 20 ? "info" : "primary"}
+                      sx={selectedVaultStrategy === 20 ? {
+                        borderRadius: "10px",
+                        padding: theme.spacing(1, 2),
+                        borderWidth: "2px",
+                        "&:hover": {
+                          borderWidth: "2px"
+                        }
+                      } : {
                         color: "white",
                         borderColor: "white",
                         borderRadius: "10px",
@@ -532,28 +701,45 @@ const Home: NextPage = () => {
 
                   <Grid item md={2.8}>
                     <Button
+                      disabled={!vaultStrategyEnabled}
                       fullWidth
                       variant="outlined"
-                      color='info'
-                      sx={{
+                      onClick={() => setSelectedVaultStrategy(40)}
+                      color={selectedVaultStrategy === 40 ? "info" : "primary"}
+                      sx={selectedVaultStrategy === 40 ? {
                         borderRadius: "10px",
                         padding: theme.spacing(1, 2),
                         borderWidth: "2px",
-                        // color: "white",
-                        // borderColor: "white",
                         "&:hover": {
                           borderWidth: "2px"
-                          //   color: "gray",
-                          //   borderColor: "gray",
+                        }
+                      } : {
+                        color: "white",
+                        borderColor: "white",
+                        borderRadius: "10px",
+                        padding: theme.spacing(1, 2),
+                        "&:hover": {
+                          color: "gray",
+                          borderColor: "gray",
                         }
                       }}>40%</Button>
                   </Grid>
 
                   <Grid item md={2.8}>
                     <Button
+                      disabled={!vaultStrategyEnabled}
                       fullWidth
                       variant="outlined"
-                      sx={{
+                      onClick={() => setSelectedVaultStrategy(60)}
+                      color={selectedVaultStrategy === 60 ? "info" : "primary"}
+                      sx={selectedVaultStrategy === 60 ? {
+                        borderRadius: "10px",
+                        padding: theme.spacing(1, 2),
+                        borderWidth: "2px",
+                        "&:hover": {
+                          borderWidth: "2px"
+                        }
+                      } : {
                         color: "white",
                         borderColor: "white",
                         borderRadius: "10px",
@@ -567,9 +753,19 @@ const Home: NextPage = () => {
 
                   <Grid item md={2.8}>
                     <Button
+                      disabled={!vaultStrategyEnabled}
                       fullWidth
                       variant="outlined"
-                      sx={{
+                      onClick={() => setSelectedVaultStrategy(80)}
+                      color={selectedVaultStrategy === 80 ? "info" : "primary"}
+                      sx={selectedVaultStrategy === 80 ? {
+                        borderRadius: "10px",
+                        padding: theme.spacing(1, 2),
+                        borderWidth: "2px",
+                        "&:hover": {
+                          borderWidth: "2px"
+                        }
+                      } : {
                         color: "white",
                         borderColor: "white",
                         borderRadius: "10px",

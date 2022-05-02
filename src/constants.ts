@@ -19,6 +19,7 @@ export const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID
 export const RPC = {
     43114: "https://api.avax.network/ext/bc/C/rpc",
     43113: "https://api.avax-test.network/ext/bc/C/rpc",
+    4: `https://rinkeby.infura.io/v3/${INFURA_ID}`
 }
 
 export const MAINNET_CONFIG = {
@@ -33,11 +34,20 @@ export const TESTNET_CONFIG = {
     CHAIN_ID: 43113,
     CHAIN_RPC: RPC[43113],
     CHAIN_EXPLORER: "https://testnet.snowtrace.io/",
+}
+
+
+export const RINKEBY_CONFIG = {
+    CHAIN_NAME: "Rinkeby Test Network",
+    CHAIN_ID: 4,
+    CHAIN_RPC: RPC[4],
+    CHAIN_EXPLORER: "https://rinkeby.etherscan.io/",
 
 }
 
 
-export const ACTIVE_NETWORK = TESTNET_CONFIG
+
+export const ACTIVE_NETWORK = RINKEBY_CONFIG
 
 
 export const CONTRACTS = {
@@ -47,12 +57,18 @@ export const CONTRACTS = {
     Dai: {
         abi: Dai_ABI,
         // address: "0xd586E7F844cEa2F87f50152665BCbc2C279D8d70",      // mainnet
-        address: "0xfB03d10E94d55a7041cca42A5da1db987D4BE534",      // testnet
+        address: "0x0730ebE45b12284C37CEbA4BBB96C1208EAF9122",      // testnet
 
     },
+
+    DefoToken: {
+        abi: Dai_ABI,
+        address: "0x4ca5C84333c0C50CFc4A5CdEEeff9fd051Ab1f4A",
+    },
+
     Main: {
         // address: "0x78c51f56e21994FB5d00D2A817Bca4c5B735FDcb",  // mainnet
-        address: "0x6D5d4666794EB4FB962c2795a58101597967DeCb",  // testnet
+        address: "0x3b8902832005DB7Cc52E921436dA24357C5aE8F8",  // testnet
         abi: [
             ...DiamonCutFacet_ABI,
             ...DiamonLoupeFacet_ABI,

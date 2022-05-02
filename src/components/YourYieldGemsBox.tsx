@@ -2,6 +2,7 @@ import { Close, FiberManualRecord } from "@mui/icons-material"
 import { Box, Button, Grid, IconButton, Modal, Paper, Typography, useTheme } from "@mui/material"
 import { Contract } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
+import moment from "moment"
 import { useState } from "react"
 import { CONTRACTS, GemType, GemTypeMetadata } from "../constants"
 import ContentBox from "./ContentBox"
@@ -15,18 +16,20 @@ const YourYieldGemsBox = ({
     myGems,
     gem0Metadata,
     gem1Metadata,
-    gem2Metadata
+    gem2Metadata,
+    meta,
 }: {
     fetchAccountData: Function,
     myGems: GemType[],
     gem0Metadata: GemTypeMetadata | undefined,
     gem1Metadata: GemTypeMetadata | undefined,
     gem2Metadata: GemTypeMetadata | undefined,
+    meta: any | undefined
 
 }) => {
     const theme = useTheme()
     const snackbar = useSnackbar()
-    const { signer } = useWeb3()
+    const { signer, status } = useWeb3()
 
 
     const [createYieldGemModalOpen, setCreateYieldGemModalOpen] = useState(false)
@@ -58,6 +61,7 @@ const YourYieldGemsBox = ({
                 title="Your Yield Gems"
                 color="#C6E270"
                 button={<Button
+                    disabled={status !== "CONNECTED"}
                     onClick={() => setCreateYieldGemModalOpen(true)}
                     variant="contained"
                     color="secondary"
@@ -299,7 +303,7 @@ const YourYieldGemsBox = ({
                                             margin: theme.spacing(0.5, 0)
                                         }}>
                                             <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
-                                            <Typography variant="body2" > {gem0Metadata?.MintCount.toString()} /16</Typography>
+                                            <Typography variant="body2" > {gem0Metadata?.MintCount.toString()}/{gem0Metadata?.DailyLimit.toString()} </Typography>
                                         </Box>
                                         <Box sx={{
                                             display: "flex",
@@ -308,7 +312,7 @@ const YourYieldGemsBox = ({
                                             margin: theme.spacing(0.5, 0)
                                         }}>
                                             <Typography variant="body2" fontWeight={"600"}>Refresh:</Typography>
-                                            <Typography variant="body2" >2H</Typography>
+                                            <Typography variant="body2" > {meta && moment.duration(moment(meta[14], "X").diff(moment(gem0Metadata?.LastMint, "X"))).asHours()}H</Typography>
                                         </Box>
                                         <Button
                                             onClick={() => createYieldGem(0)}
@@ -382,7 +386,7 @@ const YourYieldGemsBox = ({
                                             margin: theme.spacing(0.5, 0)
                                         }}>
                                             <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
-                                            <Typography variant="body2" > {gem1Metadata?.MintCount} /5</Typography>
+                                            <Typography variant="body2" > {gem1Metadata?.MintCount}/{gem1Metadata?.DailyLimit.toString()}</Typography>
                                         </Box>
                                         <Box sx={{
                                             display: "flex",
@@ -391,7 +395,7 @@ const YourYieldGemsBox = ({
                                             margin: theme.spacing(0.5, 0)
                                         }}>
                                             <Typography variant="body2" fontWeight={"600"}>Refresh:</Typography>
-                                            <Typography variant="body2" >2H</Typography>
+                                            <Typography variant="body2" > {meta && moment.duration(moment(meta[14], "X").diff(moment(gem1Metadata?.LastMint, "X"))).asHours()}H</Typography>
                                         </Box>
                                         <Button
                                             onClick={() => createYieldGem(1)}
@@ -465,7 +469,7 @@ const YourYieldGemsBox = ({
                                             margin: theme.spacing(0.5, 0)
                                         }}>
                                             <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
-                                            <Typography variant="body2" >{gem2Metadata?.MintCount}/1</Typography>
+                                            <Typography variant="body2" >{gem2Metadata?.MintCount}/{gem2Metadata?.DailyLimit.toString()}</Typography>
                                         </Box>
                                         <Box sx={{
                                             display: "flex",
@@ -474,7 +478,7 @@ const YourYieldGemsBox = ({
                                             margin: theme.spacing(0.5, 0)
                                         }}>
                                             <Typography variant="body2" fontWeight={"600"}>Refresh:</Typography>
-                                            <Typography variant="body2" >2H</Typography>
+                                            <Typography variant="body2" > {meta && moment.duration(moment(meta[14], "X").diff(moment(gem2Metadata?.LastMint, "X"))).asHours()}H</Typography>
                                         </Box>
                                         <Button
                                             onClick={() => createYieldGem(2)}

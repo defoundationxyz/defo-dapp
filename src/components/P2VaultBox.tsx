@@ -1,8 +1,9 @@
 import { HelpOutline } from "@mui/icons-material"
-import { Box, Button, Grid, LinearProgress, Paper, Typography, useTheme } from "@mui/material"
+import { Box, Button, Grid, LinearProgress, Paper, Tooltip, Typography, useTheme } from "@mui/material"
 import { BigNumber } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 import ContentBox from "./ContentBox"
+import { useWeb3 } from "./Web3Provider"
 
 
 const P2VaultBox = ({
@@ -13,24 +14,30 @@ const P2VaultBox = ({
     yourStake: BigNumber
 }) => {
     const theme = useTheme()
+    const { status } = useWeb3()
 
     return (
         <ContentBox
             title="P2 Vault"
             color="#FCBD00"
-            button={<Button
-                endIcon={<HelpOutline />}
-                variant="contained"
-                color="secondary"
-                sx={{
-                    backgroundColor: "#FCBD00",
-                    "&:hover": {
-                        backgroundColor: "#b58802",
-                    }
-                }}
-            >
-                WITHDRAW
-            </Button>}
+            button={
+                <Tooltip title="Lorem Ipsum">
+                    <Button
+                        disabled={status !== "CONNECTED"}
+                        endIcon={<HelpOutline />}
+                        variant="contained"
+                        color="secondary"
+                        sx={{
+                            backgroundColor: "#FCBD00",
+                            "&:hover": {
+                                backgroundColor: "#b58802",
+                            }
+                        }}
+                    >
+                        WITHDRAW
+                    </Button>
+                </Tooltip>
+            }
         >
             <Grid
                 container

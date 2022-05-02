@@ -1,9 +1,17 @@
 import { Box, Paper, Grid, Typography, useTheme } from "@mui/material"
 import ContentBox from './ContentBox'
 import { ArrowUpward } from '@mui/icons-material'
+import { BigNumber } from "ethers"
 
 
-const DonationsBox = () => {
+const DonationsBox = ({
+    yourDonations,
+    totalDonations
+}: {
+    yourDonations: BigNumber,
+    totalDonations: BigNumber
+
+}) => {
 
     const theme = useTheme()
 
@@ -33,7 +41,7 @@ const DonationsBox = () => {
 
                         }}>
                         <Typography variant="body2">YOUR DONATIONS</Typography>
-                        <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>$1,197</Typography>
+                        <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>${yourDonations.toString()}</Typography>
                         <Box sx={{
                             display: "flex",
                             flexDirection: "row",
@@ -57,7 +65,7 @@ const DonationsBox = () => {
                                 <Typography sx={{
                                     fontSize: "12px",
                                     color: "#2EBE73"
-                                }} >34%</Typography>
+                                }} >0%</Typography>
                             </Paper>
                             <Typography
                                 sx={{
@@ -82,7 +90,7 @@ const DonationsBox = () => {
                             justifyContent: "center"
                         }}>
                         <Typography variant="body2">TOTAL DONATIONS</Typography>
-                        <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>$531,529</Typography>
+                        <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>${totalDonations.toString()}</Typography>
                         <Box sx={{
                             display: "flex",
                             flexDirection: "row",
@@ -106,7 +114,7 @@ const DonationsBox = () => {
                                 <Typography sx={{
                                     fontSize: "12px",
                                     color: "#2EBE73"
-                                }} >24%</Typography>
+                                }} >0%</Typography>
                             </Paper>
                             <Typography
                                 sx={{

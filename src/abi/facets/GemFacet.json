@@ -1,4 +1,6 @@
 [
+    "function BatchClaimRewards(uint256[])",
+    "function BatchMaintenance(uint256[])",
     "function BoostGem(uint8,uint256)",
     "function ClaimRewards(uint256) returns (uint256)",
     "function Compound(uint256,uint8)",

@@ -8,7 +8,7 @@ import {
 import Web3Modal, { IProviderOptions } from "web3modal";
 import { providers, Signer } from "ethers";
 import { ACTIVE_NETWORK, INFURA_ID, NATIVE_CURRENCY, RPC } from "../constants";
-import { hexlify } from "ethers/lib/utils";
+import { hexlify, hexValue } from "ethers/lib/utils";
 import { useSnackbar } from "./SnackbarProvider";
 
 export type CHAIN_STATUS = "CONNECTED" | "NOT_CONNECTED" | "DIFFERENT_CHAIN"
@@ -58,7 +58,7 @@ const Web3Provider = ({
 
     const switchNetwork = async () => {
         const AVALANCHE_MAINNET_PARAMS = {
-            chainId: hexlify(ACTIVE_NETWORK.CHAIN_ID),
+            chainId: hexValue(ACTIVE_NETWORK.CHAIN_ID),
             chainName: ACTIVE_NETWORK.CHAIN_NAME,
             nativeCurrency: NATIVE_CURRENCY,
             rpcUrls: [ACTIVE_NETWORK.CHAIN_RPC],
