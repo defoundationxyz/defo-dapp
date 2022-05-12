@@ -208,7 +208,7 @@ const Home: NextPage = () => {
           let amount = myGem.pendingReward
           amounts.push(amount)
         }
-        
+
       }
 
       const tx = await contract.batchAddTovault(gemIds, amounts)
@@ -667,7 +667,18 @@ const Home: NextPage = () => {
                     <Typography fontWeight={"bold"} variant="body2">CHARITY TAX:</Typography>
                   </Grid>
                   <Grid item>
-                    <Typography variant="body2">1 DEFO ($0)</Typography>
+                    <Typography variant="body2">{
+                      formatUnits(
+                      myGems
+                        .filter(gem => selectedRows.includes(gem.id))
+                        .reduce(
+                          (
+                            n,
+                            { pendingReward }
+                          ) => (pendingReward.div(100).mul(meta[3])).add(n),
+                          BigNumber.from(0)
+                        ), "ether")
+                    } DEFO ($0)</Typography>
                   </Grid>
                 </Grid>
                 <Grid container justifyContent={"space-between"} >

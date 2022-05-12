@@ -24,7 +24,7 @@ const P2VaultBox = ({
     const theme = useTheme()
     const { status } = useWeb3()
 
-    const [withdrawModalOpen, setWithdrawModalOpen] = useState(true)
+    const [withdrawModalOpen, setWithdrawModalOpen] = useState(false)
 
 
 
