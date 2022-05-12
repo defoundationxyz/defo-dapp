@@ -48,6 +48,9 @@ const Home: NextPage = () => {
   const [vaultStrategyEnabled, setVaultStrategyEnabled] = useState(false)
 
   const fetchAccountData = async () => {
+
+    const defoContract = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
+
     const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 
     setYourDonations(await contract.getTotalCharity(account))
@@ -114,6 +117,8 @@ const Home: NextPage = () => {
       return gemTyped
     }))
 
+    console.log(myGems)
+
     setMyGems(myGems)
 
   }
@@ -131,7 +136,7 @@ const Home: NextPage = () => {
 
     } catch (error: any) {
       console.log(error)
-      snackbar.execute(error?.error?.message || error?.reason || "ERROR", "error")
+      snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
     }
 
   }
@@ -142,7 +147,7 @@ const Home: NextPage = () => {
     const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 
     try {
-      const tx = await contract.BatchMaintenance(gemIds, 0)
+      const tx = await contract.BatchMaintenance(gemIds)
       snackbar.execute("Maintenance on progress, please wait.", "info")
       await tx.wait()
       await fetchAccountData()
@@ -190,7 +195,22 @@ const Home: NextPage = () => {
 
     const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
     try {
-      const tx = await contract.BatchAddToVault(gemIds)
+
+      let amounts = []
+
+      if (vaultStrategyEnabled) {
+        for (const myGem of myGems) {
+          let amount = myGem.pendingReward.div(100).mul(selectedVaultStrategy)
+          amounts.push(amount)
+        }
+      } else {
+        for (const myGem of myGems) {
+          let amount = myGem.pendingReward
+          amounts.push(amount)
+        }
+      }
+
+      const tx = await contract.batchAddTovault(gemIds, amounts)
       snackbar.execute("Claiming on progress, please wait.", "info")
       await tx.wait()
       await fetchAccountData()
@@ -311,12 +331,18 @@ const Home: NextPage = () => {
   useEffect(() => {
 
     (async () => {
-      const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-      console.log(mainContract)
+      try {
 
-      const meta = await mainContract.getMeta()
-      setMeta(meta)
-      console.log(meta)
+        const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+        console.log(mainContract)
+
+        const meta = await mainContract.getMeta()
+        setMeta(meta)
+        console.log(meta)
+
+      } catch (error) {
+        console.log(error)
+      }
 
     })()
 
@@ -377,6 +403,7 @@ const Home: NextPage = () => {
             <P2VaultBox
               totalStaked={totalStaked}
               yourStake={yourStake}
+              myGems={myGems}
             />
           </Grid>
 
@@ -385,6 +412,9 @@ const Home: NextPage = () => {
               title="Rewards"
               color="#FCBD00"
               button={<Button
+                onClick={() => {
+                  BatchClaimRewards(myGems.map(gem => gem.id))
+                }}
                 disabled={status !== "CONNECTED"}
                 variant="contained"
                 color="info"

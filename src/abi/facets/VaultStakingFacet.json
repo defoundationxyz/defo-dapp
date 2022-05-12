@@ -1,5 +1,6 @@
 [
     "function addToVault(uint256,uint256)",
+    "function batchAddTovault(uint256[],uint256[])",
     "function showStakedAmount() view returns (uint256)",
     "function unstakeTokens(uint256,uint256)"
 ]

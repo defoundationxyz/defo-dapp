@@ -1,4 +1,3 @@
-
 import { BigNumber } from 'ethers'
 import Dai_ABI from './abi/DAI.json'
 import DiamonCutFacet_ABI from './abi/facets/DiamondCutFacet.json'
@@ -12,9 +11,7 @@ import OwnerFacet_ABI from './abi/facets/OwnerFacet.json'
 import OwnershipFacet_ABI from './abi/facets/OwnershipFacet.json'
 import VaultStakingFacet_ABI from './abi/facets/VaultStakingFacet.json'
 
-
 export const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID
-
 
 export const RPC = {
     43114: "https://api.avax.network/ext/bc/C/rpc",
@@ -47,7 +44,7 @@ export const RINKEBY_CONFIG = {
 
 
 
-export const ACTIVE_NETWORK = RINKEBY_CONFIG
+export const ACTIVE_NETWORK = TESTNET_CONFIG
 
 
 export const CONTRACTS = {
@@ -57,18 +54,18 @@ export const CONTRACTS = {
     Dai: {
         abi: Dai_ABI,
         // address: "0xd586E7F844cEa2F87f50152665BCbc2C279D8d70",      // mainnet
-        address: "0x0730ebE45b12284C37CEbA4BBB96C1208EAF9122",      // testnet
+        address: "0x85a2ff500E0eD9fA93719071EA46A86198181581",      // testnet
 
     },
 
     DefoToken: {
         abi: Dai_ABI,
-        address: "0x4ca5C84333c0C50CFc4A5CdEEeff9fd051Ab1f4A",
+        address: "0x5C7ea2D484464a6Be1c2028CE1E9e1Ec339Dd3Ae",
     },
 
     Main: {
         // address: "0x78c51f56e21994FB5d00D2A817Bca4c5B735FDcb",  // mainnet
-        address: "0x3b8902832005DB7Cc52E921436dA24357C5aE8F8",  // testnet
+        address: "0xd274d23b3Ae1b2a6c45b400e66dC64FBB3053222",  // testnet
         abi: [
             ...DiamonCutFacet_ABI,
             ...DiamonLoupeFacet_ABI,
@@ -82,9 +79,6 @@ export const CONTRACTS = {
             ...VaultStakingFacet_ABI,
         ]
     }
-
-
-
 
 }
 
