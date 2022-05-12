@@ -269,9 +269,13 @@ const Home: NextPage = () => {
       headerName: 'Tier Countdown'
     },
     {
-      flex: 0.8,
+      flex: 1,
       field: 'feesDueIn',
-      headerName: 'Fees due in'
+      headerName: 'Fees due in',
+      renderCell: (params) => {
+        const gem: GemType = params.row;
+        return <Typography variant='body2'>{moment(gem.LastMaintained, "X").format("MMM DD YYYY HH:mm")}</Typography>
+      }
     },
     {
       flex: 1.5,
@@ -669,15 +673,15 @@ const Home: NextPage = () => {
                   <Grid item>
                     <Typography variant="body2">{
                       formatUnits(
-                      myGems
-                        .filter(gem => selectedRows.includes(gem.id))
-                        .reduce(
-                          (
-                            n,
-                            { pendingReward }
-                          ) => (pendingReward.div(100).mul(meta[3])).add(n),
-                          BigNumber.from(0)
-                        ), "ether")
+                        myGems
+                          .filter(gem => selectedRows.includes(gem.id))
+                          .reduce(
+                            (
+                              n,
+                              { pendingReward }
+                            ) => (pendingReward.div(100).mul(meta[3])).add(n),
+                            BigNumber.from(0)
+                          ), "ether")
                     } DEFO ($0)</Typography>
                   </Grid>
                 </Grid>
