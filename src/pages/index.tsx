@@ -208,6 +208,7 @@ const Home: NextPage = () => {
           let amount = myGem.pendingReward
           amounts.push(amount)
         }
+        
       }
 
       const tx = await contract.batchAddTovault(gemIds, amounts)
