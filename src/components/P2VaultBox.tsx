@@ -5,9 +5,9 @@ import { BigNumber } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 import moment from "moment"
 import { useState } from "react"
-import { GemType } from "../constants"
+import { GemType } from "shared/utils/constants";
 import ContentBox from "./ContentBox"
-import { useWeb3 } from "./Web3Provider"
+import { useWeb3 } from "shared/context/Web3/Web3Provider"
 
 
 

@@ -1,8 +1,9 @@
+// @ts-nocheck
 import '../globals.css'
 import type { AppProps } from 'next/app'
-import ThemeProvider from '../components/ThemeProvider'
-import Web3Provider from '../components/Web3Provider'
-import SnackbarProvider from '../components/SnackbarProvider'
+import ThemeProvider from "shared/styles/ThemeProvider/ThemeProvider";
+import { Web3Provider } from 'shared/context/Web3/Web3Provider'
+import { SnackbarProvider } from 'shared/context/Snackbar/SnackbarProvider'
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

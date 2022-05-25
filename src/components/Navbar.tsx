@@ -1,5 +1,5 @@
 import { AppBar, Box, Button, Container, Grid, Toolbar, Typography, useTheme } from "@mui/material"
-import { useWeb3 } from "./Web3Provider"
+import { useWeb3 } from "shared/context/Web3/Web3Provider"
 import Link from "next/link"
 
 const Navbar = () => {

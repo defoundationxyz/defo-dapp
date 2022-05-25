@@ -1,14 +1,15 @@
 import { Close, FiberManualRecord } from "@mui/icons-material"
 import { Box, Button, Grid, IconButton, Modal, Paper, Typography, useTheme } from "@mui/material"
-import { Contract } from "ethers"
+import { Contract, ContractFactory } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 import moment from "moment"
 import { useState } from "react"
-import { CONTRACTS, GemType, GemTypeMetadata } from "../constants"
-import ContentBox from "./ContentBox"
-import { useSnackbar } from "./SnackbarProvider"
-import { useWeb3 } from "./Web3Provider"
-
+import { CONTRACTS, GemType, GemTypeMetadata } from "shared/utils/constants"
+import ContentBox from "../ContentBox"
+import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
+import { useWeb3 } from "shared/context/Web3/Web3Provider"
+import { getBalance } from "shared/utils/format"
+import erc20ABI from "abi/ERC20ABI.json";
 
 
 const YourYieldGemsBox = ({
@@ -29,20 +30,26 @@ const YourYieldGemsBox = ({
 }) => {
     const theme = useTheme()
     const snackbar = useSnackbar()
-    const { signer, status } = useWeb3()
+    const { signer, status, account } = useWeb3()
 
 
     const [createYieldGemModalOpen, setCreateYieldGemModalOpen] = useState(false)
 
-
-
+    // console.log(meta);
+    
 
     const createYieldGem = async (gemType: 0 | 1 | 2) => {
-
-        const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+        
+        const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer);
+        // console.log(contract);
+        
+        const gemMetadata = await contract.GetGemTypeMetadata(0);
+        console.log('gemMetadata: ', gemMetadata);
+        return
 
         try {
             const tx = await contract.MintGem(gemType.toString())
+            console.log('mint tx: ', tx);
             snackbar.execute("Creating, please wait.", "info")
             await tx.wait()
             await fetchAccountData()
@@ -52,7 +59,22 @@ const YourYieldGemsBox = ({
             console.log(error)
             snackbar.execute(error?.reason || "Error", "error")
         }
+    }
 
+    const getAvailableGemsToBeMinted = (gemType: 0 | 1 | 2) => {
+        let gemMetadata;
+        if(gemType === 0) { 
+            gemMetadata = gem0Metadata
+        } else if(gemType === 1) { 
+            gemMetadata = gem1Metadata
+        } else if(gemType === 2) { 
+            gemMetadata = gem2Metadata
+        }
+        if(!gemMetadata?.DailyLimit) { return 0; }
+        // console.log("Daily Limit: ", gemMetadata?.DailyLimit);
+        console.log("MintCount: ", gemMetadata?.MintCount);
+        console.log('---------------------------');
+        return gemMetadata?.DailyLimit - gemMetadata?.MintCount
     }
 
     return (
@@ -145,7 +167,7 @@ const YourYieldGemsBox = ({
                     </Grid>
 
 
-
+                    
                     <Grid item xs={3.5}>
                         <Paper
                             sx={{
@@ -245,7 +267,7 @@ const YourYieldGemsBox = ({
                                     height: "100%"
                                 }}
                             >
-
+                                
                                 <Grid item xs={12} md={3.7} sx={{
                                     margin: {
                                         xs: theme.spacing(2, 0),
@@ -303,7 +325,9 @@ const YourYieldGemsBox = ({
                                             margin: theme.spacing(0.5, 0)
                                         }}>
                                             <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
-                                            <Typography variant="body2" > {gem0Metadata?.MintCount.toString()}/{gem0Metadata?.DailyLimit.toString()} </Typography>
+                                            <Typography variant="body2"> 
+                                            {getAvailableGemsToBeMinted(0)}/{gem0Metadata?.DailyLimit.toString()} 
+                                            </Typography>
                                         </Box>
                                         <Box sx={{
                                             display: "flex",
@@ -386,7 +410,7 @@ const YourYieldGemsBox = ({
                                             margin: theme.spacing(0.5, 0)
                                         }}>
                                             <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
-                                            <Typography variant="body2" > {gem1Metadata?.MintCount}/{gem1Metadata?.DailyLimit.toString()}</Typography>
+                                            <Typography variant="body2" > {getAvailableGemsToBeMinted(1)}/{gem1Metadata?.DailyLimit.toString()}</Typography>
                                         </Box>
                                         <Box sx={{
                                             display: "flex",
@@ -469,7 +493,7 @@ const YourYieldGemsBox = ({
                                             margin: theme.spacing(0.5, 0)
                                         }}>
                                             <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
-                                            <Typography variant="body2" >{gem2Metadata?.MintCount}/{gem2Metadata?.DailyLimit.toString()}</Typography>
+                                            <Typography variant="body2" >{getAvailableGemsToBeMinted(2)}/{gem2Metadata?.DailyLimit.toString()}</Typography>
                                         </Box>
                                         <Box sx={{
                                             display: "flex",

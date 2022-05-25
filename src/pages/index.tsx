@@ -1,21 +1,21 @@
 import { Box, Button, Container, FormControlLabel, Grid, IconButton, Modal, Paper, Switch, Tooltip, Typography, useTheme } from '@mui/material'
 import type { NextPage } from 'next'
-import Footer from '../components/Footer'
-import { CONTRACTS, GemType, GemTypeMetadata } from "../constants"
+import Footer from 'components/Footer'
+import { CONTRACTS, GemType, GemTypeMetadata } from "shared/utils/constants"
 import { BigNumber, Contract } from 'ethers'
-import { useWeb3 } from '../components/Web3Provider'
+import { useWeb3 } from 'shared/context/Web3/Web3Provider'
 import { useEffect, useState } from 'react'
-import Navbar from '../components/Navbar'
+import Navbar from 'components/Navbar'
 import Head from 'next/head'
 import { Close, HelpOutline } from '@mui/icons-material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { formatUnits } from 'ethers/lib/utils'
-import ContentBox from '../components/ContentBox'
-import DonationsBox from '../components/DonationsBox'
-import YourYieldGemsBox from '../components/YourYieldGemsBox'
-import P2VaultBox from '../components/P2VaultBox'
+import ContentBox from 'components/ContentBox'
+import DonationsBox from 'components/DonationsBox'
+import YourYieldGemsBox from "components/YourYieldGemsBox/YourYieldGemsBox";
+import P2VaultBox from 'components/P2VaultBox'
 import moment from 'moment'
-import { useSnackbar } from '../components/SnackbarProvider'
+import { useSnackbar } from 'shared/context/Snackbar/SnackbarProvider'
 
 
 const Home: NextPage = () => {
@@ -116,8 +116,8 @@ const Home: NextPage = () => {
 
       return gemTyped
     }))
-
-    console.log(myGems)
+    
+    console.log('MY GEMS:', myGems)
 
     setMyGems(myGems)
 
@@ -339,11 +339,10 @@ const Home: NextPage = () => {
       try {
 
         const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-        console.log(mainContract)
+        console.log('Main Contract:', mainContract)
 
         const meta = await mainContract.getMeta()
         setMeta(meta)
-        console.log(meta)
 
       } catch (error) {
         console.log(error)
