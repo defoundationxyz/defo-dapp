@@ -12,7 +12,7 @@ import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { formatUnits } from 'ethers/lib/utils'
 import ContentBox from 'components/ContentBox'
 import DonationsBox from 'components/DonationsBox'
-import YourYieldGemsBox from "components/YourYieldGemsBox/YourYieldGemsBox";
+import YieldGems from "components/YieldGems/YieldGems";
 import P2VaultBox from 'components/P2VaultBox'
 import moment from 'moment'
 import { useSnackbar } from 'shared/context/Snackbar/SnackbarProvider'
@@ -385,7 +385,7 @@ const Home: NextPage = () => {
           </Grid>
 
           <Grid item xs={12} md={5.8}>
-            <YourYieldGemsBox
+            <YieldGems
               fetchAccountData={fetchAccountData}
               myGems={myGems}
               meta={meta}

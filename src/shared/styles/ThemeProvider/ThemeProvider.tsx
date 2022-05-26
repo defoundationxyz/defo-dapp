@@ -35,6 +35,14 @@ const ThemeProvider = ({ children }: {
                         borderRadius: "10px"
                     }
                 }
+            },
+            MuiDialog: {
+                styleOverrides: { 
+                    paper: { 
+                        maxWidth: "none",
+                        minWidth: "900px"
+                    }
+                }
             }
         }
     })
