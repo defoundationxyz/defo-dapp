@@ -4,8 +4,23 @@ import { BigNumber, Contract } from "ethers";
 import { formatUnits } from "ethers/lib/utils";
 import { useEffect, useState } from "react";
 import { useWeb3 } from "shared/context/Web3/Web3Provider";
-import { CONTRACTS } from "shared/utils/constants";
+import { CONTRACTS, GEM_MINT_LIMIT_HOURS } from "shared/utils/constants";
 import { GemTypeMetadata } from "shared/utils/constants";
+import { getHoursFromSecondsInRange } from "shared/utils/format"; 
+
+const primaryColorMapper = {
+    0: "#3C88FD",
+    1: "#E0115F",
+    2: "#5DDAF6"
+}
+
+const secondaryColorMapper = {
+    0: "#2d66bd",
+    1: "#9e0d44",
+    2: "#45a5ba"
+}
+
+
 
 const YieldGemBox = ({ gemType, name }: {
     gemType: 0 | 1 | 2,
@@ -14,6 +29,7 @@ const YieldGemBox = ({ gemType, name }: {
     const theme = useTheme();
     const { signer, status, account } = useWeb3()
     const [gem, setGem] = useState<GemTypeMetadata | null>(null);
+    const [timeUntilMint, setTimeUntilMint] = useState(0);
 
     useEffect(() => {
         const loadData = async () => {
@@ -37,12 +53,27 @@ const YieldGemBox = ({ gemType, name }: {
             StablePrice: currentGem[6],
         };
 
+        const timeLeft = await contract.getExpiredTimeSinceLock(gemType);
+        const hours = getHoursFromSecondsInRange(timeLeft);
+        
+
+        if(hours > 48) {
+            setTimeUntilMint(0)
+        } else { 
+            setTimeUntilMint(GEM_MINT_LIMIT_HOURS - hours);
+        }
+
         setGem(currentGemTyped);
     }
 
+    // TOOD: fix this in the smart contract
     const getAvailableGemsToBeMinted = () => {
         if (!gem?.DailyLimit) { return 0; }
-        return gem?.DailyLimit - gem?.MintCount - 1 // TOOD: fix this in the smart contract
+        const current = gem?.DailyLimit - gem?.MintCount;
+        if (current == gem.DailyLimit) {
+            return current;
+        }
+        return current - 1;
     }
 
     const createYieldGem = async (gemType: 0 | 1 | 2) => {
@@ -72,6 +103,11 @@ const YieldGemBox = ({ gemType, name }: {
         return formatUnits(number, "ether");
     }
 
+    // const getRefresh = () => {
+    //     const timeLeft = await gemGetterFacetInstance.getExpiredTimeSinceLock(0);
+    //     console.log('Expired hours since lock: ', timeLeft);
+    //     console.log(`hours until mint: `, getHoursFromSecondsInRange(timeLeft));
+    // }
 
     return (
         <>
@@ -88,7 +124,7 @@ const YieldGemBox = ({ gemType, name }: {
                             md: theme.spacing(2),
                         },
                         height: "100%",
-                        border: "solid 1px #3C88FD"
+                        border: `solid 1px ${primaryColorMapper[gemType]}`
                     }}>
                     <Box sx={{
                         display: "flex",
@@ -102,9 +138,9 @@ const YieldGemBox = ({ gemType, name }: {
                                 md: theme.spacing(1),
                             },
                             fontSize: "16px",
-                            color: "#3C88FD"
+                            color: primaryColorMapper[gemType]
                         }} />
-                        <Typography variant="body2" fontWeight={"bold"} color="#3C88FD">{name}</Typography>
+                        <Typography variant="body2" fontWeight={"bold"} color={primaryColorMapper[gemType]}>{name}</Typography>
                     </Box>
                     <Box sx={{
                         display: "flex",
@@ -114,8 +150,8 @@ const YieldGemBox = ({ gemType, name }: {
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Cost:</Typography>
                         <Typography variant="body2">
-                            {gem?.DefoPrice && formatPrice(gem?.DefoPrice)} DEFO 
-                            + 
+                            {gem?.DefoPrice && formatPrice(gem?.DefoPrice)} DEFO
+                            +
                             {gem?.StablePrice && formatPrice(gem?.StablePrice)} DAI
                         </Typography>
 
@@ -128,7 +164,7 @@ const YieldGemBox = ({ gemType, name }: {
 
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Reward:</Typography>
-                        <Typography variant="body2" >{gem?.RewardRate.toString()}DEFO/Week</Typography>
+                        <Typography variant="body2" >{gem?.RewardRate.toString()} DEFO/Week</Typography>
                     </Box>
                     <Box sx={{
                         display: "flex",
@@ -138,7 +174,7 @@ const YieldGemBox = ({ gemType, name }: {
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
                         <Typography variant="body2">
-                            {getAvailableGemsToBeMinted()}/{gem?.DailyLimit.toString()}
+                            {getAvailableGemsToBeMinted()} / {gem?.DailyLimit.toString()}
                         </Typography>
                     </Box>
                     <Box sx={{
@@ -148,18 +184,17 @@ const YieldGemBox = ({ gemType, name }: {
                         margin: theme.spacing(0.5, 0)
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Refresh:</Typography>
-                        <Typography variant="body2">2H</Typography>
-                        {/* <Typography variant="body2" > {meta && moment.duration(moment(meta[14], "X").diff(moment(gem?.LastMint, "X"))).asHours()}H</Typography> */}
+                        <Typography variant="body2">{timeUntilMint} hours</Typography>
                     </Box>
                     <Button
                         onClick={() => createYieldGem(0)}
                         variant='contained'
                         sx={{
                             color: "white",
-                            backgroundColor: "#3C88FD",
+                            backgroundColor: primaryColorMapper[gemType],
                             marginTop: theme.spacing(1),
                             "&:hover": {
-                                backgroundColor: "#2d66bd",
+                                backgroundColor: secondaryColorMapper[gemType],
                             }
                         }}
                     >CREATE</Button>

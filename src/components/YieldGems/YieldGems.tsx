@@ -231,13 +231,13 @@ const YieldGems = ({
                     />
 
                     <YieldGemBox
-                        name={"Sapphire"}
-                        gemType={0}
+                        name={"Diamond"}
+                        gemType={1}
                     />
 
                     <YieldGemBox
-                        name={"Sapphire"}
-                        gemType={0}
+                        name={"Ruby"}
+                        gemType={2}
                     />
 
                 </Grid>

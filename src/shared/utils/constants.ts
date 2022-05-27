@@ -90,7 +90,7 @@ export const CONTRACTS = {
 
 }
 
-
+export const GEM_MINT_LIMIT_HOURS = 12;
 
 export const NATIVE_CURRENCY = {
     name: "AVAX",
