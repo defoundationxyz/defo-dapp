@@ -1,33 +1,25 @@
 import { FiberManualRecord } from "@mui/icons-material";
 import { Grid, Paper, Typography, Box, useTheme, Button } from "@mui/material"
-import { BigNumber, Contract } from "ethers";
+import { BigNumber } from "ethers";
 import { formatUnits } from "ethers/lib/utils";
 import { useEffect, useState } from "react";
+import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider";
+import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
 import { useWeb3 } from "shared/context/Web3/Web3Provider";
-import { CONTRACTS, GEM_MINT_LIMIT_HOURS } from "shared/utils/constants";
+import { GEM_MINT_LIMIT_HOURS } from "shared/utils/constants";
 import { GemTypeMetadata } from "shared/utils/constants";
 import { getHoursFromSecondsInRange } from "shared/utils/format"; 
+import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper";
 
-const primaryColorMapper = {
-    0: "#3C88FD",
-    1: "#E0115F",
-    2: "#5DDAF6"
-}
-
-const secondaryColorMapper = {
-    0: "#2d66bd",
-    1: "#9e0d44",
-    2: "#45a5ba"
-}
-
-
-
-const YieldGemBox = ({ gemType, name }: {
+const YieldGemModalBox = ({ gemType, name, fetchAccountData }: {
     gemType: 0 | 1 | 2,
-    name: "Sapphire" | "Ruby" | "Diamond"
+    name: "Sapphire" | "Ruby" | "Diamond",
+    fetchAccountData: Function
 }) => {
     const theme = useTheme();
-    const { signer, status, account } = useWeb3()
+	const { diamondContract } = useDiamondContext()
+    const snackbar = useSnackbar();
+
     const [gem, setGem] = useState<GemTypeMetadata | null>(null);
     const [timeUntilMint, setTimeUntilMint] = useState(0);
 
@@ -40,9 +32,8 @@ const YieldGemBox = ({ gemType, name }: {
     }, [gemType])
 
     const fetchGemMetadata = async (gemType: 0 | 1 | 2) => {
-        const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer);
+        const currentGem = await diamondContract.GetGemTypeMetadata(gemType);
 
-        const currentGem = await contract.GetGemTypeMetadata(gemType);
         let currentGemTyped: GemTypeMetadata = {
             LastMint: currentGem[0],
             MaintenanceFee: currentGem[1],
@@ -53,12 +44,12 @@ const YieldGemBox = ({ gemType, name }: {
             StablePrice: currentGem[6],
         };
 
-        const timeLeft = await contract.getExpiredTimeSinceLock(gemType);
+        const timeLeft = await diamondContract.getExpiredTimeSinceLock(gemType);
         const hours = getHoursFromSecondsInRange(timeLeft);
         
 
         if(hours > 48) {
-            setTimeUntilMint(0)
+            setTimeUntilMint(GEM_MINT_LIMIT_HOURS);
         } else { 
             setTimeUntilMint(GEM_MINT_LIMIT_HOURS - hours);
         }
@@ -77,37 +68,25 @@ const YieldGemBox = ({ gemType, name }: {
     }
 
     const createYieldGem = async (gemType: 0 | 1 | 2) => {
-        const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer);
-
-        // console.log(contract);
-
-        // const gemMetadata = await contract.GetGemTypeMetadata(0);
-        // console.log('gemMetadata: ', gemMetadata);
-        // return
-
-        // try {
-        //     const tx = await contract.MintGem(gemType.toString())
-        //     console.log('mint tx: ', tx);
-        //     snackbar.execute("Creating, please wait.", "info")
-        //     await tx.wait()
-        //     await fetchAccountData()
-        //     snackbar.execute("Created", "success")
-        //     setCreateYieldGemModalOpen(false)
-        // } catch (error: any) {
-        //     console.log(error)
-        //     snackbar.execute(error?.reason || "Error", "error")
-        // }
+        
+        try {
+            const tx = await diamondContract.MintGem(gemType.toString())
+            snackbar.execute("Creating, please wait.", "info")
+            await tx.wait()
+            await fetchAccountData()
+            await fetchGemMetadata(gemType);
+            snackbar.execute("Created", "success")
+            // setCreateYieldGemModalOpen(false)
+        } catch (error: any) {
+            console.log(error)
+            snackbar.execute(error?.reason || "Error", "error")
+        }
     }
 
     const formatPrice = (number: BigNumber) => {
         return formatUnits(number, "ether");
     }
 
-    // const getRefresh = () => {
-    //     const timeLeft = await gemGetterFacetInstance.getExpiredTimeSinceLock(0);
-    //     console.log('Expired hours since lock: ', timeLeft);
-    //     console.log(`hours until mint: `, getHoursFromSecondsInRange(timeLeft));
-    // }
 
     return (
         <>
@@ -187,8 +166,9 @@ const YieldGemBox = ({ gemType, name }: {
                         <Typography variant="body2">{timeUntilMint} hours</Typography>
                     </Box>
                     <Button
-                        onClick={() => createYieldGem(0)}
+                        onClick={() => createYieldGem(gemType)}
                         variant='contained'
+                        disabled={getAvailableGemsToBeMinted() === 0 ? true : false}
                         sx={{
                             color: "white",
                             backgroundColor: primaryColorMapper[gemType],
@@ -204,4 +184,4 @@ const YieldGemBox = ({ gemType, name }: {
     )
 }
 
-export default YieldGemBox
+export default YieldGemModalBox

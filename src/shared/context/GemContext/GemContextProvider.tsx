@@ -13,7 +13,6 @@ const GemContextProvider = ({ children }: { children: any}) => {
         gem2: {},
     });
 
-
     
     const fetchGemMetadata = async (gemType: 0 | 1 | 2) => {
         const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer);
@@ -40,7 +39,9 @@ const GemContextProvider = ({ children }: { children: any}) => {
     }
 
 
-    const providerValue = {}
+    const providerValue = { 
+        yieldGemsMetadata, fetchGemMetadata
+    }
 
     return (
         <GemContext.Provider value={providerValue}>

@@ -3,45 +3,68 @@ import { Box, Button, Grid, IconButton, Modal, Paper, Typography, useTheme } fro
 import { Contract, ContractFactory } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 import moment from "moment"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { CONTRACTS, GemType, GemTypeMetadata } from "shared/utils/constants"
 import ContentBox from "../ContentBox"
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
 import { useWeb3 } from "shared/context/Web3/Web3Provider"
-import { getBalance } from "shared/utils/format"
+import { getBalance, getGemTypes } from "shared/utils/format"
 import erc20ABI from "abi/ERC20ABI.json";
 import ModalLayout from "shared/components/DialogLayout/ModalLayout"
-import YieldGemBox from "./YieldGemBox/YieldGemBox"
+import YieldGemModalBox from "./YieldGemModalBox/YieldGemModalBox"
+import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
+import YieldGemInfoBox from "./YieldGemInfoBox/YieldGemInfoBox"
 
+type yieldGemsMetadataType = {
+    gem0: GemTypeMetadata | {},
+    gem1: GemTypeMetadata | {},
+    gem2: GemTypeMetadata | {},
+}
 
-const YieldGems = ({
-    fetchAccountData,
-    myGems,
-    gem0Metadata,
-    gem1Metadata,
-    gem2Metadata,
-    meta,
-}: {
-    fetchAccountData: Function,
-    myGems: GemType[],
-    gem0Metadata: GemTypeMetadata | undefined,
-    gem1Metadata: GemTypeMetadata | undefined,
-    gem2Metadata: GemTypeMetadata | undefined,
-    meta: any | undefined
-
-}) => {
+const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccountData: Function }) => {
     const gemsModalRef = useRef<any>();
-    const theme = useTheme();
-    const snackbar = useSnackbar();
-    const { signer, status, account } = useWeb3();
+	const { status } = useWeb3()
+    const { diamondContract } = useDiamondContext()
 
-    const [yieldGems, setYieldGems] = useState({
-        gem0Metadata: {},
-        gem1Metadata: {},
-        gem2Metadata: {},
+    const [yieldGemsMetadata, setYieldGemsMetadata] = useState<yieldGemsMetadataType>({
+        gem0: {},
+        gem1: {},
+        gem2: {},
     });
 
-    const [createYieldGemModalOpen, setCreateYieldGemModalOpen] = useState(false);
+    // index representing the GemType
+    const [gemsCount, setGemsCount] = useState([0, 0, 0])
+
+
+    useEffect(() => {
+        const currentGemsCount = [0, 0, 0];
+        myGems.forEach(gem => {
+            currentGemsCount[gem.GemType]++;
+
+        })
+        setGemsCount(currentGemsCount);
+    }, [myGems])
+
+    // useEffect(() => {
+    //     const loadGemsData = async () => {
+    //         const _gem0Metadata = await diamondContract.GetGemTypeMetadata(0);
+    //         const _gem1Metadata = await diamondContract.GetGemTypeMetadata(1);
+    //         const _gem2Metadata = await diamondContract.GetGemTypeMetadata(2);
+
+    //         const gem0Metadata = getGemTypes(_gem0Metadata);
+    //         const gem1Metadata = getGemTypes(_gem1Metadata);
+    //         const gem2Metadata = getGemTypes(_gem2Metadata);
+
+    //         setYieldGemsMetadata({
+    //             gem0: gem0Metadata,
+    //             gem1: gem1Metadata,
+    //             gem2: gem2Metadata
+    //         })
+    //     }
+
+    //     loadGemsData();
+    // }, [])
+
 
     const handleOpenModal = () => {
         if (!gemsModalRef.current) { return; }
@@ -54,49 +77,13 @@ const YieldGems = ({
     }
 
 
-    const createYieldGem = async (gemType: 0 | 1 | 2) => {
-
-        const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer);
-        // console.log(contract);
-
-        const gemMetadata = await contract.GetGemTypeMetadata(0);
-        console.log('gemMetadata: ', gemMetadata);
-        return
-
-        try {
-            const tx = await contract.MintGem(gemType.toString())
-            console.log('mint tx: ', tx);
-            snackbar.execute("Creating, please wait.", "info")
-            await tx.wait()
-            await fetchAccountData()
-            snackbar.execute("Created", "success")
-            setCreateYieldGemModalOpen(false)
-        } catch (error: any) {
-            console.log(error)
-            snackbar.execute(error?.reason || "Error", "error")
-        }
-    }
-
-    const getAvailableGemsToBeMinted = (gemType: 0 | 1 | 2) => {
-        let gemMetadata;
-        if (gemType === 0) {
-            gemMetadata = gem0Metadata
-        } else if (gemType === 1) {
-            gemMetadata = gem1Metadata
-        } else if (gemType === 2) {
-            gemMetadata = gem2Metadata
-        }
-        if (!gemMetadata?.DailyLimit) { return 0; }
-        return gemMetadata?.DailyLimit - gemMetadata?.MintCount - 1 // TOOD: fix this in the smart contract
-    }
-
     return (
         <>
             <ContentBox
                 title="Your Yield Gems"
                 color="#C6E270"
                 button={<Button
-                    // disabled={status !== "CONNECTED"}
+                    disabled={status !== "CONNECTED"}
                     onClick={handleOpenModal}
                     variant="contained"
                     color="secondary"
@@ -117,99 +104,23 @@ const YieldGems = ({
                         height: "100%"
                     }}
                 >
+                    <YieldGemInfoBox
+                        minted={gemsCount[0]}
+                        gemType={0}
+                        name="Sapphire"
+                    />
 
-                    <Grid item xs={3.5}>
-                        <Paper
-                            sx={{
-                                padding: {
-                                    xs: theme.spacing(0.5),
-                                    md: theme.spacing(2),
-                                },
-                                height: "100%",
-                                border: "solid 1px #3C88FD"
-                            }}>
-                            <Box sx={{
-                                display: "flex",
-                                alignItems: "center"
-                            }}>
-                                <FiberManualRecord sx={{
-                                    marginRight: {
-                                        xs: theme.spacing(0),
-                                        md: theme.spacing(1),
-                                    },
-                                    fontSize: "16px",
-                                    color: "#3C88FD"
-                                }} />
-                                <Typography variant="body2" fontWeight={"bold"} color="#3C88FD">Sapphire</Typography>
-                            </Box>
-                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-                                {myGems.reduce((n, { GemType }) => GemType === 0 ? n + 1 : n, 0)}
-                            </Typography>
-                        </Paper>
-                    </Grid>
+                    <YieldGemInfoBox
+                        minted={gemsCount[1]}
+                        gemType={1}
+                        name="Ruby"
+                    />
 
-                    <Grid item xs={3.5}>
-                        <Paper
-                            sx={{
-                                padding: {
-                                    xs: theme.spacing(0.5),
-                                    md: theme.spacing(2),
-                                },
-                                height: "100%",
-                                border: "solid 1px #E0115F"
-                            }}>
-                            <Box sx={{
-                                display: "flex",
-                                alignItems: "center"
-                            }}>
-                                <FiberManualRecord sx={{
-                                    marginRight: {
-                                        xs: theme.spacing(0),
-                                        md: theme.spacing(1),
-                                    },
-                                    fontSize: "16px",
-                                    color: "#E0115F"
-                                }} />
-                                <Typography variant="body2" fontWeight={"bold"} color="#E0115F">Ruby</Typography>
-                            </Box>
-                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-                                {myGems.reduce((n, { GemType }) => GemType === 1 ? n + 1 : n, 0)}
-                            </Typography>
-                        </Paper>
-                    </Grid>
-
-                    <Grid item xs={3.5}>
-                        <Paper
-                            sx={{
-                                padding: {
-                                    xs: theme.spacing(0.5),
-                                    md: theme.spacing(2),
-                                },
-                                height: "100%",
-                                border: "solid 1px #5DDAF6"
-                            }}>
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    alignItems: "center"
-                                }}>
-                                <FiberManualRecord
-                                    sx={{
-                                        marginRight: {
-                                            xs: theme.spacing(0),
-                                            md: theme.spacing(1),
-                                        },
-                                        fontSize: "16px",
-                                        color: "#5DDAF6"
-                                    }} />
-                                <Typography variant="body2" fontWeight={"bold"} color="#5DDAF6">Diamond</Typography>
-                            </Box>
-                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-                                {myGems.reduce((n, { GemType }) => GemType === 2 ? n + 1 : n, 0)}
-                            </Typography>
-                        </Paper>
-                    </Grid>
-
+                    <YieldGemInfoBox
+                        minted={gemsCount[2]}
+                        gemType={2}
+                        name="Diamond"
+                    />
                 </Grid>
             </ContentBox>
 
@@ -225,19 +136,22 @@ const YieldGems = ({
                     }}
                 >
 
-                    <YieldGemBox
+                    <YieldGemModalBox
                         name={"Sapphire"}
                         gemType={0}
+                        fetchAccountData={fetchAccountData}
                     />
 
-                    <YieldGemBox
-                        name={"Diamond"}
-                        gemType={1}
-                    />
-
-                    <YieldGemBox
+                    <YieldGemModalBox
                         name={"Ruby"}
+                        gemType={1}
+                        fetchAccountData={fetchAccountData}
+                    />
+
+                    <YieldGemModalBox
+                        name={"Diamond"}
                         gemType={2}
+                        fetchAccountData={fetchAccountData}
                     />
 
                 </Grid>
