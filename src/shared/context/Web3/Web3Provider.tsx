@@ -21,7 +21,7 @@ const Web3Provider = ({theme = "light", children}: {theme: "dark" | "light"; chi
 
     const [status, setStatus] = useState<CHAIN_STATUS>("NOT_CONNECTED");
     const [web3Provider, setWeb3Provider] = useState<providers.Web3Provider>();
-    const [signer, setSigner] = useState<Signer | providers.Provider>(defaultProvider);
+    const [signer, setSigner] = useState<any>(defaultProvider);
     const [account, setAccount] = useState<string>();
     const [defoInstance, setDefoInstance] = useState();
 

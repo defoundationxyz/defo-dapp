@@ -1,13 +1,14 @@
+//  @ts-nocheck
 import { Box, Button, Container, FormControlLabel, Grid, IconButton, Modal, Paper, Switch, Tooltip, Typography, useTheme } from '@mui/material'
 import type { NextPage } from 'next'
 import Footer from 'components/Footer'
 import { CONTRACTS, GemType, GemTypeMetadata } from "shared/utils/constants"
-import { BigNumber, Contract } from 'ethers'
+import { BigNumber, Contract, ethers } from 'ethers'
 import { useWeb3 } from 'shared/context/Web3/Web3Provider'
 import { useEffect, useState } from 'react'
 import Navbar from 'components/Navbar'
 import Head from 'next/head'
-import { Close, HelpOutline } from '@mui/icons-material'
+import { Close, HelpOutline, SafetyDividerOutlined } from '@mui/icons-material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { formatUnits } from 'ethers/lib/utils'
 import ContentBox from 'components/ContentBox'
@@ -17,7 +18,14 @@ import P2VaultBox from 'components/P2VaultBox'
 import moment from 'moment'
 import { useSnackbar } from 'shared/context/Snackbar/SnackbarProvider'
 import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextProvider'
+import { getGemTypes } from 'shared/utils/format'
+import { getIsEligableForClaim } from 'shared/utils/helper'
 
+type yieldGemsMetadataType = {
+	gem0: GemTypeMetadata | {},
+	gem1: GemTypeMetadata | {},
+	gem2: GemTypeMetadata | {},
+}
 
 const Home: NextPage = () => {
 
@@ -39,6 +47,11 @@ const Home: NextPage = () => {
 	const [totalStaked, setTotalStaked] = useState<BigNumber>(BigNumber.from(0))
 
 	const [myGems, setMyGems] = useState<GemType[]>([])
+	const [yieldGemsMetadata, setYieldGemsMetadata] = useState<yieldGemsMetadataType>({
+		gem0: {},
+		gem1: {},
+		gem2: {},
+	});
 
 	const [meta, setMeta] = useState<any>()
 
@@ -52,8 +65,8 @@ const Home: NextPage = () => {
 		(async () => {
 			try {
 				const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-				console.log('mainContract: ', mainContract);
-				
+				// console.log('mainContract: ', mainContract);
+
 				if (mainContract.address) {
 					setDiamondContract(mainContract)
 				}
@@ -82,13 +95,34 @@ const Home: NextPage = () => {
 		return () => { }
 	}, [status, account, signer])
 
+	useEffect(() => {
+		// console.log('GEM 0: ', yieldGemsMetadata.gem0);
+		// console.log(myGems);
+
+	}, [yieldGemsMetadata.gem0])
+
+	useEffect(() => {
+		// console.log('myGems: ', myGems);
+		// console.log('Meta: ', meta);
+	}, [myGems])
 
 	const fetchAccountData = async () => {
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 
-		setYourDonations(await contract.getTotalCharity(account))
 
+		setYourDonations(ethers.utils.formatEther(await contract.getTotalCharity(account))) // put in the vault or claim reward
 		setYourStake(await contract.showStakedAmount())
+
+		//fetch gemMetadata
+		const _gem0Metadata = await diamondContract.GetGemTypeMetadata(0);
+		const _gem1Metadata = await diamondContract.GetGemTypeMetadata(1);
+		const _gem2Metadata = await diamondContract.GetGemTypeMetadata(2);
+
+		setYieldGemsMetadata({
+			gem0: getGemTypes(_gem0Metadata),
+			gem1: getGemTypes(_gem1Metadata),
+			gem2: getGemTypes(_gem2Metadata)
+		})
 
 		const myGemIds = await contract.getGemIdsOf(account)
 
@@ -114,13 +148,31 @@ const Home: NextPage = () => {
 		setMyGems(myGems)
 	}
 
+	const getDefoReward = () => {
+		return formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether")
+	}
+
+	const getIsTooSoon = async() => { 
+		// const blockNumber = signer.provider
+		// if(!signer && !signer?.provider) { return; }
+		const provider = signer 
+		// console.log('provider: ', signer.provider);
+	}
 
 	const payFee = async (gemId: string) => {
+		console.log(gemId);
+		const isEligable = await getIsEligableForClaim(diamondContract, signer.provider);
 
-		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+		if(!isEligable) { 
+			snackbar.execute("You already paid the fee", "error");
+			return
+		}
+		
+		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+		// "Error: VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)"
 
 		try {
-			const tx = await contract.Maintenance(gemId, 0)
+			const tx = await diamondContract.Maintenance(gemId, 0)
 			snackbar.execute("Maintenance on progress, please wait.", "info")
 			await tx.wait()
 			await fetchAccountData()
@@ -132,24 +184,23 @@ const Home: NextPage = () => {
 
 	}
 
-
 	const batchPayFee = async (gemIds: string[]) => {
+		console.log(gemIds);
+		
+		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 
-		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+		// try {
+		// 	const tx = await contract.BatchMaintenance(gemIds)
+		// 	snackbar.execute("Maintenance on progress, please wait.", "info")
+		// 	await tx.wait()
+		// 	await fetchAccountData()
 
-		try {
-			const tx = await contract.BatchMaintenance(gemIds)
-			snackbar.execute("Maintenance on progress, please wait.", "info")
-			await tx.wait()
-			await fetchAccountData()
-
-		} catch (error: any) {
-			console.log(error)
-			snackbar.execute(error?.error?.message || error?.reason || "ERROR", "error")
-		}
+		// } catch (error: any) {
+		// 	console.log(error)
+		// 	snackbar.execute(error?.error?.message || error?.reason || "ERROR", "error")
+		// }
 
 	}
-
 
 	const claimRewards = async (gemId: string) => {
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
@@ -166,10 +217,15 @@ const Home: NextPage = () => {
 	}
 
 	const BatchClaimRewards = async (gemIds: string[]) => {
+		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+		const gemIdsAsNumber = gemIds.map(gemId => +gemId);
+		console.log(gemIdsAsNumber);
+		
 
-		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 		try {
-			const tx = await contract.BatchClaimRewards(gemIds)
+			const batchTx = await diamondContract.BatchMaintenance(gemIdsAsNumber);
+			console.log('batchTx: ', batchTx);
+			const tx = await diamondContract.BatchClaimRewards(gemIdsAsNumber)
 			snackbar.execute("Claiming on progress, please wait.", "info")
 			await tx.wait()
 			await fetchAccountData()
@@ -316,6 +372,7 @@ const Home: NextPage = () => {
 			</Head>
 			<Navbar />
 			<Container>
+				<Button onClick={getIsTooSoon} variant="outlined" color="error">Get Info</Button>
 				<Typography variant="h4" fontWeight={"bold"}>
 					Welcome Philanthropist!
 				</Typography>
@@ -323,6 +380,7 @@ const Home: NextPage = () => {
 					Ready to make the world a better place for the less fortunate?
 				</Typography>
 
+				{/* Donations */}
 				<Grid
 					container
 					justifyContent={"space-between"}
@@ -338,16 +396,14 @@ const Home: NextPage = () => {
 					</Grid>
 
 					<Grid item xs={12} md={5.8}>
-						<YieldGems myGems={myGems} fetchAccountData={fetchAccountData}/>
+						<YieldGems myGems={myGems} fetchAccountData={fetchAccountData} />
 					</Grid>
 				</Grid>
 
+				{/* P2 Vault */}
 				<Grid
 					container
 					justifyContent={"space-between"}
-					sx={{
-						// margin: theme.spacing(8, 0)
-					}}
 				>
 					<Grid item xs={12} md={7.9}>
 						<P2VaultBox
@@ -362,14 +418,15 @@ const Home: NextPage = () => {
 							title="Rewards"
 							color="#FCBD00"
 							button={<Button
-								onClick={() => {
-									BatchClaimRewards(myGems.map(gem => gem.id))
-								}}
+								// onClick={() => {
+								// 	BatchClaimRewards(myGems.map(gem => gem.id))
+								// }}
+								onClick={() => setClaimRewardsModalOpen(true)}
 								disabled={status !== "CONNECTED"}
 								variant="contained"
 								color="info"
 							>
-								CLAIM
+								OPEN CLAIM
 							</Button>}
 						>
 							<Grid
@@ -385,8 +442,12 @@ const Home: NextPage = () => {
 											},
 										}}>
 										<Typography variant="body2">PENDING REWARDS</Typography>
-										<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>{formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether")} DEFO</Typography>
-										<Typography variant="h5" fontWeight={"bold"}>($0)</Typography>
+										<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
+											{getDefoReward()} DEFO
+										</Typography>
+										<Typography variant="h5" fontWeight={"bold"}>
+											(${(+getDefoReward()) * 5})
+										</Typography>
 									</Paper>
 								</Grid>
 							</Grid>
@@ -395,7 +456,7 @@ const Home: NextPage = () => {
 
 				</Grid>
 
-
+				{/* Table */}
 				<Box
 					sx={{
 						margin: theme.spacing(8, 0)
@@ -408,7 +469,7 @@ const Home: NextPage = () => {
 						</Grid>
 						<Grid item>
 							<Button
-								disabled={status !== "CONNECTED"}
+								disabled={status !== "CONNECTED" || selectedRows.length === 0}
 								onClick={() => batchPayFee(selectedRows)}
 								variant="contained"
 								color="primary"
@@ -424,7 +485,7 @@ const Home: NextPage = () => {
 						</Grid>
 						<Grid item>
 							<Button
-								disabled={status !== "CONNECTED"}
+								disabled={status !== "CONNECTED" || selectedRows.length === 0}
 								onClick={
 									() => setClaimRewardsModalOpen(true)
 								}
@@ -497,7 +558,8 @@ const Home: NextPage = () => {
 					}
 				}}
 			>
-				<Paper sx={{
+				<Paper 
+				sx={{
 					display: "flex",
 					flexDirection: "column",
 					minHeight: "50%",
@@ -538,10 +600,6 @@ const Home: NextPage = () => {
 							container
 							justifyContent={"space-between"}
 							alignItems="center"
-							sx={{
-								// height: "100%"i
-								// width: "100%"
-							}}
 						>
 							<Grid item xs={12} md={5.5}>
 								<Typography variant='body1'>PENDING REWARDS</Typography>
@@ -576,7 +634,6 @@ const Home: NextPage = () => {
 								<Box sx={{
 								}}>
 									<Tooltip title="Lorem Ipsum">
-
 										<Button
 											variant="contained"
 											color="primary"

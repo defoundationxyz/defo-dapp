@@ -15,22 +15,10 @@ import YieldGemModalBox from "./YieldGemModalBox/YieldGemModalBox"
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
 import YieldGemInfoBox from "./YieldGemInfoBox/YieldGemInfoBox"
 
-type yieldGemsMetadataType = {
-    gem0: GemTypeMetadata | {},
-    gem1: GemTypeMetadata | {},
-    gem2: GemTypeMetadata | {},
-}
 
 const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccountData: Function }) => {
     const gemsModalRef = useRef<any>();
 	const { status } = useWeb3()
-    const { diamondContract } = useDiamondContext()
-
-    const [yieldGemsMetadata, setYieldGemsMetadata] = useState<yieldGemsMetadataType>({
-        gem0: {},
-        gem1: {},
-        gem2: {},
-    });
 
     // index representing the GemType
     const [gemsCount, setGemsCount] = useState([0, 0, 0])
