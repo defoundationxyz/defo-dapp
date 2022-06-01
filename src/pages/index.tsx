@@ -20,6 +20,7 @@ import { useSnackbar } from 'shared/context/Snackbar/SnackbarProvider'
 import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextProvider'
 import { getGemTypes } from 'shared/utils/format'
 import { getIsEligableForClaim } from 'shared/utils/helper'
+import { getHoursFromSecondsInRange } from "shared/utils/format"; 
 
 type yieldGemsMetadataType = {
 	gem0: GemTypeMetadata | {},
@@ -110,7 +111,8 @@ const Home: NextPage = () => {
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 
 
-		setYourDonations(ethers.utils.formatEther(await contract.getTotalCharity(account))) // put in the vault or claim reward
+		// setYourDonations(ethers.utils.formatEther(await contract.getTotalCharity(account))) // put in the vault or claim reward
+		setYourDonations(formatUnits(await contract.getTotalCharity(account), "ether"))
 		setYourStake(await contract.showStakedAmount())
 
 		//fetch gemMetadata
@@ -152,22 +154,24 @@ const Home: NextPage = () => {
 		return formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether")
 	}
 
-	const getIsTooSoon = async() => { 
+	const getIsTooSoon = async () => {
 		// const blockNumber = signer.provider
 		// if(!signer && !signer?.provider) { return; }
-		const provider = signer 
+		// const provider = signer 
 		// console.log('provider: ', signer.provider);
+		const stakedAmount = await diamondContract.showStakedAmount();
+		console.log('stakedAmount: ', stakedAmount);
 	}
 
 	const payFee = async (gemId: string) => {
 		console.log(gemId);
 		const isEligable = await getIsEligableForClaim(diamondContract, signer.provider);
 
-		if(!isEligable) { 
+		if (!isEligable) {
 			snackbar.execute("You already paid the fee", "error");
 			return
 		}
-		
+
 		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 		// "Error: VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)"
 
@@ -186,7 +190,7 @@ const Home: NextPage = () => {
 
 	const batchPayFee = async (gemIds: string[]) => {
 		console.log(gemIds);
-		
+
 		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 
 		// try {
@@ -220,7 +224,7 @@ const Home: NextPage = () => {
 		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 		const gemIdsAsNumber = gemIds.map(gemId => +gemId);
 		console.log(gemIdsAsNumber);
-		
+
 
 		try {
 			const batchTx = await diamondContract.BatchMaintenance(gemIdsAsNumber);
@@ -237,6 +241,19 @@ const Home: NextPage = () => {
 		}
 	}
 
+	const getPendingRewardsForGems = (gemIds) => {
+		return formatUnits(
+			myGems
+				.filter(gem => gemIds.includes(gem.id))
+				.reduce(
+					(
+						n,
+						{ pendingReward }
+					) => pendingReward.add(n),
+					BigNumber.from(0)
+				), "ether"
+		)
+	}
 
 	const BatchAddToVault = async (gemIds: string[]) => {
 
@@ -270,6 +287,42 @@ const Home: NextPage = () => {
 		}
 	}
 
+	const handleBatchAddToVault = async (gemIds: string[]) => {
+		const gemIdsCollection = [];
+		const amountsCollection = [];
+
+		for (const gemId of gemIds) {
+			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
+			console.log('isGemEligable: ', isGemEligable)
+			if (!isGemEligable) {
+				snackbar.execute("Selected gem/s are not eligable for claim yet", "error");
+				return;
+			}
+			const gemInstance = myGems.find((gem: GemType) => gem.id === gemId);
+			if (!gemInstance) { continue; }
+			console.log('gemInstance: ', gemInstance);
+			gemIdsCollection.push(+gemInstance.id);
+			amountsCollection.push(gemInstance.pendingReward);
+		
+			// const hours = getHoursFromSecondsInRange(gemInstance.LastMaintained);
+			// console.log('hours: ', hours);
+		}
+		// console.log(gemIdsCollection);
+		// console.log(amountsCollection);
+		// "Error: VM Exception while processing transaction: reverted with reason string 'Gem is deactivated'"
+
+		// pay fee's first
+		const result = +getPendingRewardsForGems(gemIds);
+		console.log(result);
+		
+
+		return
+		const tx = await diamondContract.batchAddTovault(gemIdsCollection, amountsCollection);
+		snackbar.execute("Providing to the vault on progress, please wait.", "info")
+		await tx.wait()
+		await fetchAccountData()
+		setClaimRewardsModalOpen(false)
+	}
 
 	const columns: GridColDef[] = [
 		{
@@ -417,17 +470,18 @@ const Home: NextPage = () => {
 						<ContentBox
 							title="Rewards"
 							color="#FCBD00"
-							button={<Button
-								// onClick={() => {
-								// 	BatchClaimRewards(myGems.map(gem => gem.id))
-								// }}
-								onClick={() => setClaimRewardsModalOpen(true)}
-								disabled={status !== "CONNECTED"}
-								variant="contained"
-								color="info"
-							>
-								OPEN CLAIM
-							</Button>}
+						// button={<Button
+						// 	// onClick={() => {
+						// 	// 	BatchClaimRewards(myGems.map(gem => gem.id))
+						// 	// }}
+						// 	onClick={() => setClaimRewardsModalOpen(true)}
+						// 	disabled={status !== "CONNECTED"}
+						// 	variant="contained"
+						// 	color="info"
+						// >
+						// 	OPEN CLAIM
+						// </Button>
+						// }
 						>
 							<Grid
 								container
@@ -558,23 +612,23 @@ const Home: NextPage = () => {
 					}
 				}}
 			>
-				<Paper 
-				sx={{
-					display: "flex",
-					flexDirection: "column",
-					minHeight: "50%",
-					width: {
-						xs: "90%",
-						md: "55%"
-					},
-					backgroundColor: "#1f1d2b",
-					padding: theme.spacing(4),
-					position: "relative",
-					overflow: "hidden",
-					outline: 0,
-					border: "solid 1px rgba(255,255,255,0.1)",
-					borderRadius: "20px"
-				}}>
+				<Paper
+					sx={{
+						display: "flex",
+						flexDirection: "column",
+						minHeight: "50%",
+						width: {
+							xs: "90%",
+							md: "55%"
+						},
+						backgroundColor: "#1f1d2b",
+						padding: theme.spacing(4),
+						position: "relative",
+						overflow: "hidden",
+						outline: 0,
+						border: "solid 1px rgba(255,255,255,0.1)",
+						borderRadius: "20px"
+					}}>
 					<IconButton
 						onClick={() => setClaimRewardsModalOpen(false)}
 						sx={{
@@ -633,36 +687,39 @@ const Home: NextPage = () => {
 							<Grid item xs={12} md={5.5}>
 								<Box sx={{
 								}}>
-									<Tooltip title="Lorem Ipsum">
-										<Button
-											variant="contained"
-											color="primary"
-											endIcon={<HelpOutline />}
-											onClick={() => BatchClaimRewards(selectedRows)}
-											sx={{
-												marginLeft: {
-													xs: theme.spacing(0),
-													md: theme.spacing(2)
-												},
-												marginRight: theme.spacing(1),
 
-											}}>CLAIM</Button>
-									</Tooltip>
-									<Tooltip title="Lorem Ipsum">
+									<Button
+										variant="contained"
+										color="primary"
+										endIcon={<HelpOutline />}
+										onClick={() => BatchClaimRewards(selectedRows)}
+										disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
+										sx={{
+											marginLeft: {
+												xs: theme.spacing(0),
+												md: theme.spacing(2)
+											},
+											marginRight: theme.spacing(1),
 
-										<Button
-											onClick={() => BatchAddToVault(selectedRows)}
-											variant="outlined"
-											endIcon={<HelpOutline />}
-											sx={{
-												color: "white",
-												borderColor: "white",
-												"&:hover": {
-													color: "gray",
-													borderColor: "gray",
-												}
-											}}>VAULT</Button>
-									</Tooltip>
+										}}>CLAIM</Button>
+
+
+									<Button
+										// onClick={() => BatchAddToVault(selectedRows)}
+										onClick={() => handleBatchAddToVault(selectedRows)}
+										disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
+										variant="outlined"
+										endIcon={<HelpOutline />}
+										sx={{
+											color: "white",
+											borderColor: "white",
+											"&:hover": {
+												color: "gray",
+												borderColor: "gray",
+											}
+										}}>VAULT</Button>
+
+									{/* <Button>Pay fees</Button> */}
 								</Box>
 							</Grid>
 							<Grid item xs={12} md={5} sx={{

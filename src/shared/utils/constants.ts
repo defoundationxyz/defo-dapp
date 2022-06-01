@@ -73,7 +73,7 @@ export const CONTRACTS = {
         // address: "0x78c51f56e21994FB5d00D2A817Bca4c5B735FDcb",  // mainnet
         // address: "0xd274d23b3Ae1b2a6c45b400e66dC64FBB3053222",  // testnet
         // address: "0xD4BbEE565C8EeDB54eD9d90c5205c92Eb684539C", // FUJI
-        address: "0x3E695DB4714682b6EB96acf232659dCb619A831A", // localhost
+        address: "0xc992E7C2A4fb668554390ae14cb05e8F5fbd1E77", // localhost
         abi: [
             ...DiamonCutFacet_ABI,
             ...DiamonLoupeFacet_ABI,
