@@ -26,7 +26,7 @@ const SnackbarProvider = ({ children }: { children: ReactChild }) => {
             {children}
             <Snackbar
                 open={open}
-                autoHideDuration={3000}
+                autoHideDuration={7000}
                 onClose={handleClose}
 
             >

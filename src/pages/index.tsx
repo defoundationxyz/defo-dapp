@@ -20,7 +20,7 @@ import { useSnackbar } from 'shared/context/Snackbar/SnackbarProvider'
 import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextProvider'
 import { getGemTypes } from 'shared/utils/format'
 import { getIsEligableForClaim } from 'shared/utils/helper'
-import { getHoursFromSecondsInRange } from "shared/utils/format"; 
+import { getHoursFromSecondsInRange } from "shared/utils/format";
 
 type yieldGemsMetadataType = {
 	gem0: GemTypeMetadata | {},
@@ -112,7 +112,7 @@ const Home: NextPage = () => {
 
 
 		// setYourDonations(ethers.utils.formatEther(await contract.getTotalCharity(account))) // put in the vault or claim reward
-		setYourDonations(formatUnits(await contract.getTotalCharity(account), "ether"))
+		setYourDonations(formatUnits(await contract.getTotalCharity(account), "ether")) // TODO: DEFO tokens amount
 		setYourStake(await contract.showStakedAmount())
 
 		//fetch gemMetadata
@@ -165,7 +165,7 @@ const Home: NextPage = () => {
 
 	const payFee = async (gemId: string) => {
 		console.log(gemId);
-		const isEligable = await getIsEligableForClaim(diamondContract, signer.provider);
+		const isEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
 
 		if (!isEligable) {
 			snackbar.execute("You already paid the fee", "error");
@@ -188,23 +188,6 @@ const Home: NextPage = () => {
 
 	}
 
-	const batchPayFee = async (gemIds: string[]) => {
-		console.log(gemIds);
-
-		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-
-		// try {
-		// 	const tx = await contract.BatchMaintenance(gemIds)
-		// 	snackbar.execute("Maintenance on progress, please wait.", "info")
-		// 	await tx.wait()
-		// 	await fetchAccountData()
-
-		// } catch (error: any) {
-		// 	console.log(error)
-		// 	snackbar.execute(error?.error?.message || error?.reason || "ERROR", "error")
-		// }
-
-	}
 
 	const claimRewards = async (gemId: string) => {
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
@@ -286,6 +269,58 @@ const Home: NextPage = () => {
 			snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
 		}
 	}
+	// 1.
+	const handleBatchPayFee = async (gemIds: string[]) => {
+		const gemIdsCollection = gemIds.map(gemId => +gemId);
+		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+
+		try {
+			const tx = gemIdsCollection.length === 1 ? await diamondContract.Maintenance(gemIdsCollection[0], 0) : await diamondContract.BatchMaintenance(gemIdsCollection)
+			snackbar.execute("Maintenance on progress, please wait.", "info")
+			await tx.wait()
+			snackbar.execute("Fees are paid successfully for the selected gems", "info")
+			await fetchAccountData()
+		} catch (error: any) {
+			console.log(error)
+			snackbar.execute(error?.data?.message || error?.message || error?.error?.message || error?.reason || "ERROR", "error")
+		}
+	}
+
+	// regex to check if the error is 'Gem is deactivated' show message 'you have to pay the tax first'
+	// regex to check if the error is 'Too soon'
+
+	const handleBatchClaimRewards = async (gemIds: string[]) => {
+		const gemInstancesCollection = [];
+
+		for (const gemId of gemIds) {
+			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
+			if (!isGemEligable) {
+				snackbar.execute("Selected gem/s are not eligable for claim yet", "error");
+				return
+			}
+			const gemInstance = myGems.find((gem: GemType) => gem.id === gemId)
+			if (!gemInstance) { continue; }
+			gemInstancesCollection.push(gemInstance);
+		}
+
+		// check if fee's are paid => claimTX
+		const gemIdsAsNumber = gemInstancesCollection.map((item: GemType) => +item.id)
+
+		try {
+			// const batchTx = await diamondContract.BatchMaintenance(gemIdsAsNumber);
+			// console.log('batchTx: ', batchTx);
+			const tx = gemIdsAsNumber.length === 1 ? await diamondContract.ClaimRewards(gemIdsAsNumber[0]) : await diamondContract.BatchClaimRewards(gemIdsAsNumber);
+			snackbar.execute("Claiming on progress, please wait.", "info")
+			await tx.wait()
+			await fetchAccountData()
+			setClaimRewardsModalOpen(false)
+
+		} catch (error: any) {
+			console.log(error)
+			snackbar.execute(error?.data?.message || error?.message || error?.error?.message || error?.reason || "ERROR", "error")
+		}
+	}
+
 
 	const handleBatchAddToVault = async (gemIds: string[]) => {
 		const gemIdsCollection = [];
@@ -301,27 +336,38 @@ const Home: NextPage = () => {
 			const gemInstance = myGems.find((gem: GemType) => gem.id === gemId);
 			if (!gemInstance) { continue; }
 			console.log('gemInstance: ', gemInstance);
+
+			if (vaultStrategyEnabled) {
+				let amount = gemInstance.pendingReward.div(100).mul(selectedVaultStrategy)
+				amountsCollection.push(amount);
+			} else {
+				amountsCollection.push(gemInstance.pendingReward);
+			}
 			gemIdsCollection.push(+gemInstance.id);
-			amountsCollection.push(gemInstance.pendingReward);
-		
-			// const hours = getHoursFromSecondsInRange(gemInstance.LastMaintained);
-			// console.log('hours: ', hours);
+			// check via gemInstance.LastMaintained if the fee is paid, if not throw
 		}
+
 		// console.log(gemIdsCollection);
 		// console.log(amountsCollection);
-		// "Error: VM Exception while processing transaction: reverted with reason string 'Gem is deactivated'"
-
+		amountsCollection.forEach((amount, index) => {
+			console.log(`gem with ID: ${gemIdsCollection[index]} has amount for the vault: ${ethers.utils.formatEther(amount)}`);
+		});
 		// pay fee's first
-		const result = +getPendingRewardsForGems(gemIds);
-		console.log(result);
-		
+		// const result = +getPendingRewardsForGems(gemIds);
+		// console.log(result);
 
-		return
-		const tx = await diamondContract.batchAddTovault(gemIdsCollection, amountsCollection);
-		snackbar.execute("Providing to the vault on progress, please wait.", "info")
-		await tx.wait()
-		await fetchAccountData()
-		setClaimRewardsModalOpen(false)
+		// return
+		try {
+			const tx = gemIdsCollection.length === 1 ? await diamondContract.addToVault(gemIdsCollection[0], amountsCollection[0]) : await diamondContract.batchAddTovault(gemIdsCollection, amountsCollection);
+			snackbar.execute("Providing to the vault on progress, please wait.", "info")
+			await tx.wait()
+			await handleBatchClaimRewards(gemIds)
+			await fetchAccountData()
+			setClaimRewardsModalOpen(false)
+		} catch (error) {
+			console.log(error)
+			snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
+		}
 	}
 
 	const columns: GridColDef[] = [
@@ -384,7 +430,7 @@ const Home: NextPage = () => {
 			minWidth: 200,
 			renderCell: ({ row }: { row: GemType }) => <Box sx={{
 			}}>
-				<Button
+				{/* <Button
 					onClick={async () => {
 						setSelectedRows([])
 						await payFee(row.id)
@@ -398,13 +444,15 @@ const Home: NextPage = () => {
 						},
 						marginRight: theme.spacing(1),
 
-					}}>PAY FEE</Button>
+					}}>PAY FEE</Button> */}
 				<Button
 					onClick={() => {
 						setSelectedRows([row.id])
 						setClaimRewardsModalOpen(true)
 					}}
 					variant="outlined"
+					variant="contained"
+					color="primary"
 					sx={{
 						color: "white",
 						borderColor: "white",
@@ -522,7 +570,7 @@ const Home: NextPage = () => {
 							<Typography>{selectedRows?.length || 0} nodes selected</Typography>
 						</Grid>
 						<Grid item>
-							<Button
+							{/* <Button
 								disabled={status !== "CONNECTED" || selectedRows.length === 0}
 								onClick={() => batchPayFee(selectedRows)}
 								variant="contained"
@@ -535,7 +583,7 @@ const Home: NextPage = () => {
 									},
 									marginRight: theme.spacing(1),
 
-								}}>PAY FEES</Button>
+								}}>PAY FEES</Button> */}
 						</Grid>
 						<Grid item>
 							<Button
@@ -543,10 +591,12 @@ const Home: NextPage = () => {
 								onClick={
 									() => setClaimRewardsModalOpen(true)
 								}
-								variant="outlined"
+								variant="contained"
+								color="primary"
 								sx={{
 									color: "white",
 									borderColor: "white",
+									marginLeft: theme.spacing(1),
 									"&:hover": {
 										color: "gray",
 										borderColor: "gray",
@@ -569,7 +619,6 @@ const Home: NextPage = () => {
 							hideFooterSelectedRowCount
 							selectionModel={selectedRows}
 							onSelectionModelChange={(newSelection: any) => {
-								console.log("newSelection", newSelection)
 								setSelectedRows(newSelection);
 							}}
 							disableSelectionOnClick
@@ -692,7 +741,8 @@ const Home: NextPage = () => {
 										variant="contained"
 										color="primary"
 										endIcon={<HelpOutline />}
-										onClick={() => BatchClaimRewards(selectedRows)}
+										// onClick={() => BatchClaimRewards(selectedRows)}
+										onClick={() => handleBatchClaimRewards(selectedRows)}
 										disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
 										sx={{
 											marginLeft: {
@@ -719,7 +769,22 @@ const Home: NextPage = () => {
 											}
 										}}>VAULT</Button>
 
-									{/* <Button>Pay fees</Button> */}
+									<Button
+										onClick={() => handleBatchPayFee(selectedRows)}
+										disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
+										variant="contained"
+										color="secondary"
+										fullWidth
+										sx={{
+											mt: 2,
+											backgroundColor: "#FCBD00",
+											"&:hover": {
+												backgroundColor: "#b58802",
+											}
+										}}
+									>
+										Pay fee
+									</Button>
 								</Box>
 							</Grid>
 							<Grid item xs={12} md={5} sx={{
@@ -753,6 +818,8 @@ const Home: NextPage = () => {
 									</Grid>
 								</Grid>
 							</Grid>
+
+							{/* Vault Strategy */}
 							<Grid item xs={12} md={12}>
 
 								<Box sx={{
@@ -774,6 +841,7 @@ const Home: NextPage = () => {
 									/>
 								</Box>
 
+								{/* percentage list */}
 								<Grid
 									container
 									justifyContent={"space-between"}
