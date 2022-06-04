@@ -322,33 +322,27 @@ const Home: NextPage = () => {
 	}
 
 
-	const handleBatchAddToVault = async (gemIds: string[]) => {
+	const handleBatchAddToVault = async (gemIds: string[], vaultStrategyPercentage: number) => {
 		const gemIdsCollection = [];
 		const amountsCollection = [];
 
 		for (const gemId of gemIds) {
 			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
-			console.log('isGemEligable: ', isGemEligable)
+
 			if (!isGemEligable) {
 				snackbar.execute("Selected gem/s are not eligable for claim yet", "error");
 				return;
 			}
 			const gemInstance = myGems.find((gem: GemType) => gem.id === gemId);
 			if (!gemInstance) { continue; }
-			console.log('gemInstance: ', gemInstance);
 
-			if (vaultStrategyEnabled) {
-				let amount = gemInstance.pendingReward.div(100).mul(selectedVaultStrategy)
-				amountsCollection.push(amount);
-			} else {
-				amountsCollection.push(gemInstance.pendingReward);
-			}
+			const amount = gemInstance.pendingReward.div(100).mul(vaultStrategyPercentage)
+			amountsCollection.push(amount);
+
 			gemIdsCollection.push(+gemInstance.id);
 			// check via gemInstance.LastMaintained if the fee is paid, if not throw
 		}
 
-		// console.log(gemIdsCollection);
-		// console.log(amountsCollection);
 		amountsCollection.forEach((amount, index) => {
 			console.log(`gem with ID: ${gemIdsCollection[index]} has amount for the vault: ${ethers.utils.formatEther(amount)}`);
 		});
@@ -358,9 +352,14 @@ const Home: NextPage = () => {
 
 		// return
 		try {
-			const tx = gemIdsCollection.length === 1 ? await diamondContract.addToVault(gemIdsCollection[0], amountsCollection[0]) : await diamondContract.batchAddTovault(gemIdsCollection, amountsCollection);
+			const isSingleGem = gemIdsCollection.length === 1;
+			const tx = isSingleGem
+				? await diamondContract.addToVault(gemIdsCollection[0], amountsCollection[0])
+				: await diamondContract.batchAddTovault(gemIdsCollection, amountsCollection);
+
 			snackbar.execute("Providing to the vault on progress, please wait.", "info")
 			await tx.wait()
+
 			await handleBatchClaimRewards(gemIds)
 			await fetchAccountData()
 			setClaimRewardsModalOpen(false)
@@ -368,6 +367,13 @@ const Home: NextPage = () => {
 			console.log(error)
 			snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
 		}
+	}
+
+	const handleVaultStrategy = async (gemIds: string[]) => {
+		console.log(gemIds);
+		console.log(selectedVaultStrategy);
+
+
 	}
 
 	const columns: GridColDef[] = [
@@ -756,7 +762,7 @@ const Home: NextPage = () => {
 
 									<Button
 										// onClick={() => BatchAddToVault(selectedRows)}
-										onClick={() => handleBatchAddToVault(selectedRows)}
+										onClick={() => handleBatchAddToVault(selectedRows, 100)}
 										disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
 										variant="outlined"
 										endIcon={<HelpOutline />}
@@ -839,7 +845,21 @@ const Home: NextPage = () => {
 										control={<Switch color='success' checked={vaultStrategyEnabled} value={vaultStrategyEnabled} />}
 										label={vaultStrategyEnabled ? "On" : "Off"}
 									/>
+									<Button
+										onClick={() => handleBatchAddToVault(selectedRows, selectedVaultStrategy)}
+										disabled={!vaultStrategyEnabled}
+										variant="outlined"
+										color={vaultStrategyEnabled ? "info" : "primary"}
+										sx={vaultStrategyEnabled ? {} : {
+											color: "white",
+											borderColor: "white",
+											"&:hover": {
+												color: "gray",
+												borderColor: "gray",
+											}
+										}}>Vault Strategy</Button>
 								</Box>
+
 
 								{/* percentage list */}
 								<Grid

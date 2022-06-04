@@ -20,3 +20,7 @@ export const getGemTypes = (rawGemMetadata: any): GemTypeMetadata => {
 		StablePrice: rawGemMetadata[6],
 	}
 }
+
+export const formatNumber = (num: number) => { 
+	return Math.round((num + Number.EPSILON) * 100) / 100;
+}

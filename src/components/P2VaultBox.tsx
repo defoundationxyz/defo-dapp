@@ -8,6 +8,7 @@ import { useState } from "react"
 import { GemType } from "shared/utils/constants";
 import ContentBox from "./ContentBox"
 import { useWeb3 } from "shared/context/Web3/Web3Provider"
+import { formatNumber } from "shared/utils/format"
 
 
 
@@ -126,7 +127,7 @@ const P2VaultBox = ({
                                 },
                             }}>
                             <Typography variant="body2">YOUR STAKE</Typography>
-                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>{formatUnits(yourStake, "ether")}</Typography>
+                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>${formatNumber(+formatUnits(yourStake, "ether") * 5)}</Typography>
                             <Box sx={{
                                 display: "flex",
                                 flexDirection: "row",
