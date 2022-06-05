@@ -28,6 +28,9 @@ const P2VaultBox = ({
     const [withdrawModalOpen, setWithdrawModalOpen] = useState(false)
 
 
+    const handleWithdraw = () =>{
+
+    }
 
 
   const columns: GridColDef[] = [
@@ -127,7 +130,7 @@ const P2VaultBox = ({
                                 },
                             }}>
                             <Typography variant="body2">YOUR STAKE</Typography>
-                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>${formatNumber(+formatUnits(yourStake, "ether") * 5)}</Typography>
+                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>{formatNumber(+formatUnits(yourStake, "ether"))}</Typography>
                             <Box sx={{
                                 display: "flex",
                                 flexDirection: "row",

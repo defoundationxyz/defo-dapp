@@ -109,8 +109,10 @@ const Home: NextPage = () => {
 
 	const fetchAccountData = async () => {
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-
-
+		const defoInstance = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
+		const charityBalance = formatUnits(await defoInstance.balanceOf("0x2C10dDf2bE15FCa448445d4f3A9B0AD8f880c5fb"), "ether");
+		console.log('charityBalance: ', charityBalance);
+		
 		// setYourDonations(ethers.utils.formatEther(await contract.getTotalCharity(account))) // put in the vault or claim reward
 		setYourDonations(formatUnits(await contract.getTotalCharity(account), "ether")) // TODO: DEFO tokens amount
 		setYourStake(await contract.showStakedAmount())
@@ -479,7 +481,6 @@ const Home: NextPage = () => {
 			</Head>
 			<Navbar />
 			<Container>
-				<Button onClick={getIsTooSoon} variant="outlined" color="error">Get Info</Button>
 				<Typography variant="h4" fontWeight={"bold"}>
 					Welcome Philanthropist!
 				</Typography>
