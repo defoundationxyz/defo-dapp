@@ -8,7 +8,7 @@ import { useWeb3 } from 'shared/context/Web3/Web3Provider'
 import { useEffect, useState } from 'react'
 import Navbar from 'components/Navbar'
 import Head from 'next/head'
-import { Close, HelpOutline, SafetyDividerOutlined } from '@mui/icons-material'
+import { Close, FormatUnderlinedTwoTone, HelpOutline, SafetyDividerOutlined } from '@mui/icons-material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { formatUnits } from 'ethers/lib/utils'
 import ContentBox from 'components/ContentBox'
@@ -111,8 +111,12 @@ const Home: NextPage = () => {
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 		const defoInstance = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
 		const charityBalance = formatUnits(await defoInstance.balanceOf("0x2C10dDf2bE15FCa448445d4f3A9B0AD8f880c5fb"), "ether");
-		console.log('charityBalance: ', charityBalance);
+		const totalStake = await diamondContract.showTotalAmount();
+		console.log("totalStake: ", totalStake);
 		
+		setTotalStaked(totalStake)
+		console.log('charityBalance: ', charityBalance);
+
 		// setYourDonations(ethers.utils.formatEther(await contract.getTotalCharity(account))) // put in the vault or claim reward
 		setYourDonations(formatUnits(await contract.getTotalCharity(account), "ether")) // TODO: DEFO tokens amount
 		setYourStake(await contract.showStakedAmount())
@@ -355,6 +359,9 @@ const Home: NextPage = () => {
 		// return
 		try {
 			const isSingleGem = gemIdsCollection.length === 1;
+			console.log('gemIdsCollection: ', gemIdsCollection);
+			console.log('amountsCollection: ', amountsCollection);
+
 			const tx = isSingleGem
 				? await diamondContract.addToVault(gemIdsCollection[0], amountsCollection[0])
 				: await diamondContract.batchAddTovault(gemIdsCollection, amountsCollection);
@@ -362,7 +369,9 @@ const Home: NextPage = () => {
 			snackbar.execute("Providing to the vault on progress, please wait.", "info")
 			await tx.wait()
 
-			await handleBatchClaimRewards(gemIds)
+			if (vaultStrategyPercentage < 100) {
+				await handleBatchClaimRewards(gemIds)
+			}
 			await fetchAccountData()
 			setClaimRewardsModalOpen(false)
 		} catch (error) {
