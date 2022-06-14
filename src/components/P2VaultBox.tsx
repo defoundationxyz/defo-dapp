@@ -1,14 +1,16 @@
 import { Close, HelpOutline } from "@mui/icons-material"
 import { Box, Button, Grid, IconButton, LinearProgress, Modal, Paper, Tooltip, Typography, useTheme } from "@mui/material"
-import { DataGrid, GridColDef } from "@mui/x-data-grid"
-import { BigNumber } from "ethers"
+import { DataGrid, GridColDef, GridRowId } from "@mui/x-data-grid"
+import { BigNumber, ethers } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
 import moment from "moment"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { GemType } from "shared/utils/constants";
 import ContentBox from "./ContentBox"
 import { useWeb3 } from "shared/context/Web3/Web3Provider"
 import { formatNumber } from "shared/utils/format"
+import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
+import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
 
 
 
@@ -16,78 +18,103 @@ import { formatNumber } from "shared/utils/format"
 const P2VaultBox = ({
     totalStaked,
     yourStake,
-    myGems
+    myGems,
+    fetchAccountData
 }: {
     totalStaked: BigNumber,
     yourStake: BigNumber,
-    myGems: GemType[]
+    myGems: GemType[],
+    fetchAccountData: Function
 }) => {
     const theme = useTheme()
-    const { status } = useWeb3()
+    const { status, account } = useWeb3()
 
     const [withdrawModalOpen, setWithdrawModalOpen] = useState(false)
+    const { diamondContract } = useDiamondContext()
+    const snackbar = useSnackbar()
 
+    const withdraw = async (gem: GemType) => {
+        // console.log('gem: ', gem);
+        if (!isGemWithdrawable(gem)) {
+            console.log('Not allowed!');
+            return;
+        }
 
-    const handleWithdraw = () =>{
-
+        console.log('allowed');
+        console.log(gem.id, gem.vaultAmount);
+        // 99642
+        // 118.68
+        
+        try {
+            const tx = await diamondContract.removeFromVault(gem.id, gem.vaultAmount);
+            snackbar.execute("Withdrawing from the vault on progress, please wait.", "info")
+            await tx.wait()
+            await fetchAccountData()
+        } catch (error) {
+            console.log('error on withdraw: ', error);
+            snackbar.execute("Error occured while withdrawing from the vault", "error")
+        }
     }
 
+    const isGemWithdrawable = (gem: GemType) => {
+        return !(gem.vaultAmount && !+ethers.utils.formatEther(gem.vaultAmount));
+    }
 
-  const columns: GridColDef[] = [
-    {
-      flex: 1,
-      field: 'name',
-      headerName: 'Name',
-      renderCell: (params) => {
-        const gem: GemType = params.row;
-        if (gem.GemType === 0) {
-          return "Sapphire"
-        } else if (gem.GemType === 1) {
-          return "Ruby"
-        } else if (gem.GemType === 2) {
-          return "Diamond"
-        }
-      }
-    },
-    {
-      flex: 1,
-      field: 'created',
-      headerName: 'Created',
-      renderCell: (params) => {
-        const gem: GemType = params.row;
-        return moment(gem.MintTime, "X").format("MMM DD YYYY HH:mm")
-      }
-    },
-    {
-      flex: 1,
-      field: 'rewards',
-      headerName: 'Rewards',
-      renderCell: (params) => {
-        const gem: GemType = params.row;
-        return `${formatUnits(gem.pendingReward, "ether")} DEFO`
-      }
-    },
-    {
-      flex: 1.5,
-      field: 'payClaim',
-      headerName: 'Withdraw',
-      minWidth: 200,
-      renderCell: ({ row }: { row: GemType }) => <Box sx={{
-      }}>
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{
-            marginLeft: {
-              xs: theme.spacing(0),
-              md: theme.spacing(2)
-            },
-            marginRight: theme.spacing(1),
+    const columns: GridColDef[] = [
+        {
+            flex: 1,
+            field: 'name',
+            headerName: 'Name',
+            renderCell: (params) => {
+                const gem: GemType = params.row;
+                if (gem.GemType === 0) {
+                    return "Sapphire"
+                } else if (gem.GemType === 1) {
+                    return "Ruby"
+                } else if (gem.GemType === 2) {
+                    return "Diamond"
+                }
+            }
+        },
+        {
+            flex: 1,
+            field: 'created',
+            headerName: 'Created',
+            renderCell: (params) => {
+                const gem: GemType = params.row;
+                return moment(gem.MintTime, "X").format("MMM DD YYYY HH:mm")
+            }
+        },
+        {
+            flex: 1,
+            field: 'rewards',
+            headerName: 'Rewards',
+            renderCell: (params) => {
+                const gem: GemType = params.row;
+                return `${formatNumber(+formatUnits(gem.vaultAmount ? gem.vaultAmount : 0, "ether"))} DEFO`
+            }
+        },
+        {
+            flex: 1.5,
+            field: 'payClaim',
+            headerName: 'Withdraw',
+            minWidth: 200,
+            renderCell: (params) => <Box>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => withdraw(params.row)}
+                    sx={{
+                        marginLeft: {
+                            xs: theme.spacing(0),
+                            md: theme.spacing(2)
+                        },
+                        marginRight: theme.spacing(1),
 
-          }}>Withdraw</Button>
-      </Box>
-    },
-  ]
+                    }}>Withdraw</Button>
+            </Box>
+        },
+    ]
 
 
     return (
@@ -168,7 +195,7 @@ const P2VaultBox = ({
                                 },
                             }}>
                             <Typography variant="body2">TOTAL STAKED</Typography>
-                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>{formatUnits(totalStaked, "ether")}</Typography>
+                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>{formatNumber(+formatUnits(totalStaked, "ether"))}</Typography>
                             <Box sx={{
                                 display: "flex",
                                 flexDirection: "row",
@@ -215,22 +242,23 @@ const P2VaultBox = ({
                     }
                 }}
             >
-                <Paper sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    minHeight: "50%",
-                    width: {
-                        xs: "90%",
-                        md: "70%"
-                    },
-                    backgroundColor: "#1f1d2b",
-                    padding: theme.spacing(4),
-                    position: "relative",
-                    overflow: "hidden",
-                    outline: 0,
-                    border: "solid 1px rgba(255,255,255,0.1)",
-                    borderRadius: "20px"
-                }}>
+                <Paper
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        minHeight: "50%",
+                        width: {
+                            xs: "90%",
+                            md: "70%"
+                        },
+                        backgroundColor: "#1f1d2b",
+                        padding: theme.spacing(4),
+                        position: "relative",
+                        overflow: "hidden",
+                        outline: 0,
+                        border: "solid 1px rgba(255,255,255,0.1)",
+                        borderRadius: "20px"
+                    }}>
                     <IconButton
                         onClick={() => setWithdrawModalOpen(false)}
                         sx={{
@@ -261,7 +289,7 @@ const P2VaultBox = ({
                                 columns={columns}
                                 pageSize={5}
                                 rowsPerPageOptions={[5]}
-                                checkboxSelection
+                                // checkboxSelection
                                 hideFooterSelectedRowCount
                                 disableSelectionOnClick
                                 rowHeight={59}

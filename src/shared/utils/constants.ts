@@ -73,7 +73,7 @@ export const CONTRACTS = {
         // address: "0x78c51f56e21994FB5d00D2A817Bca4c5B735FDcb",  // mainnet
         // address: "0xd274d23b3Ae1b2a6c45b400e66dC64FBB3053222",  // testnet
         // address: "0xD4BbEE565C8EeDB54eD9d90c5205c92Eb684539C", // FUJI
-        address: "0xa338B6A826499F71F70231E3B762f3e52b8f0A76", // localhost
+        address: "0xe8E4cA2ad0C03c9bA802BC7f82E0023A7977c7DD", // localhost
         abi: [
             ...DiamonCutFacet_ABI,
             ...DiamonLoupeFacet_ABI,
@@ -110,6 +110,7 @@ export type GemType = {
     Booster: number;
     claimedReward: BigNumber;
     pendingReward: BigNumber;
+    vaultAmount?: BigNumber;
 }
 
 

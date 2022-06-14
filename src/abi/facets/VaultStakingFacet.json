@@ -30,7 +30,7 @@
                 "type": "uint256[]"
             }
         ],
-        "name": "batchAddTovault",
+        "name": "batchAddToVault",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

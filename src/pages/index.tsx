@@ -18,7 +18,7 @@ import P2VaultBox from 'components/P2VaultBox'
 import moment from 'moment'
 import { useSnackbar } from 'shared/context/Snackbar/SnackbarProvider'
 import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextProvider'
-import { getGemTypes } from 'shared/utils/format'
+import { formatNumber, getGemTypes } from 'shared/utils/format'
 import { getIsEligableForClaim } from 'shared/utils/helper'
 import { getHoursFromSecondsInRange } from "shared/utils/format";
 
@@ -53,6 +53,7 @@ const Home: NextPage = () => {
 		gem1: {},
 		gem2: {},
 	});
+	const [vaultAmounts, setVaultAmounts] = useState<BigNumber[]>([]);
 
 	const [meta, setMeta] = useState<any>()
 
@@ -112,13 +113,13 @@ const Home: NextPage = () => {
 		const defoInstance = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
 		const charityBalance = formatUnits(await defoInstance.balanceOf("0x2C10dDf2bE15FCa448445d4f3A9B0AD8f880c5fb"), "ether");
 		const totalStake = await diamondContract.showTotalAmount();
-		console.log("totalStake: ", totalStake);
-		
-		setTotalStaked(totalStake)
-		console.log('charityBalance: ', charityBalance);
+		// console.log("totalStake: ", totalStake);
 
-		// setYourDonations(ethers.utils.formatEther(await contract.getTotalCharity(account))) // put in the vault or claim reward
-		setYourDonations(formatUnits(await contract.getTotalCharity(account), "ether")) // TODO: DEFO tokens amount
+		setTotalStaked(totalStake)
+		// console.log('charityBalance: ', charityBalance);		
+
+		// setYourDonations(ethers.utils.formatEther(await contract.getUserTotalCharity(account))) // put in the vault or claim reward
+		setYourDonations(formatUnits(await contract.getUserTotalCharity(account), "ether")) // TODO: DEFO tokens amount
 		setYourStake(await contract.showStakedAmount())
 
 		//fetch gemMetadata
@@ -138,6 +139,8 @@ const Home: NextPage = () => {
 
 			const gem = await contract.GemOf(gemId)
 			const pendingReward: BigNumber = await contract.checkTaxedReward(gemId)
+			const vaultAmount = await diamondContract.gemVaultAmount(gemId)
+			// console.log(gemId, formatUnits(vaultAmount, "ether"), formatUnits(pendingReward, "ether"));
 
 			let gemTyped: GemType = {
 				id: gemId.toString(),
@@ -149,25 +152,21 @@ const Home: NextPage = () => {
 				Booster: gem[5],
 				claimedReward: gem[7],
 				pendingReward: pendingReward,
+				vaultAmount: vaultAmount,
 			}
 
 			return gemTyped
 		}))
 		setMyGems(myGems)
+
+		const vaultAmounts = await diamondContract.getAllVaultAmounts(account)
+		setVaultAmounts(vaultAmounts);
 	}
 
 	const getDefoReward = () => {
-		return formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether")
+		return formatNumber(+formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether"))
 	}
 
-	const getIsTooSoon = async () => {
-		// const blockNumber = signer.provider
-		// if(!signer && !signer?.provider) { return; }
-		// const provider = signer 
-		// console.log('provider: ', signer.provider);
-		const stakedAmount = await diamondContract.showStakedAmount();
-		console.log('stakedAmount: ', stakedAmount);
-	}
 
 	const payFee = async (gemId: string) => {
 		console.log(gemId);
@@ -177,9 +176,6 @@ const Home: NextPage = () => {
 			snackbar.execute("You already paid the fee", "error");
 			return
 		}
-
-		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-		// "Error: VM Exception while processing transaction: reverted with panic code 0x11 (Arithmetic operation underflowed or overflowed outside of an unchecked block)"
 
 		try {
 			const tx = await diamondContract.Maintenance(gemId, 0)
@@ -244,7 +240,7 @@ const Home: NextPage = () => {
 		)
 	}
 
-	const BatchAddToVault = async (gemIds: string[]) => {
+	const batchAddToVault = async (gemIds: string[]) => {
 
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 		try {
@@ -264,7 +260,7 @@ const Home: NextPage = () => {
 
 			}
 
-			const tx = await contract.batchAddTovault(gemIds, amounts)
+			const tx = await contract.batchAddToVault(gemIds, amounts)
 			snackbar.execute("Claiming on progress, please wait.", "info")
 			await tx.wait()
 			await fetchAccountData()
@@ -328,7 +324,7 @@ const Home: NextPage = () => {
 	}
 
 
-	const handleBatchAddToVault = async (gemIds: string[], vaultStrategyPercentage: number) => {
+	const handlebatchAddToVault = async (gemIds: string[], vaultStrategyPercentage: number) => {
 		const gemIdsCollection = [];
 		const amountsCollection = [];
 
@@ -364,7 +360,7 @@ const Home: NextPage = () => {
 
 			const tx = isSingleGem
 				? await diamondContract.addToVault(gemIdsCollection[0], amountsCollection[0])
-				: await diamondContract.batchAddTovault(gemIdsCollection, amountsCollection);
+				: await diamondContract.batchAddToVault(gemIdsCollection, amountsCollection);
 
 			snackbar.execute("Providing to the vault on progress, please wait.", "info")
 			await tx.wait()
@@ -418,7 +414,7 @@ const Home: NextPage = () => {
 			headerName: 'Rewards',
 			renderCell: (params) => {
 				const gem: GemType = params.row;
-				return `${formatUnits(gem.pendingReward, "ether")} DEFO`
+				return `${formatNumber(+formatUnits(gem.pendingReward, "ether"))} DEFO`
 			}
 		},
 		{
@@ -527,6 +523,7 @@ const Home: NextPage = () => {
 							totalStaked={totalStaked}
 							yourStake={yourStake}
 							myGems={myGems}
+							fetchAccountData={fetchAccountData}
 						/>
 					</Grid>
 
@@ -564,7 +561,8 @@ const Home: NextPage = () => {
 											{getDefoReward()} DEFO
 										</Typography>
 										<Typography variant="h5" fontWeight={"bold"}>
-											(${(+getDefoReward()) * 5})
+											{/* (${(+getDefoReward()) * 5}) */}
+											$0.00
 										</Typography>
 									</Paper>
 								</Grid>
@@ -771,8 +769,8 @@ const Home: NextPage = () => {
 
 
 									<Button
-										// onClick={() => BatchAddToVault(selectedRows)}
-										onClick={() => handleBatchAddToVault(selectedRows, 100)}
+										// onClick={() => batchAddToVault(selectedRows)}
+										onClick={() => handlebatchAddToVault(selectedRows, 100)}
 										disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
 										variant="outlined"
 										endIcon={<HelpOutline />}
@@ -856,7 +854,7 @@ const Home: NextPage = () => {
 										label={vaultStrategyEnabled ? "On" : "Off"}
 									/>
 									<Button
-										onClick={() => handleBatchAddToVault(selectedRows, selectedVaultStrategy)}
+										onClick={() => handlebatchAddToVault(selectedRows, selectedVaultStrategy)}
 										disabled={!vaultStrategyEnabled}
 										variant="outlined"
 										color={vaultStrategyEnabled ? "info" : "primary"}
