@@ -11,10 +11,11 @@ import { GemTypeMetadata } from "shared/utils/constants";
 import { getHoursFromSecondsInRange } from "shared/utils/format"; 
 import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper";
 
-const YieldGemModalBox = ({ gemType, name, fetchAccountData }: {
+const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
     gemType: 0 | 1 | 2,
     name: "Sapphire" | "Ruby" | "Diamond",
     fetchAccountData: Function
+    mintedGems: number,
 }) => {
     const theme = useTheme();
 	const { diamondContract } = useDiamondContext()
@@ -33,6 +34,10 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData }: {
 
     const fetchGemMetadata = async (gemType: 0 | 1 | 2) => {
         const currentGem = await diamondContract.GetGemTypeMetadata(gemType);
+        // console.log('current gem: ', gemType);
+        // console.log(currentGem);
+        // console.log("-------------");
+        
 
         let currentGemTyped: GemTypeMetadata = {
             LastMint: currentGem[0],
@@ -60,11 +65,14 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData }: {
     // TOOD: fix this in the smart contract
     const getAvailableGemsToBeMinted = () => {
         if (!gem?.DailyLimit) { return 0; }
-        const current = gem?.DailyLimit - gem?.MintCount;
-        if (current == gem.DailyLimit) {
-            return current;
-        }
-        return current - 1;
+
+        return gem.DailyLimit - mintedGems
+        // const current = gem?.DailyLimit - gem?.MintCount;
+        // return current
+        // if (current == gem.DailyLimit) {
+        //     return current;
+        // }
+        // return current - 1;
     }
 
     const createYieldGem = async (gemType: 0 | 1 | 2) => {

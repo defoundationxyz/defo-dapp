@@ -111,12 +111,11 @@ const Home: NextPage = () => {
 	const fetchAccountData = async () => {
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 		const defoInstance = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
-		const charityBalance = formatUnits(await defoInstance.balanceOf("0x2C10dDf2bE15FCa448445d4f3A9B0AD8f880c5fb"), "ether");
+		const totalCharity = await diamondContract.getTotalCharity()
 		const totalStake = await diamondContract.showTotalAmount();
-		// console.log("totalStake: ", totalStake);
 
+		setTotalDonations(totalCharity)
 		setTotalStaked(totalStake)
-		// console.log('charityBalance: ', charityBalance);		
 
 		// setYourDonations(ethers.utils.formatEther(await contract.getUserTotalCharity(account))) // put in the vault or claim reward
 		setYourDonations(formatUnits(await contract.getUserTotalCharity(account), "ether")) // TODO: DEFO tokens amount
@@ -140,6 +139,9 @@ const Home: NextPage = () => {
 			const gem = await contract.GemOf(gemId)
 			const pendingReward: BigNumber = await contract.checkTaxedReward(gemId)
 			const vaultAmount = await diamondContract.gemVaultAmount(gemId)
+			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
+			console.log("is eligable: ", gemId, isGemEligable);
+
 			// console.log(gemId, formatUnits(vaultAmount, "ether"), formatUnits(pendingReward, "ether"));
 
 			let gemTyped: GemType = {
@@ -153,11 +155,13 @@ const Home: NextPage = () => {
 				claimedReward: gem[7],
 				pendingReward: pendingReward,
 				vaultAmount: vaultAmount,
+				
 			}
 
 			return gemTyped
 		}))
 		setMyGems(myGems)
+		console.log("my gems: ", myGems);
 
 		const vaultAmounts = await diamondContract.getAllVaultAmounts(account)
 		setVaultAmounts(vaultAmounts);
@@ -433,7 +437,7 @@ const Home: NextPage = () => {
 			headerName: 'Fees due in',
 			renderCell: (params) => {
 				const gem: GemType = params.row;
-				return <Typography variant='body2'>{moment(gem.LastMaintained, "X").format("MMM DD YYYY HH:mm")}</Typography>
+				return <Typography variant='body2'>{moment(gem.LastMaintained, "X").add(30, "days").format("MMM DD YYYY HH:mm")}</Typography>
 			}
 		},
 		{
@@ -751,37 +755,44 @@ const Home: NextPage = () => {
 								<Box sx={{
 								}}>
 
-									<Button
-										variant="contained"
-										color="primary"
-										endIcon={<HelpOutline />}
-										// onClick={() => BatchClaimRewards(selectedRows)}
-										onClick={() => handleBatchClaimRewards(selectedRows)}
-										disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
-										sx={{
-											marginLeft: {
-												xs: theme.spacing(0),
-												md: theme.spacing(2)
-											},
-											marginRight: theme.spacing(1),
+									<Tooltip title="This will claim all pending rewards to your wallet.">
+										<span>
+											<Button
+												variant="contained"
+												color="primary"
+												endIcon={<HelpOutline />}
+												onClick={() => handleBatchClaimRewards(selectedRows)}
+												disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
+												sx={{
+													marginLeft: {
+														xs: theme.spacing(0),
+														md: theme.spacing(2)
+													},
+													marginRight: theme.spacing(1),
 
-										}}>CLAIM</Button>
+												}}>CLAIM</Button>
+										</span>
+									</Tooltip>
 
+									<Tooltip title="This will send all pending rewards to the Vault. Withdrawing from the Vault to your wallet has a fee.">
+										<span>
+											<Button
+												// onClick={() => batchAddToVault(selectedRows)}
+												onClick={() => handlebatchAddToVault(selectedRows, 100)}
+												disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
+												variant="outlined"
+												endIcon={<HelpOutline />}
+												sx={{
+													color: "white",
+													borderColor: "white",
+													"&:hover": {
+														color: "gray",
+														borderColor: "gray",
+													}
+												}}>VAULT</Button>
+										</span>
+									</Tooltip>
 
-									<Button
-										// onClick={() => batchAddToVault(selectedRows)}
-										onClick={() => handlebatchAddToVault(selectedRows, 100)}
-										disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
-										variant="outlined"
-										endIcon={<HelpOutline />}
-										sx={{
-											color: "white",
-											borderColor: "white",
-											"&:hover": {
-												color: "gray",
-												borderColor: "gray",
-											}
-										}}>VAULT</Button>
 
 									<Button
 										onClick={() => handleBatchPayFee(selectedRows)}
@@ -853,19 +864,24 @@ const Home: NextPage = () => {
 										control={<Switch color='success' checked={vaultStrategyEnabled} value={vaultStrategyEnabled} />}
 										label={vaultStrategyEnabled ? "On" : "Off"}
 									/>
-									<Button
-										onClick={() => handlebatchAddToVault(selectedRows, selectedVaultStrategy)}
-										disabled={!vaultStrategyEnabled}
-										variant="outlined"
-										color={vaultStrategyEnabled ? "info" : "primary"}
-										sx={vaultStrategyEnabled ? {} : {
-											color: "white",
-											borderColor: "white",
-											"&:hover": {
-												color: "gray",
-												borderColor: "gray",
-											}
-										}}>Vault Strategy</Button>
+									<Tooltip title="This will determine the percentage of your pending rewards that goes to the Vault. The rest will be claimed and sent to your wallet.">
+										<span>
+											<Button
+												onClick={() => handlebatchAddToVault(selectedRows, selectedVaultStrategy)}
+												disabled={!vaultStrategyEnabled}
+												variant="outlined"
+												endIcon={<HelpOutline />}
+												color={vaultStrategyEnabled ? "info" : "primary"}
+												sx={vaultStrategyEnabled ? {} : {
+													color: "white",
+													borderColor: "white",
+													"&:hover": {
+														color: "gray",
+														borderColor: "gray",
+													}
+												}}>Hybrid Claim</Button>
+										</span>
+									</Tooltip>
 								</Box>
 
 

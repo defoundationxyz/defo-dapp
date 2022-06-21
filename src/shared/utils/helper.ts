@@ -7,7 +7,7 @@ export async function getIsEligableForClaim(diamondContract: any, provider: any,
 	const blockNumber = await provider.getBlockNumber();
 	const timestamp = await (await provider.getBlock(blockNumber)).timestamp
 	const rewardPoints = timestamp - gem[1]; // in seconds - 86 400 => 1 day
-
+	
 	// console.log('rewardPoints: ', rewardPoints);
 	// console.log('gem last reward: ', gem[1]);
 	// console.log('timestamp: ', timestamp);

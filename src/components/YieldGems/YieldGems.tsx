@@ -1,7 +1,4 @@
-import { Close, FiberManualRecord } from "@mui/icons-material"
-import { Box, Button, Grid, IconButton, Modal, Paper, Typography, useTheme } from "@mui/material"
-import { Contract, ContractFactory } from "ethers"
-import { formatUnits } from "ethers/lib/utils"
+import { Button, Grid, } from "@mui/material"
 import moment from "moment"
 import { useEffect, useRef, useState } from "react"
 import { CONTRACTS, GemType, GemTypeMetadata } from "shared/utils/constants"
@@ -12,7 +9,6 @@ import { getBalance, getGemTypes } from "shared/utils/format"
 import erc20ABI from "abi/ERC20ABI.json";
 import ModalLayout from "shared/components/DialogLayout/ModalLayout"
 import YieldGemModalBox from "./YieldGemModalBox/YieldGemModalBox"
-import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
 import YieldGemInfoBox from "./YieldGemInfoBox/YieldGemInfoBox"
 
 
@@ -26,32 +22,13 @@ const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccou
 
     useEffect(() => {
         const currentGemsCount = [0, 0, 0];
+        
         myGems.forEach(gem => {
             currentGemsCount[gem.GemType]++;
 
-        })
+        })        
         setGemsCount(currentGemsCount);
     }, [myGems])
-
-    // useEffect(() => {
-    //     const loadGemsData = async () => {
-    //         const _gem0Metadata = await diamondContract.GetGemTypeMetadata(0);
-    //         const _gem1Metadata = await diamondContract.GetGemTypeMetadata(1);
-    //         const _gem2Metadata = await diamondContract.GetGemTypeMetadata(2);
-
-    //         const gem0Metadata = getGemTypes(_gem0Metadata);
-    //         const gem1Metadata = getGemTypes(_gem1Metadata);
-    //         const gem2Metadata = getGemTypes(_gem2Metadata);
-
-    //         setYieldGemsMetadata({
-    //             gem0: gem0Metadata,
-    //             gem1: gem1Metadata,
-    //             gem2: gem2Metadata
-    //         })
-    //     }
-
-    //     loadGemsData();
-    // }, [])
 
 
     const handleOpenModal = () => {
@@ -127,18 +104,21 @@ const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccou
                     <YieldGemModalBox
                         name={"Sapphire"}
                         gemType={0}
+                        mintedGems={gemsCount[0]}
                         fetchAccountData={fetchAccountData}
                     />
 
                     <YieldGemModalBox
                         name={"Ruby"}
                         gemType={1}
+                        mintedGems={gemsCount[1]}
                         fetchAccountData={fetchAccountData}
                     />
 
                     <YieldGemModalBox
                         name={"Diamond"}
                         gemType={2}
+                        mintedGems={gemsCount[2]}
                         fetchAccountData={fetchAccountData}
                     />
 

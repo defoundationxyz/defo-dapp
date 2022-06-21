@@ -123,7 +123,7 @@ const P2VaultBox = ({
                 title="P2 Vault"
                 color="#FCBD00"
                 button={
-                    <Tooltip title="Lorem Ipsum">
+                    <Tooltip title="This will withdraw your funds from the P2 Vault and add them to the pending rewards.">
                         <span>
                             <Button
                                 onClick={() => setWithdrawModalOpen(true)}
