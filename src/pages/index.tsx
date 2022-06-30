@@ -140,7 +140,7 @@ const Home: NextPage = () => {
 			const pendingReward: BigNumber = await contract.checkTaxedReward(gemId)
 			const vaultAmount = await diamondContract.gemVaultAmount(gemId)
 			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
-			console.log("is eligable: ", gemId, isGemEligable);
+			// console.log("is eligable: ", gemId, isGemEligable);
 
 			// console.log(gemId, formatUnits(vaultAmount, "ether"), formatUnits(pendingReward, "ether"));
 
@@ -155,13 +155,13 @@ const Home: NextPage = () => {
 				claimedReward: gem[7],
 				pendingReward: pendingReward,
 				vaultAmount: vaultAmount,
-				
+				isEligableForClaim: isGemEligable
 			}
 
 			return gemTyped
 		}))
 		setMyGems(myGems)
-		console.log("my gems: ", myGems);
+		// console.log("my gems: ", myGems);
 
 		const vaultAmounts = await diamondContract.getAllVaultAmounts(account)
 		setVaultAmounts(vaultAmounts);
@@ -437,7 +437,7 @@ const Home: NextPage = () => {
 			headerName: 'Fees due in',
 			renderCell: (params) => {
 				const gem: GemType = params.row;
-				return <Typography variant='body2'>{moment(gem.LastMaintained, "X").add(30, "days").format("MMM DD YYYY HH:mm")}</Typography>
+				return <Typography variant='body2'>{moment(gem.LastMaintained, "X").add(7, "days").format("MMM DD YYYY HH:mm")}</Typography>
 			}
 		},
 		{
@@ -467,9 +467,9 @@ const Home: NextPage = () => {
 						setSelectedRows([row.id])
 						setClaimRewardsModalOpen(true)
 					}}
-					variant="outlined"
 					variant="contained"
 					color="primary"
+					// disabled={row.isEligableForClaim}
 					sx={{
 						color: "white",
 						borderColor: "white",

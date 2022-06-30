@@ -1,7 +1,7 @@
 import { Box, Paper, Grid, Typography, useTheme } from "@mui/material"
 import ContentBox from './ContentBox'
 import { ArrowUpward } from '@mui/icons-material'
-import { BigNumber } from "ethers"
+import { BigNumber, ethers } from "ethers"
 import { formatNumber } from "shared/utils/format"
 
 
@@ -92,7 +92,7 @@ const DonationsBox = ({
                             justifyContent: "center"
                         }}>
                         <Typography variant="body2">TOTAL DONATIONS</Typography>
-                        <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>${totalDonations.toString()}</Typography>
+                        <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>${(+ethers.utils.formatEther(totalDonations)) * 5}</Typography>
                         <Box sx={{
                             display: "flex",
                             flexDirection: "row",

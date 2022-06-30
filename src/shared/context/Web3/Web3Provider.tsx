@@ -87,8 +87,8 @@ const Web3Provider = ({theme = "light", children}: {theme: "dark" | "light"; chi
                 const signer = web3Provider.getSigner();
                 const accounts = await web3Provider.listAccounts();
                 
-                console.log('signer: ', signer);
-                console.log('accounts: ', accounts);
+                // console.log('signer: ', signer);
+                // console.log('accounts: ', accounts);
                 
                 const net = await web3Provider.getNetwork()
                 console.log('net: ', net);

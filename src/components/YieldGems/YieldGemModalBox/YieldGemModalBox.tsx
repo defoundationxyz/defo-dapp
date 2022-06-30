@@ -1,12 +1,12 @@
 import { FiberManualRecord } from "@mui/icons-material";
 import { Grid, Paper, Typography, Box, useTheme, Button } from "@mui/material"
-import { BigNumber } from "ethers";
+import { BigNumber, Contract, ethers } from "ethers";
 import { formatUnits } from "ethers/lib/utils";
 import { useEffect, useState } from "react";
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider";
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
 import { useWeb3 } from "shared/context/Web3/Web3Provider";
-import { GEM_MINT_LIMIT_HOURS } from "shared/utils/constants";
+import { CONTRACTS, GEM_MINT_LIMIT_HOURS } from "shared/utils/constants";
 import { GemTypeMetadata } from "shared/utils/constants";
 import { getHoursFromSecondsInRange } from "shared/utils/format"; 
 import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper";
@@ -23,6 +23,7 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
 
     const [gem, setGem] = useState<GemTypeMetadata | null>(null);
     const [timeUntilMint, setTimeUntilMint] = useState(0);
+    const { signer, account } = useWeb3();
 
     useEffect(() => {
         const loadData = async () => {
@@ -75,8 +76,23 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
         // return current - 1;
     }
 
+    // TODO: check if allowance is less that required sum => trigger approve
     const createYieldGem = async (gemType: 0 | 1 | 2) => {
+        const defo = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
+        const dai = new Contract(CONTRACTS.Dai.address, CONTRACTS.Dai.abi, signer)
+        const defoAllowance = await defo.allowance(account, CONTRACTS.Main.address)
+        const daiAllowance = await dai.allowance(account, CONTRACTS.Main.address)
+
+        if(defoAllowance.isZero()) { 
+            let tx = await defo.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
+            tx.wait()
+        }
         
+        if(daiAllowance.isZero()) { 
+            let tx = await dai.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
+            tx.wait()
+        }
+
         try {
             const tx = await diamondContract.MintGem(gemType.toString())
             snackbar.execute("Creating, please wait.", "info")
