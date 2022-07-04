@@ -29,6 +29,12 @@ const ThemeProvider = ({ children }: {
             },
         },
         components: {
+            MuiButtonBase: {
+                defaultProps: {
+                    disableRipple: true,
+                    disableTouchRipple: true,
+                },
+            },
             MuiPaper: {
                 styleOverrides: {
                     root: {
