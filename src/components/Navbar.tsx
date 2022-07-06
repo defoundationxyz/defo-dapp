@@ -1,12 +1,39 @@
 import { AppBar, Box, Button, Container, Grid, Toolbar, Typography, useTheme } from "@mui/material"
 import { useWeb3 } from "shared/context/Web3/Web3Provider"
 import Link from "next/link"
+import { useChain, useMoralis } from "react-moralis"
+import { useEffect } from "react"
 
 const Navbar = () => {
-
     const theme = useTheme()
 
-    const { connect, status, account, switchNetwork } = useWeb3()
+    // const { connect, status, account, switchNetwork } = useWeb3()
+    const { enableWeb3, isWeb3Enabled, isWeb3EnableLoading, Moralis, account, deactivateWeb3 } = useMoralis();
+    const { chainId, chain, switchNetwork, network } = useChain();
+
+
+    useEffect(() => {
+        Moralis.onAccountChanged((account) => {
+            console.log('account changed to: ', account);
+            if (account == null) {
+                window.localStorage.removeItem("connected")
+                deactivateWeb3()
+                console.log('Null account found');
+            }
+        })
+    }, [])
+
+    const handleConnect = async() => {
+       
+        await enableWeb3();
+
+        if (typeof window !==  "undefined") { 
+            window.localStorage.setItem("connected", "injected");
+        } 
+        console.log(chainId);
+        console.log(chain);
+        console.log(network);
+    }
 
     return (
         <AppBar
@@ -92,7 +119,73 @@ const Navbar = () => {
                             </Link>
                         </Grid>
                     </Grid>
+
                     <Grid
+                        item
+                        xs={12}
+                        md={3}
+                        sx={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: {
+                                xs: "space-between",
+                                md: "flex-end"
+                            }
+                        }}>
+                        {
+                            !isWeb3Enabled ?
+                                <Button
+                                    variant="contained"
+                                    onClick={handleConnect}
+                                    sx={{
+                                        margin: theme.spacing(1),
+                                        padding: theme.spacing(2),
+                                        width: {
+                                            xs: "100%",
+                                            md: "auto"
+                                        }
+                                    }}
+                                >
+                                    Connect Wallet
+                                </Button>
+                                : status === "DIFFERENT_CHAIN"
+                                    ? <Button
+                                        // onClick={async() => { await switchNetwork("0x43114") }}
+                                        variant="contained"
+                                        sx={{
+                                            margin: theme.spacing(1),
+                                            padding: theme.spacing(2, 1),
+                                            width: {
+                                                xs: "100%",
+                                                md: "auto"
+                                            }
+                                        }}
+                                    >
+                                        Change Network To Avalanche
+                                    </Button>
+                                    : <Button
+                                        disabled
+                                        variant="contained"
+                                        onClick={() => {
+                                            window.location.reload()
+                                        }}
+                                        sx={{
+                                            margin: theme.spacing(1),
+                                            padding: theme.spacing(2),
+                                            width: {
+                                                xs: "100%",
+                                                md: "auto"
+                                            }
+                                        }}
+                                    >
+                                        {account?.substring(0, 6)}...
+                                    </Button>
+                        }
+                    </Grid>
+
+
+                    {/* <Grid
                         item
                         xs={12}
                         md={3}
@@ -154,7 +247,7 @@ const Navbar = () => {
                                         {account?.substring(0, 6)}...
                                     </Button>
                         }
-                    </Grid>
+                    </Grid> */}
                 </Grid>
             </Toolbar>
         </AppBar>

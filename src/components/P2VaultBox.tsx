@@ -3,7 +3,6 @@ import { Box, Button, Grid, IconButton, LinearProgress, Modal, Paper, Tooltip, T
 import { DataGrid, GridColDef, GridRowId } from "@mui/x-data-grid"
 import { BigNumber, ethers } from "ethers"
 import { formatUnits } from "ethers/lib/utils"
-import moment from "moment"
 import { useEffect, useState } from "react"
 import { GemType } from "shared/utils/constants";
 import ContentBox from "./ContentBox"
@@ -11,7 +10,7 @@ import { useWeb3 } from "shared/context/Web3/Web3Provider"
 import { formatNumber } from "shared/utils/format"
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
-
+import moment from "moment"
 
 
 
