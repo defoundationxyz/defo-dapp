@@ -8,7 +8,7 @@ import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
 import { useWeb3 } from "shared/context/Web3/Web3Provider";
 import { CONTRACTS, GEM_MINT_LIMIT_HOURS } from "shared/utils/constants";
 import { GemTypeMetadata } from "shared/utils/constants";
-import { getHoursFromSecondsInRange } from "shared/utils/format"; 
+import { getHoursFromSecondsInRange } from "shared/utils/format";
 import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper";
 
 const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
@@ -18,7 +18,7 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
     mintedGems: number,
 }) => {
     const theme = useTheme();
-	const { diamondContract } = useDiamondContext()
+    const { diamondContract } = useDiamondContext()
     const snackbar = useSnackbar();
 
     const [gem, setGem] = useState<GemTypeMetadata | null>(null);
@@ -38,7 +38,7 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
         // console.log('current gem: ', gemType);
         // console.log(currentGem);
         // console.log("-------------");
-        
+
 
         let currentGemTyped: GemTypeMetadata = {
             LastMint: currentGem[0],
@@ -52,11 +52,10 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
 
         const timeLeft = await diamondContract.getExpiredTimeSinceLock(gemType);
         const hours = getHoursFromSecondsInRange(timeLeft);
-        
 
-        if(hours > 48) {
+        if (hours > 48) {
             setTimeUntilMint(GEM_MINT_LIMIT_HOURS);
-        } else { 
+        } else {
             setTimeUntilMint(GEM_MINT_LIMIT_HOURS - hours);
         }
 
@@ -79,17 +78,19 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
     // TODO: check if allowance is less that required sum => trigger approve
     const createYieldGem = async (gemType: 0 | 1 | 2) => {
         const defo = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
-        const dai = new Contract(CONTRACTS.Dai.address, CONTRACTS.Dai.abi, signer)
         const defoAllowance = await defo.allowance(account, CONTRACTS.Main.address)
+        const dai = new Contract(CONTRACTS.Dai.mainnetAddress, CONTRACTS.Dai.abi, signer)
         const daiAllowance = await dai.allowance(account, CONTRACTS.Main.address)
+        // console.log('defoAllowance: ', defoAllowance.toString());
+        // console.log('daiAllowance: ', daiAllowance.toString());
 
         if(defoAllowance.isZero()) { 
-            let tx = await defo.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
+            const tx = await defo.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
             tx.wait()
         }
-        
+
         if(daiAllowance.isZero()) { 
-            let tx = await dai.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
+            const tx = await dai.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
             tx.wait()
         }
 

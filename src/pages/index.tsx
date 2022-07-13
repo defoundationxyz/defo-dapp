@@ -113,6 +113,7 @@ const Home: NextPage = () => {
 		const defoInstance = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
 		const totalCharity = await diamondContract.getTotalCharity()
 		const totalStake = await diamondContract.showTotalAmount();
+		console.log("Dimaond Contract: ", contract);
 
 		setTotalDonations(totalCharity)
 		setTotalStaked(totalStake)
@@ -137,12 +138,10 @@ const Home: NextPage = () => {
 		const myGems: GemType[] = await Promise.all(myGemIds.map(async (gemId: BigNumber) => {
 
 			const gem = await contract.GemOf(gemId)
-			const pendingReward: BigNumber = await contract.checkTaxedReward(gemId)
+			const pendingReward: BigNumber = await contract.checkTaperedReward(gemId)
 			const vaultAmount = await diamondContract.gemVaultAmount(gemId)
 			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
-			// console.log("is eligable: ", gemId, isGemEligable);
 
-			// console.log(gemId, formatUnits(vaultAmount, "ether"), formatUnits(pendingReward, "ether"));
 
 			let gemTyped: GemType = {
 				id: gemId.toString(),
@@ -161,7 +160,6 @@ const Home: NextPage = () => {
 			return gemTyped
 		}))
 		setMyGems(myGems)
-		// console.log("my gems: ", myGems);
 
 		const vaultAmounts = await diamondContract.getAllVaultAmounts(account)
 		setVaultAmounts(vaultAmounts);

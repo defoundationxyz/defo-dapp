@@ -59,21 +59,21 @@ export const CONTRACTS = {
     //FUJI
     Dai: {
         abi: Dai_ABI,
-        // address: "0xd586E7F844cEa2F87f50152665BCbc2C279D8d70",      // mainnet
+        mainnetAddress: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70",
         address: "0x85a2ff500E0eD9fA93719071EA46A86198181581",      // testnet
-
     },
 
     DefoToken: {
         abi: Dai_ABI,
-        address: "0x5C7ea2D484464a6Be1c2028CE1E9e1Ec339Dd3Ae",
+        // address: "0x5C7ea2D484464a6Be1c2028CE1E9e1Ec339Dd3Ae",
+        address: "0x4a6B7DCD5c271B2E36B8CE0fbB3097c2268ceC24",
     },
 
     Main: {
         // address: "0x78c51f56e21994FB5d00D2A817Bca4c5B735FDcb",  // mainnet
         // address: "0xd274d23b3Ae1b2a6c45b400e66dC64FBB3053222",  // testnet
         // address: "0xD4BbEE565C8EeDB54eD9d90c5205c92Eb684539C", // FUJI
-        address: "0x4e8AE31164b84ECc19102Cde08aaA23a456B90d2", // localhost
+        address: "0x095Db998B45FEAB2b8A3260bD630816a069DbDc4", // localhost
         abi: [
             ...DiamonCutFacet_ABI,
             ...DiamonLoupeFacet_ABI,
