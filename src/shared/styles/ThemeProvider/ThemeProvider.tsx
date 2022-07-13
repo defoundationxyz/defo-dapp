@@ -29,10 +29,24 @@ const ThemeProvider = ({ children }: {
             },
         },
         components: {
+            MuiButtonBase: {
+                defaultProps: {
+                    disableRipple: true,
+                    disableTouchRipple: true,
+                },
+            },
             MuiPaper: {
                 styleOverrides: {
                     root: {
                         borderRadius: "10px"
+                    }
+                }
+            },
+            MuiDialog: {
+                styleOverrides: { 
+                    paper: { 
+                        maxWidth: "none",
+                        minWidth: "900px"
                     }
                 }
             }

@@ -2,6 +2,15 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 
 ## Getting Started
 
+### Step in order to reproduce the app on local development chain using hardhat fork
+1. Be sure you have both repos locally (defo-contracts, defo-dapp) and installed node_modules
+2. Open two terminals in the root dir of defo-contracts 
+3. Run `npm run fork-fuji` or other script for starting hardhat local development chain
+4. Run `npm run deploy-dev` or other deployment script
+5. After running the deployment script, copy diamond address and paste it in `constants.ts => CONTRACTS.Main.address`
+6. Run `npm run dev` and open browser [http://localhost:3000](http://localhost:3000)
+
+
 First, run the development server:
 
 ```bash

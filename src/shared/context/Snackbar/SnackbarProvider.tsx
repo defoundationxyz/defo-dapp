@@ -1,13 +1,6 @@
-
+import SnackbarContext from "./SnackbarContext"
 import { Alert, AlertColor, Snackbar } from '@mui/material'
-import { createContext, ReactChild, useContext, useState } from 'react'
-
-
-
-const SnackbarContext = createContext({
-    execute: (message: string, severity: AlertColor) => { console.log(message, severity) }
-});
-
+import { ReactChild, useContext, useState } from 'react'
 
 const SnackbarProvider = ({ children }: { children: ReactChild }) => {
 
@@ -33,7 +26,7 @@ const SnackbarProvider = ({ children }: { children: ReactChild }) => {
             {children}
             <Snackbar
                 open={open}
-                autoHideDuration={3000}
+                autoHideDuration={7000}
                 onClose={handleClose}
 
             >
@@ -46,7 +39,14 @@ const SnackbarProvider = ({ children }: { children: ReactChild }) => {
 }
 
 
+const useSnackbar = () => {
+    const context = useContext(SnackbarContext);
 
-export const useSnackbar = () => useContext(SnackbarContext)
+    if(!context) { 
+        throw new Error("useSnackbar can be used only within SnackbarProvider");
+    }
 
-export default SnackbarProvider
+    return context
+}
+
+export { useSnackbar, SnackbarProvider }
