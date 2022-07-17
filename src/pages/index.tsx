@@ -134,13 +134,24 @@ const Home: NextPage = () => {
 		})
 
 		const myGemIds = await contract.getGemIdsOf(account)
+		// console.log('myGemIds: ', myGemIds);
 
 		const myGems: GemType[] = await Promise.all(myGemIds.map(async (gemId: BigNumber) => {
 
 			const gem = await contract.GemOf(gemId)
+			// console.log("gem: ", gem);
+
 			const pendingReward: BigNumber = await contract.checkTaperedReward(gemId)
 			const vaultAmount = await diamondContract.gemVaultAmount(gemId)
 			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
+			const taxTier = await diamondContract.getTaxTier(gemId);
+			const wenNextTier = await diamondContract.wenNextTaxTier(gem[1]);
+			// console.log('NEXT TIER: ', wenNextTier.toString());
+			// console.log('fixed: ', moment(wenNextTier.toString(), "X").format("MMM DD YYYY HH:mm"));
+			// const countdown = wenNextTier - gem[2]
+
+			// const res = gem[2].sub(wenNextTier);
+			// console.log('result: ', res.toString());
 
 
 			let gemTyped: GemType = {
@@ -154,7 +165,9 @@ const Home: NextPage = () => {
 				claimedReward: gem[7],
 				pendingReward: pendingReward,
 				vaultAmount: vaultAmount,
-				isEligableForClaim: isGemEligable
+				isEligableForClaim: isGemEligable,
+				taxTier: taxTier,
+				nextTaxTier: wenNextTier
 			}
 
 			return gemTyped
@@ -164,11 +177,6 @@ const Home: NextPage = () => {
 		const vaultAmounts = await diamondContract.getAllVaultAmounts(account)
 		setVaultAmounts(vaultAmounts);
 	}
-
-	const getDefoReward = () => {
-		return formatNumber(+formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether"))
-	}
-
 
 	const payFee = async (gemId: string) => {
 		console.log(gemId);
@@ -422,12 +430,23 @@ const Home: NextPage = () => {
 		{
 			flex: 0.8,
 			field: 'taxTier',
-			headerName: 'Tax Tier'
+			headerName: 'Tax Tier',
+			renderCell: (params) => {
+				const gem = params.row;
+				return (
+					<Typography variant="body2">{gem.taxTier.toString()}</Typography>
+				)
+			}
 		},
 		{
 			flex: 1,
 			field: 'tierCountdown',
-			headerName: 'Tier Countdown'
+			headerName: 'Next Tier',
+			renderCell: (params) => {
+				const gem = params.row;
+				const nextTier = moment(gem.nextTaxTier.toString(), "X").format("MMM DD YYYY HH:mm");
+				return <Typography variant="body2">{nextTier}</Typography>
+			}
 		},
 		{
 			flex: 1,
@@ -435,7 +454,7 @@ const Home: NextPage = () => {
 			headerName: 'Fees due in',
 			renderCell: (params) => {
 				const gem: GemType = params.row;
-				return <Typography variant='body2'>{moment(gem.LastMaintained, "X").add(7, "days").format("MMM DD YYYY HH:mm")}</Typography>
+				return <Typography variant='body2'>{moment(gem.LastMaintained, "X").format("MMM DD YYYY HH:mm")}</Typography>
 			}
 		},
 		{
@@ -560,7 +579,7 @@ const Home: NextPage = () => {
 										}}>
 										<Typography variant="body2">PENDING REWARDS</Typography>
 										<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-											{getDefoReward()} DEFO
+											{ formatNumber(+formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether")) } DEFO
 										</Typography>
 										<Typography variant="h5" fontWeight={"bold"}>
 											{/* (${(+getDefoReward()) * 5}) */}
@@ -574,7 +593,7 @@ const Home: NextPage = () => {
 
 				</Grid>
 
-				{/* Table */}
+				{/* GEM Table */}
 				<Box
 					sx={{
 						margin: theme.spacing(8, 0)
@@ -731,17 +750,18 @@ const Home: NextPage = () => {
 												marginRight: theme.spacing(1)
 											}}>
 											{
-												formatUnits(
-													myGems
-														.filter(gem => selectedRows.includes(gem.id))
-														.reduce(
-															(
-																n,
-																{ pendingReward }
-															) => pendingReward.add(n),
-															BigNumber.from(0)
-														), "ether"
-												)
+												formatNumber(
+													+formatUnits(
+														myGems
+															.filter(gem => selectedRows.includes(gem.id))
+															.reduce(
+																(
+																	n,
+																	{ pendingReward }
+																) => pendingReward.add(n),
+																BigNumber.from(0)
+															), "ether"
+													))
 											} DEFO</Typography>
 									</Grid>
 									<Grid item>
@@ -819,16 +839,18 @@ const Home: NextPage = () => {
 									</Grid>
 									<Grid item>
 										<Typography variant="body2">{
-											formatUnits(
-												myGems
-													.filter(gem => selectedRows.includes(gem.id))
-													.reduce(
-														(
-															n,
-															{ pendingReward }
-														) => (pendingReward.div(100).mul(meta[3])).add(n),
-														BigNumber.from(0)
-													), "ether")
+
+											formatNumber(
+												+formatUnits(
+													myGems
+														.filter(gem => selectedRows.includes(gem.id))
+														.reduce(
+															(
+																n,
+																{ pendingReward }
+															) => (pendingReward.div(100).mul(meta[3])).add(n),
+															BigNumber.from(0)
+														), "ether"))
 										} DEFO ($0)</Typography>
 									</Grid>
 								</Grid>

@@ -111,7 +111,9 @@ export type GemType = {
     claimedReward: BigNumber;
     pendingReward: BigNumber;
     vaultAmount?: BigNumber;
-    isEligableForClaim?: any
+    isEligableForClaim?: any,
+    taxTier: BigNumber,
+    nextTaxTier: BigNumber,
 }
 
 

@@ -44,7 +44,7 @@ const P2VaultBox = ({
         console.log(gem.id, gem.vaultAmount);
         // 99642
         // 118.68
-        
+
         try {
             const tx = await diamondContract.removeFromVault(gem.id, gem.vaultAmount);
             snackbar.execute("Withdrawing from the vault on progress, please wait.", "info")
@@ -157,7 +157,14 @@ const P2VaultBox = ({
                                 },
                             }}>
                             <Typography variant="body2">YOUR STAKE</Typography>
-                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>{formatNumber(+formatUnits(yourStake, "ether"))}</Typography>
+                            <Typography
+                                sx={{ margin: theme.spacing(1, 0) }}
+                                variant="h4"
+                                fontWeight={"600"}
+                            >
+                                {/* {formatNumber(+formatUnits(yourStake, "ether"))} */}
+                                { (+ethers.utils.formatEther(yourStake)).toFixed(4) }
+                            </Typography>
                             <Box sx={{
                                 display: "flex",
                                 flexDirection: "row",
@@ -195,7 +202,15 @@ const P2VaultBox = ({
                                 },
                             }}>
                             <Typography variant="body2">TOTAL STAKED</Typography>
-                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>{formatNumber(+formatUnits(totalStaked, "ether"))}</Typography>
+
+                            <Typography
+                                sx={{ margin: theme.spacing(1, 0) }}
+                                variant="h4"
+                                fontWeight={"600"}
+                            >
+                                {/* {formatNumber(+formatUnits(totalStaked, "ether"))} */}
+                                {(+ethers.utils.formatEther(totalStaked)).toFixed(4)}
+                            </Typography>
                             <Box sx={{
                                 display: "flex",
                                 flexDirection: "row",
