@@ -73,7 +73,7 @@ export const CONTRACTS = {
         // address: "0x78c51f56e21994FB5d00D2A817Bca4c5B735FDcb",  // mainnet
         // address: "0xd274d23b3Ae1b2a6c45b400e66dC64FBB3053222",  // testnet
         // address: "0xD4BbEE565C8EeDB54eD9d90c5205c92Eb684539C", // FUJI
-        address: "0x095Db998B45FEAB2b8A3260bD630816a069DbDc4", // localhost
+        address: "0x50dCA58237d32773E05F46a58A8b1Ad5E9384271", // localhost
         abi: [
             ...DiamonCutFacet_ABI,
             ...DiamonLoupeFacet_ABI,
@@ -120,7 +120,7 @@ export type GemType = {
 export type GemTypeMetadata = {
     LastMint: number;
     MaintenanceFee: number;
-    RewardRate: number;
+    RewardRate: BigNumber;
     DailyLimit: number;
     MintCount: number;
     DefoPrice: BigNumber;

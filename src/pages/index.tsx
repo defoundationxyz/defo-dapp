@@ -67,7 +67,6 @@ const Home: NextPage = () => {
 		(async () => {
 			try {
 				const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-				// console.log('mainContract: ', mainContract);
 
 				if (mainContract.address) {
 					setDiamondContract(mainContract)
@@ -103,17 +102,12 @@ const Home: NextPage = () => {
 
 	}, [yieldGemsMetadata.gem0])
 
-	useEffect(() => {
-		// console.log('myGems: ', myGems);
-		// console.log('Meta: ', meta);
-	}, [myGems])
 
 	const fetchAccountData = async () => {
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 		const defoInstance = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
 		const totalCharity = await diamondContract.getTotalCharity()
 		const totalStake = await diamondContract.showTotalAmount();
-		console.log("Dimaond Contract: ", contract);
 
 		setTotalDonations(totalCharity)
 		setTotalStaked(totalStake)
@@ -283,10 +277,17 @@ const Home: NextPage = () => {
 	}
 	// 1.
 	const handleBatchPayFee = async (gemIds: string[]) => {
-		const gemIdsCollection = gemIds.map(gemId => +gemId);
-		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-
 		try {
+			const gemIdsCollection = gemIds.map(gemId => +gemId);
+			let areAllGemsEligableForClaim: boolean = true
+
+			for (let i = 0; i < gemIdsCollection.length; i++) {
+				const isClaimable = await diamondContract.isClaimable(gemIdsCollection[i])
+				if (!isClaimable) {
+					areAllGemsEligableForClaim = false
+					throw new Error("Some of the selected gem is not claimable!")
+				}
+			}
 			const tx = gemIdsCollection.length === 1 ? await diamondContract.Maintenance(gemIdsCollection[0], 0) : await diamondContract.BatchMaintenance(gemIdsCollection)
 			snackbar.execute("Maintenance on progress, please wait.", "info")
 			await tx.wait()
@@ -318,9 +319,12 @@ const Home: NextPage = () => {
 		// check if fee's are paid => claimTX
 		const gemIdsAsNumber = gemInstancesCollection.map((item: GemType) => +item.id)
 
+		console.log('gemIdsAsNumber: ', gemIdsAsNumber);
+
 		try {
 			// const batchTx = await diamondContract.BatchMaintenance(gemIdsAsNumber);
 			// console.log('batchTx: ', batchTx);
+
 			const tx = gemIdsAsNumber.length === 1 ? await diamondContract.ClaimRewards(gemIdsAsNumber[0]) : await diamondContract.BatchClaimRewards(gemIdsAsNumber);
 			snackbar.execute("Claiming on progress, please wait.", "info")
 			await tx.wait()
@@ -445,7 +449,8 @@ const Home: NextPage = () => {
 			renderCell: (params) => {
 				const gem = params.row;
 				const nextTier = moment(gem.nextTaxTier.toString(), "X").format("MMM DD YYYY HH:mm");
-				return <Typography variant="body2">{nextTier}</Typography>
+				const nextTierValue = nextTier == 0 ? "No tax" : nextTier
+				return <Typography variant="body2">{nextTierValue}</Typography>
 			}
 		},
 		{
@@ -579,7 +584,7 @@ const Home: NextPage = () => {
 										}}>
 										<Typography variant="body2">PENDING REWARDS</Typography>
 										<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-											{ formatNumber(+formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether")) } DEFO
+											{formatNumber(+formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether"))} DEFO
 										</Typography>
 										<Typography variant="h5" fontWeight={"bold"}>
 											{/* (${(+getDefoReward()) * 5}) */}
@@ -899,7 +904,7 @@ const Home: NextPage = () => {
 														color: "gray",
 														borderColor: "gray",
 													}
-												}}>Hybrid Claim</Button>
+												}}>Hybrid Vault</Button>
 										</span>
 									</Tooltip>
 								</Box>

@@ -1,7 +1,7 @@
 import { FiberManualRecord } from "@mui/icons-material";
 import { Grid, Paper, Typography, Box, useTheme, Button } from "@mui/material"
 import { BigNumber, Contract, ethers } from "ethers";
-import { formatUnits } from "ethers/lib/utils";
+import { formatEther, formatUnits } from "ethers/lib/utils";
 import { useEffect, useState } from "react";
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider";
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
@@ -84,12 +84,12 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
         // console.log('defoAllowance: ', defoAllowance.toString());
         // console.log('daiAllowance: ', daiAllowance.toString());
 
-        if(defoAllowance.isZero()) { 
+        if (defoAllowance.isZero()) {
             const tx = await defo.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
             tx.wait()
         }
 
-        if(daiAllowance.isZero()) { 
+        if (daiAllowance.isZero()) {
             const tx = await dai.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
             tx.wait()
         }
@@ -168,7 +168,8 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
 
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Reward:</Typography>
-                        <Typography variant="body2" >{gem?.RewardRate.toString()} DEFO/Week</Typography>
+                        {/* <Typography variant="body2" >{ gem?.RewardRate.toString()} DEFO/Week</Typography> */}
+                        <Typography variant="body2" >{formatEther(gem?.RewardRate || 0)} DEFO/Week</Typography>
                     </Box>
                     <Box sx={{
                         display: "flex",
