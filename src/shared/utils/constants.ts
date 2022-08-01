@@ -10,6 +10,16 @@ import NodeLimiterFacet_ABI from 'abi/facets/NodeLimiterFacet.json'
 import OwnerFacet_ABI from 'abi/facets/OwnerFacet.json'
 import OwnershipFacet_ABI from 'abi/facets/OwnershipFacet.json'
 import VaultStakingFacet_ABI from 'abi/facets/VaultStakingFacet.json'
+// import Config_ABI from 'abi/facets/ConfigFacet.json'
+
+import ConfigFacet from 'abi/facets-abi/ConfigFacet.json'
+import LimiterFacet from 'abi/facets-abi/LimiterFacet.json'
+import MaintenanceFacet from 'abi/facets-abi/MaintenanceFacet.json'
+import RedeemFacet from 'abi/facets-abi/RedeemFacet.json'
+import RewardFacet from 'abi/facets-abi/RewardFacet.json'
+import VaultFacet from 'abi/facets-abi/VaultFacet.json'
+import YieldGemFacet from 'abi/facets-abi/YieldGemFacet.json'
+import GettersFacet from 'abi/facets-abi/GettersFacet.json'
 
 export const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID
 
@@ -75,17 +85,27 @@ export const CONTRACTS = {
         // address: "0xD4BbEE565C8EeDB54eD9d90c5205c92Eb684539C", // FUJI
         address: "0x50dCA58237d32773E05F46a58A8b1Ad5E9384271", // localhost
         abi: [
-            ...DiamonCutFacet_ABI,
-            ...DiamonLoupeFacet_ABI,
-            ...ERC721EnumerableFacet_ABI,
-            ...ERC721Facet_ABI,
-            ...GemFacet_ABI,
-            ...GemGettersFacet_ABI,
-            ...NodeLimiterFacet_ABI,
-            ...OwnerFacet_ABI,
-            ...OwnershipFacet_ABI,
-            ...VaultStakingFacet_ABI,
+            ...ConfigFacet,
+            ...LimiterFacet,
+            ...MaintenanceFacet,
+            ...RedeemFacet,
+            ...RewardFacet,
+            ...VaultFacet,
+            ...YieldGemFacet,
+            ...GettersFacet
         ]
+        // abi: [
+        //     ...DiamonCutFacet_ABI,
+        //     ...DiamonLoupeFacet_ABI,
+        //     ...ERC721EnumerableFacet_ABI,
+        //     ...ERC721Facet_ABI,
+        //     ...GemFacet_ABI,
+        //     ...GemGettersFacet_ABI,
+        //     ...NodeLimiterFacet_ABI,
+        //     ...OwnerFacet_ABI,
+        //     ...OwnershipFacet_ABI,
+        //     ...VaultStakingFacet_ABI,
+        // ]
     }
 
 }

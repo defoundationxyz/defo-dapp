@@ -1,4 +1,3 @@
-//  @ts-nocheck
 import { Box, Button, Container, FormControlLabel, Grid, IconButton, Modal, Paper, Switch, Tooltip, Typography, useTheme } from '@mui/material'
 import type { NextPage } from 'next'
 import Footer from 'components/Footer'
@@ -21,11 +20,18 @@ import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextP
 import { formatNumber, getGemTypes } from 'shared/utils/format'
 import { getIsEligableForClaim } from 'shared/utils/helper'
 import { getHoursFromSecondsInRange } from "shared/utils/format";
+import { Gem, GemTypeConfig } from 'shared/types/DataTypes'
 
 type yieldGemsMetadataType = {
 	gem0: GemTypeMetadata | {},
 	gem1: GemTypeMetadata | {},
 	gem2: GemTypeMetadata | {},
+}
+
+type gemsConfig = {
+	gem0: GemTypeConfig | {},
+	gem1: GemTypeConfig | {},
+	gem2: GemTypeConfig | {},
 }
 
 const Home: NextPage = () => {
@@ -53,13 +59,20 @@ const Home: NextPage = () => {
 		gem1: {},
 		gem2: {},
 	});
+
+	const [myCurrentGems, setMyCurrentGems] = useState<Gem[]>([])
+	const [gemsConfig, setGemsConfig] = useState<gemsConfig>({
+		gem0: {},
+		gem1: {},
+		gem2: {},
+	})
+
 	const [vaultAmounts, setVaultAmounts] = useState<BigNumber[]>([]);
 
-	const [meta, setMeta] = useState<any>()
+	// const [meta, setMeta] = useState<any>()
 
 	const [selectedVaultStrategy, setSelectedVaultStrategy] = useState(20)
 	const [vaultStrategyEnabled, setVaultStrategyEnabled] = useState(false)
-
 
 	// initialize DiamondContract
 	useEffect(() => {
@@ -67,13 +80,14 @@ const Home: NextPage = () => {
 		(async () => {
 			try {
 				const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
+				console.log('MAIN CONTRACT: ', mainContract)
 
 				if (mainContract.address) {
 					setDiamondContract(mainContract)
 				}
 
-				const meta = await mainContract.getMeta()
-				setMeta(meta)
+				// const meta = await mainContract.getMeta()
+				// setMeta(meta)
 
 			} catch (error) {
 				console.log(error)
@@ -104,133 +118,90 @@ const Home: NextPage = () => {
 
 
 	const fetchAccountData = async () => {
+		console.log('DIAMOND: ', diamondContract)
+
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 		const defoInstance = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
-		const totalCharity = await diamondContract.getTotalCharity()
-		const totalStake = await diamondContract.showTotalAmount();
+		const totalCharity = await diamondContract.getTotalDonated()
+		const totalStake = await diamondContract.getTotalStakedAllUsers();
 
 		setTotalDonations(totalCharity)
 		setTotalStaked(totalStake)
 
 		// setYourDonations(ethers.utils.formatEther(await contract.getUserTotalCharity(account))) // put in the vault or claim reward
-		setYourDonations(formatUnits(await contract.getUserTotalCharity(account), "ether")) // TODO: DEFO tokens amount
-		setYourStake(await contract.showStakedAmount())
+		// setYourDonations(formatUnits(await diamondContract.getUserTotalCharity(account), "ether")) // TODO: DEFO tokens amount
 
-		//fetch gemMetadata
-		const _gem0Metadata = await diamondContract.GetGemTypeMetadata(0);
-		const _gem1Metadata = await diamondContract.GetGemTypeMetadata(1);
-		const _gem2Metadata = await diamondContract.GetGemTypeMetadata(2);
+		setYourStake(await contract.getTotalStaked())
 
-		setYieldGemsMetadata({
-			gem0: getGemTypes(_gem0Metadata),
-			gem1: getGemTypes(_gem1Metadata),
-			gem2: getGemTypes(_gem2Metadata)
+		const gemsConfig = await diamondContract.getGemTypesConfig()
+		const gem0Config: GemTypeConfig = gemsConfig[0]
+		const gem1Config: GemTypeConfig = gemsConfig[1]
+		const gem2Config: GemTypeConfig = gemsConfig[2]
+
+		// console.log('gemsConfig: ', gemsConfig);
+		setGemsConfig({
+			gem0: gem0Config,
+			gem1: gem1Config,
+			gem2: gem2Config,
 		})
 
-		const myGemIds = await contract.getGemIdsOf(account)
-		// console.log('myGemIds: ', myGemIds);
-
-		const myGems: GemType[] = await Promise.all(myGemIds.map(async (gemId: BigNumber) => {
-
-			const gem = await contract.GemOf(gemId)
-			// console.log("gem: ", gem);
-
-			const pendingReward: BigNumber = await contract.checkTaperedReward(gemId)
-			const vaultAmount = await diamondContract.gemVaultAmount(gemId)
-			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
-			const taxTier = await diamondContract.getTaxTier(gemId);
-			const wenNextTier = await diamondContract.wenNextTaxTier(gem[1]);
-			// console.log('NEXT TIER: ', wenNextTier.toString());
-			// console.log('fixed: ', moment(wenNextTier.toString(), "X").format("MMM DD YYYY HH:mm"));
-			// const countdown = wenNextTier - gem[2]
-
-			// const res = gem[2].sub(wenNextTier);
-			// console.log('result: ', res.toString());
+		// const myCurrentGemIds = await diamondContract.getGemIds()
+		// setMyCurrentGems(myCurrentGemIds)
+		const gemsInfo = await diamondContract.getGemsInfo()
+		const currentGems: Gem[] = []
 
 
-			let gemTyped: GemType = {
-				id: gemId.toString(),
-				MintTime: gem[0],
-				LastReward: gem[1],
-				LastMaintained: gem[2],
-				GemType: gem[3],
-				TaperCount: gem[4],
-				Booster: gem[5],
-				claimedReward: gem[7],
-				pendingReward: pendingReward,
-				vaultAmount: vaultAmount,
-				isEligableForClaim: isGemEligable,
-				taxTier: taxTier,
-				nextTaxTier: wenNextTier
+		for (let i = 0; i < gemsInfo[0].length; i++) {
+			const gemId: BigNumber = gemsInfo[0][i]
+			const gemData = gemsInfo[1][i]
+			const pendingMaintenanceFee = await diamondContract.getPendingMaintenanceFee(gemId)
+			const taxTier = await diamondContract.getTaxTier(gemId)
+			const rewardAmount = await diamondContract.getRewardAmount(gemId)
+			const isClaimable = await diamondContract.isClaimable(gemId)			
+			const staked = await diamondContract.getStaked(gemId)
+			
+
+			const newGem: Gem = {
+				id: gemId,
+				gemTypeId: gemData.gemTypeId,
+				booster: gemData.booster,
+				mintTime: gemData.mintTime,
+				boostTime: gemData.boostTime,
+				lastRewardWithdrawalTime: gemData.lastRewardWithdrawalTime,
+				lastMaintenanceTime: gemData.lastMaintenanceTime, 
+				pendingMaintenanceFee,
+				taxTier,
+				rewardAmount,
+				isClaimable,
+				staked
 			}
-
-			return gemTyped
-		}))
-		setMyGems(myGems)
-
-		const vaultAmounts = await diamondContract.getAllVaultAmounts(account)
-		setVaultAmounts(vaultAmounts);
-	}
-
-	const payFee = async (gemId: string) => {
-		console.log(gemId);
-		const isEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
-
-		if (!isEligable) {
-			snackbar.execute("You already paid the fee", "error");
-			return
+			currentGems.push(newGem)
 		}
 
-		try {
-			const tx = await diamondContract.Maintenance(gemId, 0)
-			snackbar.execute("Maintenance on progress, please wait.", "info")
-			await tx.wait()
-			await fetchAccountData()
+		console.log('currentGems: ', currentGems)
+		setMyCurrentGems(currentGems)
 
-		} catch (error: any) {
-			console.log(error)
-			snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
-		}
+		// 	let gemTyped: GemType = {
+		// 		id: gemId.toString(),
+		// 		MintTime: gem[0],
+		// 		LastReward: gem[1],
+		// 		LastMaintained: gem[2],
+		// 		GemType: gem[3],
+		// 		TaperCount: gem[4],
+		// 		Booster: gem[5],
+		// 		claimedReward: gem[7],
+		// 		pendingReward: pendingReward,
+		// 		vaultAmount: vaultAmount,
+		// 		isEligableForClaim: isGemEligable,
+		// 		taxTier: taxTier,
+		// 		nextTaxTier: wenNextTier
+		// 	}
 
+		// const vaultAmounts = await diamondContract.getAllVaultAmounts(account)
+		// setVaultAmounts(vaultAmounts);
 	}
 
-
-	const claimRewards = async (gemId: string) => {
-		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-		try {
-			const tx = await contract.ClaimRewards(gemId)
-			snackbar.execute("Claiming on progress, please wait.", "info")
-			await tx.wait()
-			await fetchAccountData()
-
-		} catch (error: any) {
-			console.log(error)
-			snackbar.execute(error?.error?.message || error?.reason || "ERROR", "error")
-		}
-	}
-
-	const BatchClaimRewards = async (gemIds: string[]) => {
-		// const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-		const gemIdsAsNumber = gemIds.map(gemId => +gemId);
-		console.log(gemIdsAsNumber);
-
-
-		try {
-			const batchTx = await diamondContract.BatchMaintenance(gemIdsAsNumber);
-			console.log('batchTx: ', batchTx);
-			const tx = await diamondContract.BatchClaimRewards(gemIdsAsNumber)
-			snackbar.execute("Claiming on progress, please wait.", "info")
-			await tx.wait()
-			await fetchAccountData()
-			setClaimRewardsModalOpen(false)
-
-		} catch (error: any) {
-			console.log(error)
-			snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
-		}
-	}
-
-	const getPendingRewardsForGems = (gemIds) => {
+	const getPendingRewardsForGems = (gemIds: any) => {
 		return formatUnits(
 			myGems
 				.filter(gem => gemIds.includes(gem.id))
@@ -244,37 +215,6 @@ const Home: NextPage = () => {
 		)
 	}
 
-	const batchAddToVault = async (gemIds: string[]) => {
-
-		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-		try {
-
-			let amounts = []
-
-			if (vaultStrategyEnabled) {
-				for (const myGem of myGems) {
-					let amount = myGem.pendingReward.div(100).mul(selectedVaultStrategy)
-					amounts.push(amount)
-				}
-			} else {
-				for (const myGem of myGems) {
-					let amount = myGem.pendingReward
-					amounts.push(amount)
-				}
-
-			}
-
-			const tx = await contract.batchAddToVault(gemIds, amounts)
-			snackbar.execute("Claiming on progress, please wait.", "info")
-			await tx.wait()
-			await fetchAccountData()
-			setClaimRewardsModalOpen(false)
-
-		} catch (error: any) {
-			console.log(error)
-			snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
-		}
-	}
 	// 1.
 	const handleBatchPayFee = async (gemIds: string[]) => {
 		try {
@@ -306,6 +246,8 @@ const Home: NextPage = () => {
 		const gemInstancesCollection = [];
 
 		for (const gemId of gemIds) {
+			if (!signer) { return }
+			// @ts-ignore
 			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
 			if (!isGemEligable) {
 				snackbar.execute("Selected gem/s are not eligable for claim yet", "error");
@@ -339,11 +281,12 @@ const Home: NextPage = () => {
 
 
 	const handlebatchAddToVault = async (gemIds: string[], vaultStrategyPercentage: number) => {
-		const gemIdsCollection = [];
+		const gemIdsCollection: any = [];
 		const amountsCollection = [];
-
+		if (!signer) { return }
 		for (const gemId of gemIds) {
-			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
+			// @ts-ignore
+			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId); //@ts-n
 
 			if (!isGemEligable) {
 				snackbar.execute("Selected gem/s are not eligable for claim yet", "error");
@@ -386,6 +329,7 @@ const Home: NextPage = () => {
 			setClaimRewardsModalOpen(false)
 		} catch (error) {
 			console.log(error)
+			// @ts-ignore
 			snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
 		}
 	}
@@ -449,6 +393,7 @@ const Home: NextPage = () => {
 			renderCell: (params) => {
 				const gem = params.row;
 				const nextTier = moment(gem.nextTaxTier.toString(), "X").format("MMM DD YYYY HH:mm");
+				// @ts-ignore
 				const nextTierValue = nextTier == 0 ? "No tax" : nextTier
 				return <Typography variant="body2">{nextTierValue}</Typography>
 			}
@@ -845,17 +790,18 @@ const Home: NextPage = () => {
 									<Grid item>
 										<Typography variant="body2">{
 
-											formatNumber(
-												+formatUnits(
-													myGems
-														.filter(gem => selectedRows.includes(gem.id))
-														.reduce(
-															(
-																n,
-																{ pendingReward }
-															) => (pendingReward.div(100).mul(meta[3])).add(n),
-															BigNumber.from(0)
-														), "ether"))
+											// formatNumber(
+											// 	+formatUnits(
+											// 		myGems
+											// 			.filter(gem => selectedRows.includes(gem.id))
+											// 			.reduce(
+											// 				(
+											// 					n,
+											// 					{ pendingReward }
+											// 				) => (pendingReward.div(100).mul(meta[3])).add(n),
+											// 				BigNumber.from(0)
+											// 			), "ether"))
+											123123
 										} DEFO ($0)</Typography>
 									</Grid>
 								</Grid>

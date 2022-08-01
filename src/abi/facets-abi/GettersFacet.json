@@ -1,0 +1,336 @@
+[
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "GemOf",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint32",
+              "name": "MintTime",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint32",
+              "name": "LastReward",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "LastMaintained",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8",
+              "name": "GemType",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "TaperCount",
+              "type": "uint8"
+            },
+            {
+              "internalType": "enum LibGem.Booster",
+              "name": "booster",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "claimedReward",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct LibGem.Gem",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "_type",
+          "type": "uint8"
+        }
+      ],
+      "name": "GetGemTypeMetadata",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint32",
+              "name": "LastMint",
+              "type": "uint32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "MaintenanceFee",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",  
+              "name": "RewardRate",  
+              "type": "uint256"  
+            },
+            {
+              "internalType": "uint8",
+              "name": "DailyLimit",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint8",
+              "name": "MintCount",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "DefoPrice",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "StablePrice",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct LibGem.GemTypeMetadata",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "_gemType",
+          "type": "uint8"
+        }
+      ],
+      "name": "getExpiredTimeSinceLock",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getMeta",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "MaintenanceDays",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "TreasuryDefoRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "TreasuryDaiRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "CharityRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "RewardPoolDefoRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "TeamDaiRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "LiquidityDefoRate",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "LiquidityDaiRate",
+              "type": "uint256"
+            },
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "_value",
+                  "type": "uint256"
+                }
+              ],
+              "internalType": "struct Counters.Counter",
+              "name": "_tokenIdCounter",
+              "type": "tuple"
+            },
+            {
+              "internalType": "contract IERC20Joe",
+              "name": "PaymentToken",
+              "type": "address"
+            },
+            {
+              "internalType": "contract IERC20Joe",
+              "name": "DefoToken",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256[]",
+              "name": "RewardTaxTable",
+              "type": "uint256[]"
+            },
+            {
+              "internalType": "uint256",
+              "name": "MinReward",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "RewardTime",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8",
+              "name": "MintLimitHours",
+              "type": "uint8"
+            },
+            {
+              "internalType": "address",
+              "name": "Treasury",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "RewardPool",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "LimiterAddr",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "Team",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "Donation",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "Vault",
+              "type": "address"
+            },
+            {
+              "internalType": "address",
+              "name": "Liquidity",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "MaxGems",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "Lock",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "transferLock",
+              "type": "bool"
+            },
+            {
+              "internalType": "uint256",
+              "name": "TotalCharity",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct LibMeta.DiamondStorage",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getTotalCharity",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_user",
+          "type": "address"
+        }
+      ],
+      "name": "getUserTotalCharity",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint8",
+          "name": "_gemType",
+          "type": "uint8"
+        }
+      ],
+      "name": "isMintAvailableForGem",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ]
