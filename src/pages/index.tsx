@@ -20,7 +20,7 @@ import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextP
 import { formatNumber, getGemTypes } from 'shared/utils/format'
 import { getIsEligableForClaim } from 'shared/utils/helper'
 import { getHoursFromSecondsInRange } from "shared/utils/format";
-import { Gem, GemTypeConfig } from 'shared/types/DataTypes'
+import { Gem, GemsConfigState, GemTypeConfig } from 'shared/types/DataTypes'
 
 type yieldGemsMetadataType = {
 	gem0: GemTypeMetadata | {},
@@ -28,10 +28,13 @@ type yieldGemsMetadataType = {
 	gem2: GemTypeMetadata | {},
 }
 
-type gemsConfig = {
-	gem0: GemTypeConfig | {},
-	gem1: GemTypeConfig | {},
-	gem2: GemTypeConfig | {},
+const initialGemConfigState: GemTypeConfig = { 
+	maintenanceFeeDai: BigNumber.from(0),
+    rewardAmountDefo: BigNumber.from(0),
+    price: [BigNumber.from(0), BigNumber.from(0)],
+    taperRewardsThresholdDefo: BigNumber.from(0),
+    maxMintsPerLimitWindow: BigNumber.from(0),
+	isMintAvailable: false
 }
 
 const Home: NextPage = () => {
@@ -61,10 +64,10 @@ const Home: NextPage = () => {
 	});
 
 	const [myCurrentGems, setMyCurrentGems] = useState<Gem[]>([])
-	const [gemsConfig, setGemsConfig] = useState<gemsConfig>({
-		gem0: {},
-		gem1: {},
-		gem2: {},
+	const [gemsConfig, setGemsConfig] = useState<GemsConfigState>({
+		gem0: initialGemConfigState,
+		gem1: initialGemConfigState,
+		gem2: initialGemConfigState,
 	})
 
 	const [vaultAmounts, setVaultAmounts] = useState<BigNumber[]>([]);
@@ -80,14 +83,10 @@ const Home: NextPage = () => {
 		(async () => {
 			try {
 				const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-				console.log('MAIN CONTRACT: ', mainContract)
 
 				if (mainContract.address) {
 					setDiamondContract(mainContract)
 				}
-
-				// const meta = await mainContract.getMeta()
-				// setMeta(meta)
 
 			} catch (error) {
 				console.log(error)
@@ -110,15 +109,7 @@ const Home: NextPage = () => {
 		return () => { }
 	}, [status, account, signer])
 
-	useEffect(() => {
-		// console.log('GEM 0: ', yieldGemsMetadata.gem0);
-		// console.log(myGems);
-
-	}, [yieldGemsMetadata.gem0])
-
-
 	const fetchAccountData = async () => {
-		console.log('DIAMOND: ', diamondContract)
 
 		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
 		const defoInstance = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
@@ -133,12 +124,22 @@ const Home: NextPage = () => {
 
 		setYourStake(await contract.getTotalStaked())
 
-		const gemsConfig = await diamondContract.getGemTypesConfig()
-		const gem0Config: GemTypeConfig = gemsConfig[0]
-		const gem1Config: GemTypeConfig = gemsConfig[1]
-		const gem2Config: GemTypeConfig = gemsConfig[2]
+		const protocolConfig = await diamondContract.getConfig()
+		// console.log('protocolConfig: ', protocolConfig);
+		const mintLimitHours = Math.floor(protocolConfig.mintLimitWindow / 3600)
+		const mintCountResetPeriodHours = protocolConfig.mintCountResetPeriod
+		// console.log('mintLimitHours: ', mintLimitHours)
+		// console.log('mintCountResetPeriodHours: ', mintCountResetPeriodHours)
 
-		// console.log('gemsConfig: ', gemsConfig);
+		const gemsConfig = await diamondContract.getGemTypesConfig()
+		let gem0Config: GemTypeConfig = gemsConfig[0]
+		let gem1Config: GemTypeConfig = gemsConfig[1]
+		let gem2Config: GemTypeConfig = gemsConfig[2]
+
+		gem0Config = { ...gem0Config, isMintAvailable: await diamondContract.isMintAvailable(0) }
+		gem1Config = { ...gem1Config, isMintAvailable: await diamondContract.isMintAvailable(1) }
+		gem2Config = { ...gem2Config, isMintAvailable: await diamondContract.isMintAvailable(2) }
+
 		setGemsConfig({
 			gem0: gem0Config,
 			gem1: gem1Config,
@@ -178,7 +179,6 @@ const Home: NextPage = () => {
 			currentGems.push(newGem)
 		}
 
-		console.log('currentGems: ', currentGems)
 		setMyCurrentGems(currentGems)
 
 		// 	let gemTyped: GemType = {
@@ -480,7 +480,7 @@ const Home: NextPage = () => {
 					</Grid>
 
 					<Grid item xs={12} md={5.8}>
-						<YieldGems myGems={myGems} fetchAccountData={fetchAccountData} />
+						<YieldGems myGems={myCurrentGems} gemsConfig={gemsConfig} fetchAccountData={fetchAccountData} />
 					</Grid>
 				</Grid>
 

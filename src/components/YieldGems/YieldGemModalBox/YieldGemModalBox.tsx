@@ -1,117 +1,71 @@
 import { FiberManualRecord } from "@mui/icons-material";
 import { Grid, Paper, Typography, Box, useTheme, Button } from "@mui/material"
 import { BigNumber, Contract, ethers } from "ethers";
-import { formatEther, formatUnits } from "ethers/lib/utils";
 import { useEffect, useState } from "react";
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider";
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
 import { useWeb3 } from "shared/context/Web3/Web3Provider";
-import { CONTRACTS, GEM_MINT_LIMIT_HOURS } from "shared/utils/constants";
-import { GemTypeMetadata } from "shared/utils/constants";
-import { getHoursFromSecondsInRange } from "shared/utils/format";
+import { GemTypeConfig, GemTypeMintWindow } from "shared/types/DataTypes";
+import { CONTRACTS } from "shared/utils/constants";
 import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper";
 
-const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
+const YieldGemModalBox = ({ gemType, name, fetchAccountData, gemConfig, gemTypeMintWindow, handleCloseModal }: {
     gemType: 0 | 1 | 2,
     name: "Sapphire" | "Ruby" | "Diamond",
     fetchAccountData: Function
-    mintedGems: number,
+    gemConfig: GemTypeConfig,
+    gemTypeMintWindow: () => Promise<GemTypeMintWindow>
+    handleCloseModal: () => void
 }) => {
     const theme = useTheme();
     const { diamondContract } = useDiamondContext()
     const snackbar = useSnackbar();
 
-    const [gem, setGem] = useState<GemTypeMetadata | null>(null);
-    const [timeUntilMint, setTimeUntilMint] = useState(0);
     const { signer, account } = useWeb3();
+
+    const [gemMintWindow, setGemMintWindow] = useState<GemTypeMintWindow>({
+        mintCount: BigNumber.from(0),
+        endOfMintLimitWindow: 0
+    })
 
     useEffect(() => {
         const loadData = async () => {
-            await fetchGemMetadata(gemType);
+            const currentGemMintWindow = await gemTypeMintWindow()
+            setGemMintWindow(currentGemMintWindow)
         }
-
-        loadData();
-    }, [gemType])
-
-    const fetchGemMetadata = async (gemType: 0 | 1 | 2) => {
-        const currentGem = await diamondContract.GetGemTypeMetadata(gemType);
-        // console.log('current gem: ', gemType);
-        // console.log(currentGem);
-        // console.log("-------------");
-
-
-        let currentGemTyped: GemTypeMetadata = {
-            LastMint: currentGem[0],
-            MaintenanceFee: currentGem[1],
-            RewardRate: currentGem[2],
-            DailyLimit: currentGem[3],
-            MintCount: currentGem[4],
-            DefoPrice: currentGem[5],
-            StablePrice: currentGem[6],
-        };
-
-        const timeLeft = await diamondContract.getExpiredTimeSinceLock(gemType);
-        const hours = getHoursFromSecondsInRange(timeLeft);
-
-        if (hours > 48) {
-            setTimeUntilMint(GEM_MINT_LIMIT_HOURS);
-        } else {
-            setTimeUntilMint(GEM_MINT_LIMIT_HOURS - hours);
-        }
-
-        setGem(currentGemTyped);
-    }
-
-    // TOOD: fix this in the smart contract
-    const getAvailableGemsToBeMinted = () => {
-        if (!gem?.DailyLimit) { return 0; }
-
-        return gem.DailyLimit - mintedGems
-        // const current = gem?.DailyLimit - gem?.MintCount;
-        // return current
-        // if (current == gem.DailyLimit) {
-        //     return current;
-        // }
-        // return current - 1;
-    }
+        loadData()
+    }, [])
 
     // TODO: check if allowance is less that required sum => trigger approve
     const createYieldGem = async (gemType: 0 | 1 | 2) => {
-        const defo = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
-        const defoAllowance = await defo.allowance(account, CONTRACTS.Main.address)
-        const dai = new Contract(CONTRACTS.Dai.mainnetAddress, CONTRACTS.Dai.abi, signer)
-        const daiAllowance = await dai.allowance(account, CONTRACTS.Main.address)
-        // console.log('defoAllowance: ', defoAllowance.toString());
-        // console.log('daiAllowance: ', daiAllowance.toString());
-
-        if (defoAllowance.isZero()) {
-            const tx = await defo.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
-            tx.wait()
-        }
-
-        if (daiAllowance.isZero()) {
-            const tx = await dai.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
-            tx.wait()
-        }
-
         try {
-            const tx = await diamondContract.MintGem(gemType.toString())
-            snackbar.execute("Creating, please wait.", "info")
-            await tx.wait()
-            await fetchAccountData()
-            await fetchGemMetadata(gemType);
-            snackbar.execute("Created", "success")
-            // setCreateYieldGemModalOpen(false)
+            const defo = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
+            const defoAllowance = await defo.allowance(account, CONTRACTS.Main.address)
+            const dai = new Contract(CONTRACTS.Dai.mainnetAddress, CONTRACTS.Dai.abi, signer)
+            const daiAllowance = await dai.allowance(account, CONTRACTS.Main.address)
+
+            if (defoAllowance.isZero()) {
+                const tx = await defo.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
+                tx.wait()
+            }
+
+            if (daiAllowance.isZero()) {
+                const tx = await dai.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
+                tx.wait()
+            }
+
+
+                const tx = await diamondContract.mint(gemType.toString())
+                snackbar.execute("Creating, please wait.", "info")
+                await tx.wait()
+                await fetchAccountData()
+                snackbar.execute("Created", "success")
+                handleCloseModal()
         } catch (error: any) {
             console.log(error)
-            snackbar.execute(error?.reason || "Error", "error")
+            snackbar.execute(error?.reason || error?.message || "Error", "error")
         }
     }
-
-    const formatPrice = (number: BigNumber) => {
-        return formatUnits(number, "ether");
-    }
-
 
     return (
         <>
@@ -154,9 +108,9 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Cost:</Typography>
                         <Typography variant="body2">
-                            {gem?.DefoPrice && formatPrice(gem?.DefoPrice)} DEFO
+                            {ethers.utils.formatEther(gemConfig.price[1])} DEFO
                             +
-                            {gem?.StablePrice && formatPrice(gem?.StablePrice)} DAI
+                            {ethers.utils.formatEther(gemConfig.price[0])} DAI
                         </Typography>
 
                     </Box>
@@ -168,8 +122,7 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
 
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Reward:</Typography>
-                        {/* <Typography variant="body2" >{ gem?.RewardRate.toString()} DEFO/Week</Typography> */}
-                        <Typography variant="body2" >{formatEther(gem?.RewardRate || 0)} DEFO/Week</Typography>
+                        <Typography variant="body2" >{ethers.utils.formatEther(gemConfig.rewardAmountDefo)} DEFO/Week</Typography>
                     </Box>
                     <Box sx={{
                         display: "flex",
@@ -179,7 +132,8 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
                         <Typography variant="body2">
-                            {getAvailableGemsToBeMinted()} / {gem?.DailyLimit.toString()}
+
+                            {+gemConfig.maxMintsPerLimitWindow - +(gemMintWindow.mintCount.toString())} / {gemConfig.maxMintsPerLimitWindow}
                         </Typography>
                     </Box>
                     <Box sx={{
@@ -189,12 +143,12 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, mintedGems }: {
                         margin: theme.spacing(0.5, 0)
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Refresh:</Typography>
-                        <Typography variant="body2">{timeUntilMint} hours</Typography>
+                        <Typography variant="body2">{'TO FIX'} hours</Typography>
                     </Box>
                     <Button
                         onClick={() => createYieldGem(gemType)}
                         variant='contained'
-                        disabled={getAvailableGemsToBeMinted() === 0 ? true : false}
+                        disabled={!gemConfig.isMintAvailable}
                         sx={{
                             color: "white",
                             backgroundColor: primaryColorMapper[gemType],

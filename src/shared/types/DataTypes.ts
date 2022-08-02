@@ -14,23 +14,35 @@ interface GemTypeConfig {
     price: [BigNumber, BigNumber];
     taperRewardsThresholdDefo: BigNumber;
     maxMintsPerLimitWindow: BigNumber;
+    isMintAvailable: boolean
+}
+
+type GemsConfigState = {
+	gem0: GemTypeConfig,
+	gem1: GemTypeConfig,
+	gem2: GemTypeConfig,
+}
+
+type GemTypeMintWindow = { 
+    mintCount: BigNumber,
+    endOfMintLimitWindow: number
 }
 
 interface Gem {
     id: BigNumber,
-    gemTypeId: BigNumber;
-    booster: BigNumber;
-    mintTime: BigNumber;
-    boostTime: BigNumber;
-    lastRewardWithdrawalTime: BigNumber;
-    lastMaintenanceTime: BigNumber;
+    gemTypeId: number;
+    booster: number;
+    mintTime: Date;
+    boostTime: number;
+    lastRewardWithdrawalTime: Date;
+    lastMaintenanceTime: Date;
     pendingMaintenanceFee: BigNumber;
-    taxTier: any;
-    rewardAmount: any;
-    isClaimable: any;
-    staked: any;
+    taxTier: number;
+    rewardAmount: BigNumber;
+    isClaimable: boolean;
+    staked: BigNumber;
     fi?: any;
 }
 
 
-export type { GemTypeConfig, Gem }
+export type { GemTypeConfig, GemsConfigState, GemTypeMintWindow, Gem }

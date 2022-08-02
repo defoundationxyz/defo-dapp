@@ -10,23 +10,25 @@ import erc20ABI from "abi/ERC20ABI.json";
 import ModalLayout from "shared/components/DialogLayout/ModalLayout"
 import YieldGemModalBox from "./YieldGemModalBox/YieldGemModalBox"
 import YieldGemInfoBox from "./YieldGemInfoBox/YieldGemInfoBox"
+import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes"
+import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
 
 
-const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccountData: Function }) => {
+const YieldGems = ({ myGems, gemsConfig, fetchAccountData }: { myGems: Gem[], gemsConfig: GemsConfigState, fetchAccountData: Function }) => {
     const gemsModalRef = useRef<any>();
-	const { status } = useWeb3()
+    const { status } = useWeb3()
 
     // index representing the GemType
     const [gemsCount, setGemsCount] = useState([0, 0, 0])
+	const { diamondContract } = useDiamondContext()
 
 
     useEffect(() => {
         const currentGemsCount = [0, 0, 0];
-        
-        myGems.forEach(gem => {
-            currentGemsCount[gem.GemType]++;
 
-        })        
+        myGems.forEach((gem: Gem) => {
+            currentGemsCount[gem.gemTypeId]++;
+        })
         setGemsCount(currentGemsCount);
     }, [myGems])
 
@@ -104,21 +106,45 @@ const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccou
                     <YieldGemModalBox
                         name={"Sapphire"}
                         gemType={0}
-                        mintedGems={gemsCount[0]}
+                        gemConfig={gemsConfig.gem0}
+                        gemTypeMintWindow={async() => { 
+                		    const mintWindow0 = await diamondContract.getMintWindow(0)
+                            return { 
+                                mintCount: mintWindow0.mintCount,
+                                endOfMintLimitWindow: mintWindow0.endOfMintLimitWindow
+                            }
+                        }}
+                        handleCloseModal={handleCloseModal}
                         fetchAccountData={fetchAccountData}
                     />
 
                     <YieldGemModalBox
                         name={"Ruby"}
                         gemType={1}
-                        mintedGems={gemsCount[1]}
+                        gemTypeMintWindow={async() => { 
+                		    const mintWindow2 = await diamondContract.getMintWindow(1)
+                            return { 
+                                mintCount: mintWindow2.mintCount,
+                                endOfMintLimitWindow: mintWindow2.endOfMintLimitWindow
+                            }
+                        }}
+                        handleCloseModal={handleCloseModal}
+                        gemConfig={gemsConfig.gem1}
                         fetchAccountData={fetchAccountData}
                     />
 
                     <YieldGemModalBox
                         name={"Diamond"}
                         gemType={2}
-                        mintedGems={gemsCount[2]}
+                        gemTypeMintWindow={async() => { 
+                		    const mintWindow2 = await diamondContract.getMintWindow(2)
+                            return { 
+                                mintCount: mintWindow2.mintCount,
+                                endOfMintLimitWindow: mintWindow2.endOfMintLimitWindow
+                            }
+                        }}
+                        handleCloseModal={handleCloseModal}
+                        gemConfig={gemsConfig.gem2}
                         fetchAccountData={fetchAccountData}
                     />
 

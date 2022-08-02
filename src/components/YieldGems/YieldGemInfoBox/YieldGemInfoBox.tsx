@@ -1,12 +1,13 @@
 import { FiberManualRecord } from "@mui/icons-material"
 import { Box, Grid, Paper, Typography, useTheme } from "@mui/material"
+import { GemTypeConfig } from "shared/types/DataTypes"
 import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper"
 
 
 const YieldGemInfoBox = ({ gemType, name, minted }: {
     gemType: 0 | 1 | 2,
     name: "Sapphire" | "Ruby" | "Diamond",
-    minted: number
+    minted: number,
 }) => {
     const theme = useTheme()
 
