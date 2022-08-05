@@ -1,7 +1,7 @@
 import { Box, Button, Container, FormControlLabel, Grid, IconButton, Modal, Paper, Switch, Tooltip, Typography, useTheme } from '@mui/material'
 import type { NextPage } from 'next'
 import Footer from 'components/Footer'
-import { CONTRACTS, GemType, GemTypeMetadata } from "shared/utils/constants"
+import { CONTRACTS, GemType, GemTypeMetadata, TAX_TIER_MAPPER } from "shared/utils/constants"
 import { BigNumber, Contract, ethers } from 'ethers'
 import { useWeb3 } from 'shared/context/Web3/Web3Provider'
 import { useEffect, useState } from 'react'
@@ -20,7 +20,8 @@ import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextP
 import { formatNumber, getGemTypes } from 'shared/utils/format'
 import { getIsEligableForClaim } from 'shared/utils/helper'
 import { getHoursFromSecondsInRange } from "shared/utils/format";
-import { Gem, GemsConfigState, GemTypeConfig } from 'shared/types/DataTypes'
+import { Gem, GemsConfigState, GemTypeConfig, ProtocolConfig } from 'shared/types/DataTypes'
+import { getMaxAge } from 'next/dist/server/image-optimizer'
 
 type yieldGemsMetadataType = {
 	gem0: GemTypeMetadata | {},
@@ -28,14 +29,32 @@ type yieldGemsMetadataType = {
 	gem2: GemTypeMetadata | {},
 }
 
-const initialGemConfigState: GemTypeConfig = { 
+const initialGemConfigState: GemTypeConfig = {
 	maintenanceFeeDai: BigNumber.from(0),
-    rewardAmountDefo: BigNumber.from(0),
-    price: [BigNumber.from(0), BigNumber.from(0)],
-    taperRewardsThresholdDefo: BigNumber.from(0),
-    maxMintsPerLimitWindow: BigNumber.from(0),
+	rewardAmountDefo: BigNumber.from(0),
+	price: [BigNumber.from(0), BigNumber.from(0)],
+	taperRewardsThresholdDefo: BigNumber.from(0),
+	maxMintsPerLimitWindow: BigNumber.from(0),
 	isMintAvailable: false
 }
+
+const initialProtocolConfigState: ProtocolConfig = {
+	paymentTokens: [],
+	wallets: [],
+	incomeDistributionOnMint: [],
+	maintenancePeriod: 0,
+	rewardPeriod: 0,
+	taxScaleSinceLastClaimPeriod: 0,
+	taxRates: [],
+	charityContributionRate: BigNumber.from(0),
+	vaultWithdrawalTaxRate: BigNumber.from(0),
+	taperRate: BigNumber.from(0),
+	mintLock: true,
+	transferLock: true,
+	mintLimitWindow: 0,
+}
+
+// TODO: Create STATS hook
 
 const Home: NextPage = () => {
 
@@ -69,6 +88,7 @@ const Home: NextPage = () => {
 		gem1: initialGemConfigState,
 		gem2: initialGemConfigState,
 	})
+	const [protocolConfig, setProtocolConfig] = useState<ProtocolConfig>()
 
 	const [vaultAmounts, setVaultAmounts] = useState<BigNumber[]>([]);
 
@@ -79,7 +99,6 @@ const Home: NextPage = () => {
 
 	// initialize DiamondContract
 	useEffect(() => {
-
 		(async () => {
 			try {
 				const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
@@ -91,7 +110,6 @@ const Home: NextPage = () => {
 			} catch (error) {
 				console.log(error)
 			}
-
 		})()
 
 		return () => { }
@@ -109,27 +127,25 @@ const Home: NextPage = () => {
 		return () => { }
 	}, [status, account, signer])
 
-	const fetchAccountData = async () => {
+	useEffect(() => {
+		console.log('my gems: ', myCurrentGems);
+	}, [myCurrentGems])
 
-		const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-		const defoInstance = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
+	const fetchAccountData = async () => {
 		const totalCharity = await diamondContract.getTotalDonated()
 		const totalStake = await diamondContract.getTotalStakedAllUsers();
+		const pendingRewards = await diamondContract.getCumulatedReward()
+		const userTotalDonated = await diamondContract.getTotalDonated()
+		const allTotalDonated = await diamondContract.getTotalDonatedAllUsers()
+		const currProtocolConfig: ProtocolConfig = await diamondContract.getConfig()
+		const yourCurrStake = await diamondContract.getTotalStaked() 
 
 		setTotalDonations(totalCharity)
 		setTotalStaked(totalStake)
-
-		// setYourDonations(ethers.utils.formatEther(await contract.getUserTotalCharity(account))) // put in the vault or claim reward
-		// setYourDonations(formatUnits(await diamondContract.getUserTotalCharity(account), "ether")) // TODO: DEFO tokens amount
-
-		setYourStake(await contract.getTotalStaked())
-
-		const protocolConfig = await diamondContract.getConfig()
-		// console.log('protocolConfig: ', protocolConfig);
-		const mintLimitHours = Math.floor(protocolConfig.mintLimitWindow / 3600)
-		const mintCountResetPeriodHours = protocolConfig.mintCountResetPeriod
-		// console.log('mintLimitHours: ', mintLimitHours)
-		// console.log('mintCountResetPeriodHours: ', mintCountResetPeriodHours)
+		setYourDonations(userTotalDonated)
+		setTotalDonations(allTotalDonated)
+		setYourStake(yourCurrStake)
+		setProtocolConfig(currProtocolConfig)
 
 		const gemsConfig = await diamondContract.getGemTypesConfig()
 		let gem0Config: GemTypeConfig = gemsConfig[0]
@@ -158,18 +174,17 @@ const Home: NextPage = () => {
 			const pendingMaintenanceFee = await diamondContract.getPendingMaintenanceFee(gemId)
 			const taxTier = await diamondContract.getTaxTier(gemId)
 			const rewardAmount = await diamondContract.getRewardAmount(gemId)
-			const isClaimable = await diamondContract.isClaimable(gemId)			
+			const isClaimable = await diamondContract.isClaimable(gemId)
 			const staked = await diamondContract.getStaked(gemId)
-			
 
 			const newGem: Gem = {
-				id: gemId,
+				id: gemId.toString(),
 				gemTypeId: gemData.gemTypeId,
 				booster: gemData.booster,
 				mintTime: gemData.mintTime,
 				boostTime: gemData.boostTime,
 				lastRewardWithdrawalTime: gemData.lastRewardWithdrawalTime,
-				lastMaintenanceTime: gemData.lastMaintenanceTime, 
+				lastMaintenanceTime: gemData.lastMaintenanceTime,
 				pendingMaintenanceFee,
 				taxTier,
 				rewardAmount,
@@ -215,7 +230,6 @@ const Home: NextPage = () => {
 		)
 	}
 
-	// 1.
 	const handleBatchPayFee = async (gemIds: string[]) => {
 		try {
 			const gemIdsCollection = gemIds.map(gemId => +gemId);
@@ -239,46 +253,100 @@ const Home: NextPage = () => {
 		}
 	}
 
+	const handlePayFee = async (gemIds: string[]) => {
+		const gemIdsAsNumber = gemIds.map(gem => +gem)
+		const fee = ethers.utils.formatEther(
+			myCurrentGems
+				.filter(gem => selectedRows.includes(gem.id))
+				.reduce(
+					(
+						n,
+						{ pendingMaintenanceFee }
+					) => pendingMaintenanceFee.add(n),
+					BigNumber.from(0)
+				))
+
+		// const firstGemFee = ethers.utils.formatEther(myCurrentGems[0].pendingMaintenanceFee)
+		// const secondGemFee = ethers.utils.formatEther(myCurrentGems[1].pendingMaintenanceFee)
+		// console.log('firstGemFee: ', firstGemFee);
+		// console.log('secondGemFee: ', secondGemFee);
+
+		// 99722.5 - 15
+		// 99707
+
+		try {
+			const tx = gemIdsAsNumber.length === 1 ? await diamondContract.maintain(gemIdsAsNumber[0]) : await diamondContract.batchMaintain(gemIdsAsNumber);
+			console.log('maintain TX: ', tx);
+		} catch (error: any) {
+			console.log('ERROR while paying the fee');
+			snackbar.execute(error?.data?.message || error?.message || error?.error?.message || error?.reason || "ERROR", "error")
+		}
+	}
+
 	// regex to check if the error is 'Gem is deactivated' show message 'you have to pay the tax first'
 	// regex to check if the error is 'Too soon'
 
 	const handleBatchClaimRewards = async (gemIds: string[]) => {
-		const gemInstancesCollection = [];
+		console.log('selectedRows: ', selectedRows)
+		console.log('gemIds: ', gemIds)
 
-		for (const gemId of gemIds) {
-			if (!signer) { return }
-			// @ts-ignore
-			const isGemEligable = await getIsEligableForClaim(diamondContract, signer.provider, gemId);
-			if (!isGemEligable) {
-				snackbar.execute("Selected gem/s are not eligable for claim yet", "error");
-				return
-			}
-			const gemInstance = myGems.find((gem: GemType) => gem.id === gemId)
-			if (!gemInstance) { continue; }
-			gemInstancesCollection.push(gemInstance);
+		if (!areSelectedGemsClaimable()) {
+			snackbar.execute("Selected gem/s are not eligable for claim yet or fee is not paid", "error");
+			return
 		}
 
 		// check if fee's are paid => claimTX
-		const gemIdsAsNumber = gemInstancesCollection.map((item: GemType) => +item.id)
-
-		console.log('gemIdsAsNumber: ', gemIdsAsNumber);
+		// const gemIdsAsNumber = gemInstancesCollection.map((item: GemType) => +item.id)
+		const gemIdsAsNumber = gemIds.map(gem => +gem)
 
 		try {
-			// const batchTx = await diamondContract.BatchMaintenance(gemIdsAsNumber);
+			// const batchTx = await diamondContract.batchMaintain(gemIdsAsNumber);
 			// console.log('batchTx: ', batchTx);
 
-			const tx = gemIdsAsNumber.length === 1 ? await diamondContract.ClaimRewards(gemIdsAsNumber[0]) : await diamondContract.BatchClaimRewards(gemIdsAsNumber);
+			const tx = gemIdsAsNumber.length === 1 ? await diamondContract.claimReward(gemIdsAsNumber[0]) : await diamondContract.batchClaimReward(gemIdsAsNumber);
 			snackbar.execute("Claiming on progress, please wait.", "info")
 			await tx.wait()
 			await fetchAccountData()
 			setClaimRewardsModalOpen(false)
-
 		} catch (error: any) {
 			console.log(error)
 			snackbar.execute(error?.data?.message || error?.message || error?.error?.message || error?.reason || "ERROR", "error")
 		}
 	}
 
+	const handleAddToVault = async (gemIds: string[], vaultStrategyPercentage: number) => {
+		if (!areSelectedGemsClaimable()) {
+			snackbar.execute("Selected gem/s are not eligable for claim yet or fee is not paid", "error");
+			return
+		}
+		// const selectedGems = myCurrentGems.filter()
+		const selectedGems = myCurrentGems.filter(gem => gemIds.includes(gem.id))
+		console.log('selectedGems: ', selectedGems);
+
+		const gemIdsAsNumber = gemIds.map(gem => +gem)
+		const gemAmounts = selectedGems.map((gem: Gem) => {
+			const amount = gem.rewardAmount.div(100).mul(vaultStrategyPercentage)
+			return amount
+		})
+		gemAmounts.forEach(amount => {
+			console.log('AMOUNT: ', ethers.utils.formatEther(amount));
+		})
+		// console.log('gemAmounts: ', gemAmounts);
+		// only batch
+		try {
+			const addToVaultTX = gemIdsAsNumber.length === 1 ? await diamondContract.stakeReward(gemIdsAsNumber[0], gemAmounts[0]) : await diamondContract.batchStakeReward(gemIdsAsNumber, gemAmounts);
+			snackbar.execute("Adding to the vault on progress, please wait.", "info")
+			addToVaultTX.wait()
+			// if (vaultStrategyPercentage < 100) {
+			// 	await handleBatchClaimRewards(gemIds)
+			// }
+			await fetchAccountData()
+			setClaimRewardsModalOpen(false)
+		} catch (error: any) {
+			console.log(error)
+			snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || "ERROR", "error")
+		}
+	}
 
 	const handlebatchAddToVault = async (gemIds: string[], vaultStrategyPercentage: number) => {
 		const gemIdsCollection: any = [];
@@ -334,6 +402,7 @@ const Home: NextPage = () => {
 		}
 	}
 
+
 	const handleVaultStrategy = async (gemIds: string[]) => {
 		console.log(gemIds);
 		console.log(selectedVaultStrategy);
@@ -347,12 +416,12 @@ const Home: NextPage = () => {
 			field: 'name',
 			headerName: 'Name',
 			renderCell: (params) => {
-				const gem: GemType = params.row;
-				if (gem.GemType === 0) {
+				const gem: Gem = params.row;
+				if (gem.gemTypeId === 0) {
 					return "Sapphire"
-				} else if (gem.GemType === 1) {
+				} else if (gem.gemTypeId === 1) {
 					return "Ruby"
-				} else if (gem.GemType === 2) {
+				} else if (gem.gemTypeId === 2) {
 					return "Diamond"
 				}
 			}
@@ -362,8 +431,9 @@ const Home: NextPage = () => {
 			field: 'created',
 			headerName: 'Created',
 			renderCell: (params) => {
-				const gem: GemType = params.row;
-				return moment(gem.MintTime, "X").format("MMM DD YYYY HH:mm")
+				const gem: Gem = params.row;
+				// return 'Mint Time'
+				return moment(gem.mintTime, "X").format("MMM DD YYYY HH:mm")
 			}
 		},
 		{
@@ -371,8 +441,9 @@ const Home: NextPage = () => {
 			field: 'rewards',
 			headerName: 'Rewards',
 			renderCell: (params) => {
-				const gem: GemType = params.row;
-				return `${formatNumber(+formatUnits(gem.pendingReward, "ether"))} DEFO`
+				const gem: Gem = params.row;
+				return (ethers.utils.formatEther(gem.rewardAmount) || 0).toString() + ' DEFO'
+				// return `9999 DEFO` // gem.pendingReward
 			}
 		},
 		{
@@ -380,9 +451,9 @@ const Home: NextPage = () => {
 			field: 'taxTier',
 			headerName: 'Tax Tier',
 			renderCell: (params) => {
-				const gem = params.row;
+				const gem: Gem = params.row;
 				return (
-					<Typography variant="body2">{gem.taxTier.toString()}</Typography>
+					<Typography variant="body2">{TAX_TIER_MAPPER[gem.taxTier.toString()]}</Typography>
 				)
 			}
 		},
@@ -391,20 +462,22 @@ const Home: NextPage = () => {
 			field: 'tierCountdown',
 			headerName: 'Next Tier',
 			renderCell: (params) => {
-				const gem = params.row;
-				const nextTier = moment(gem.nextTaxTier.toString(), "X").format("MMM DD YYYY HH:mm");
+				const gem: Gem = params.row;
+				// const nextTier = moment(gem.nextTaxTier.toString(), "X").format("MMM DD YYYY HH:mm");
 				// @ts-ignore
-				const nextTierValue = nextTier == 0 ? "No tax" : nextTier
-				return <Typography variant="body2">{nextTierValue}</Typography>
+				// const nextTierValue = nextTier == 0 ? "No tax" : nextTier
+				// return <Typography variant="body2">{nextTierValue}</Typography>
+				return 'Next tier'
 			}
 		},
 		{
 			flex: 1,
 			field: 'feesDueIn',
-			headerName: 'Fees due in',
+			headerName: 'Tax free after', // Fees due in
 			renderCell: (params) => {
-				const gem: GemType = params.row;
-				return <Typography variant='body2'>{moment(gem.LastMaintained, "X").format("MMM DD YYYY HH:mm")}</Typography>
+				const gem: Gem = params.row;
+				return <Typography variant='body2'>{moment(gem.mintTime, "X").add('1', 'm').format("MMM DD YYYY HH:mm")}</Typography>
+				// return <Typography variant='body2'>{moment(gem.LastMaintained, "X").format("MMM DD YYYY HH:mm")}</Typography>
 			}
 		},
 		{
@@ -414,21 +487,6 @@ const Home: NextPage = () => {
 			minWidth: 200,
 			renderCell: ({ row }: { row: GemType }) => <Box sx={{
 			}}>
-				{/* <Button
-					onClick={async () => {
-						setSelectedRows([])
-						await payFee(row.id)
-					}}
-					variant="contained"
-					color="primary"
-					sx={{
-						marginLeft: {
-							xs: theme.spacing(0),
-							md: theme.spacing(2)
-						},
-						marginRight: theme.spacing(1),
-
-					}}>PAY FEE</Button> */}
 				<Button
 					onClick={() => {
 						setSelectedRows([row.id])
@@ -448,6 +506,16 @@ const Home: NextPage = () => {
 			</Box>
 		},
 	]
+
+	useEffect(() => {
+		console.log('selected rows: ', selectedRows)
+	}, [selectedRows])
+
+	const areSelectedGemsClaimable = () => {
+		return myCurrentGems
+			.filter(gem => selectedRows.includes(gem.id))
+			.some(gem => gem.isClaimable)
+	}
 
 	return (
 		<Box>
@@ -502,18 +570,6 @@ const Home: NextPage = () => {
 						<ContentBox
 							title="Rewards"
 							color="#FCBD00"
-						// button={<Button
-						// 	// onClick={() => {
-						// 	// 	BatchClaimRewards(myGems.map(gem => gem.id))
-						// 	// }}
-						// 	onClick={() => setClaimRewardsModalOpen(true)}
-						// 	disabled={status !== "CONNECTED"}
-						// 	variant="contained"
-						// 	color="info"
-						// >
-						// 	OPEN CLAIM
-						// </Button>
-						// }
 						>
 							<Grid
 								container
@@ -529,7 +585,12 @@ const Home: NextPage = () => {
 										}}>
 										<Typography variant="body2">PENDING REWARDS</Typography>
 										<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-											{formatNumber(+formatUnits(myGems.reduce((n, { pendingReward }) => pendingReward.add(n), BigNumber.from(0)), "ether"))} DEFO
+											{(+ethers.utils.formatEther(
+												myCurrentGems.reduce(
+													(n, { rewardAmount }) => rewardAmount.add(n),
+													BigNumber.from(0))
+											)
+											).toFixed(3)}
 										</Typography>
 										<Typography variant="h5" fontWeight={"bold"}>
 											{/* (${(+getDefoReward()) * 5}) */}
@@ -555,20 +616,6 @@ const Home: NextPage = () => {
 							<Typography>{selectedRows?.length || 0} nodes selected</Typography>
 						</Grid>
 						<Grid item>
-							{/* <Button
-								disabled={status !== "CONNECTED" || selectedRows.length === 0}
-								onClick={() => batchPayFee(selectedRows)}
-								variant="contained"
-								color="primary"
-								sx={{
-
-									marginLeft: {
-										xs: theme.spacing(0),
-										md: theme.spacing(2)
-									},
-									marginRight: theme.spacing(1),
-
-								}}>PAY FEES</Button> */}
 						</Grid>
 						<Grid item>
 							<Button
@@ -596,7 +643,7 @@ const Home: NextPage = () => {
 						marginTop: theme.spacing(2)
 					}}>
 						<DataGrid
-							rows={myGems}
+							rows={myCurrentGems}
 							columns={columns}
 							pageSize={5}
 							rowsPerPageOptions={[5]}
@@ -700,18 +747,16 @@ const Home: NextPage = () => {
 												marginRight: theme.spacing(1)
 											}}>
 											{
-												formatNumber(
-													+formatUnits(
-														myGems
-															.filter(gem => selectedRows.includes(gem.id))
-															.reduce(
-																(
-																	n,
-																	{ pendingReward }
-																) => pendingReward.add(n),
-																BigNumber.from(0)
-															), "ether"
-													))
+												ethers.utils.formatEther(
+													myCurrentGems
+														.filter(gem => selectedRows.includes(gem.id))
+														.reduce(
+															(
+																n,
+																{ rewardAmount }
+															) => rewardAmount.add(n),
+															BigNumber.from(0)
+														))
 											} DEFO</Typography>
 									</Grid>
 									<Grid item>
@@ -722,7 +767,7 @@ const Home: NextPage = () => {
 							<Grid item xs={12} md={5.5}>
 								<Box sx={{
 								}}>
-
+									{/* I AM HERE */}
 									<Tooltip title="This will claim all pending rewards to your wallet.">
 										<span>
 											<Button
@@ -730,7 +775,7 @@ const Home: NextPage = () => {
 												color="primary"
 												endIcon={<HelpOutline />}
 												onClick={() => handleBatchClaimRewards(selectedRows)}
-												disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
+												// disabled={areSelectedGemsClaimable()}
 												sx={{
 													marginLeft: {
 														xs: theme.spacing(0),
@@ -745,9 +790,8 @@ const Home: NextPage = () => {
 									<Tooltip title="This will send all pending rewards to the Vault. Withdrawing from the Vault to your wallet has a fee.">
 										<span>
 											<Button
-												// onClick={() => batchAddToVault(selectedRows)}
-												onClick={() => handlebatchAddToVault(selectedRows, 100)}
-												disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
+												onClick={() => handleAddToVault(selectedRows, 100)}
+												// disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
 												variant="outlined"
 												endIcon={<HelpOutline />}
 												sx={{
@@ -763,8 +807,8 @@ const Home: NextPage = () => {
 
 
 									<Button
-										onClick={() => handleBatchPayFee(selectedRows)}
-										disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
+										onClick={() => handlePayFee(selectedRows)}
+										// disabled={+getPendingRewardsForGems(selectedRows) <= 0 ? true : false}
 										variant="contained"
 										color="secondary"
 										fullWidth
@@ -789,28 +833,37 @@ const Home: NextPage = () => {
 									</Grid>
 									<Grid item>
 										<Typography variant="body2">{
-
-											// formatNumber(
-											// 	+formatUnits(
-											// 		myGems
-											// 			.filter(gem => selectedRows.includes(gem.id))
-											// 			.reduce(
-											// 				(
-											// 					n,
-											// 					{ pendingReward }
-											// 				) => (pendingReward.div(100).mul(meta[3])).add(n),
-											// 				BigNumber.from(0)
-											// 			), "ether"))
-											123123
+											ethers.utils.formatEther(myCurrentGems
+												.filter(gem => selectedRows.includes(gem.id))
+												.reduce(
+													(
+														n,
+														{ rewardAmount }
+													) => rewardAmount.add(n),
+													BigNumber.from(0)
+												).div(100).mul(5))
 										} DEFO ($0)</Typography>
 									</Grid>
 								</Grid>
 								<Grid container justifyContent={"space-between"} >
 									<Grid item>
-										<Typography fontWeight={"bold"} variant="body2">CLAIM TAX:</Typography>
+										<Typography fontWeight={"bold"} variant="body2">Maintenance FEE:</Typography>
 									</Grid>
 									<Grid item>
-										<Typography variant="body2">1 DEFO ($0)</Typography>
+										<Typography variant="body2">
+											{
+												ethers.utils.formatEther(
+													myCurrentGems
+														.filter(gem => selectedRows.includes(gem.id))
+														.reduce(
+															(
+																n,
+																{ pendingMaintenanceFee }
+															) => pendingMaintenanceFee.add(n),
+															BigNumber.from(0)
+														))
+											} DAI ($0)
+										</Typography>
 									</Grid>
 								</Grid>
 							</Grid>
@@ -838,7 +891,7 @@ const Home: NextPage = () => {
 									<Tooltip title="This will determine the percentage of your pending rewards that goes to the Vault. The rest will be claimed and sent to your wallet.">
 										<span>
 											<Button
-												onClick={() => handlebatchAddToVault(selectedRows, selectedVaultStrategy)}
+												onClick={() => handleAddToVault(selectedRows, selectedVaultStrategy)}
 												disabled={!vaultStrategyEnabled}
 												variant="outlined"
 												endIcon={<HelpOutline />}

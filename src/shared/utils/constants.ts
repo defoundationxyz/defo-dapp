@@ -80,9 +80,6 @@ export const CONTRACTS = {
     },
 
     Main: {
-        // address: "0x78c51f56e21994FB5d00D2A817Bca4c5B735FDcb",  // mainnet
-        // address: "0xd274d23b3Ae1b2a6c45b400e66dC64FBB3053222",  // testnet
-        // address: "0xD4BbEE565C8EeDB54eD9d90c5205c92Eb684539C", // FUJI
         address: "0x50dCA58237d32773E05F46a58A8b1Ad5E9384271", // localhost
         abi: [
             ...ConfigFacet,
@@ -94,18 +91,6 @@ export const CONTRACTS = {
             ...YieldGemFacet,
             ...GettersFacet
         ]
-        // abi: [
-        //     ...DiamonCutFacet_ABI,
-        //     ...DiamonLoupeFacet_ABI,
-        //     ...ERC721EnumerableFacet_ABI,
-        //     ...ERC721Facet_ABI,
-        //     ...GemFacet_ABI,
-        //     ...GemGettersFacet_ABI,
-        //     ...NodeLimiterFacet_ABI,
-        //     ...OwnerFacet_ABI,
-        //     ...OwnershipFacet_ABI,
-        //     ...VaultStakingFacet_ABI,
-        // ]
     }
 
 }
@@ -117,6 +102,14 @@ export const NATIVE_CURRENCY = {
     name: "AVAX",
     symbol: "AVAX",
     decimals: 18
+}
+
+export const TAX_TIER_MAPPER: any = { 
+    '0': "0%",
+    '1': "30%",
+    '2': "15%",
+    '3': "5%",
+    '4': "0%"
 }
 
 

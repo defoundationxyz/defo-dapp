@@ -162,8 +162,7 @@ const P2VaultBox = ({
                                 variant="h4"
                                 fontWeight={"600"}
                             >
-                                {/* {formatNumber(+formatUnits(yourStake, "ether"))} */}
-                                { (+ethers.utils.formatEther(yourStake)).toFixed(4) }
+                                { (+ethers.utils.formatEther(yourStake)).toFixed(3) }
                             </Typography>
                             <Box sx={{
                                 display: "flex",
@@ -209,7 +208,7 @@ const P2VaultBox = ({
                                 fontWeight={"600"}
                             >
                                 {/* {formatNumber(+formatUnits(totalStaked, "ether"))} */}
-                                {(+ethers.utils.formatEther(totalStaked)).toFixed(4)}
+                                {(+ethers.utils.formatEther(totalStaked)).toFixed(3)}
                             </Typography>
                             <Box sx={{
                                 display: "flex",

@@ -50,7 +50,7 @@ const DonationsBox = ({
                             fontWeight={"600"}
                         >
                             {/* ${formatNumber(+yourDonations * 5)} */}
-                            { (+yourDonations).toFixed(4)}
+                            { (+ethers.utils.formatEther(yourDonations)).toFixed(3)}
                         </Typography>
                         <Box sx={{
                             display: "flex",
@@ -104,8 +104,9 @@ const DonationsBox = ({
                             sx={{ margin: theme.spacing(1, 0) }}
                             variant="h4"
                             fontWeight={"600"}
-                        >
-                            ${(+ethers.utils.formatEther(totalDonations)).toFixed(4)}
+                        >   
+                            {/* TODO: CREATE DOLLAR BASED VALUE */}
+                            ${(+ethers.utils.formatEther(totalDonations)).toFixed(3)}
                         </Typography>
                         <Box sx={{
                             display: "flex",

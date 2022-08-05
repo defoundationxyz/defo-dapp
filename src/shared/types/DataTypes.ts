@@ -18,18 +18,18 @@ interface GemTypeConfig {
 }
 
 type GemsConfigState = {
-	gem0: GemTypeConfig,
-	gem1: GemTypeConfig,
-	gem2: GemTypeConfig,
+    gem0: GemTypeConfig,
+    gem1: GemTypeConfig,
+    gem2: GemTypeConfig,
 }
 
-type GemTypeMintWindow = { 
+type GemTypeMintWindow = {
     mintCount: BigNumber,
     endOfMintLimitWindow: number
 }
 
 interface Gem {
-    id: BigNumber,
+    id: any,
     gemTypeId: number;
     booster: number;
     mintTime: Date;
@@ -44,5 +44,24 @@ interface Gem {
     fi?: any;
 }
 
+interface ProtocolConfig {
+    paymentTokens: string[];
+    wallets: string[];
+    incomeDistributionOnMint: string[];
+    // time periods
+    maintenancePeriod: number;
+    rewardPeriod: number;
+    taxScaleSinceLastClaimPeriod: number;
+    // taxes and contributions
+    taxRates: BigNumber[];
+    charityContributionRate: BigNumber;
+    vaultWithdrawalTaxRate: BigNumber;
+    taperRate: BigNumber;
+    // locks
+    mintLock: boolean;
+    transferLock: boolean;
+    // mint limit period for coutner reset
+    mintLimitWindow: number;
+}
 
-export type { GemTypeConfig, GemsConfigState, GemTypeMintWindow, Gem }
+export type { GemTypeConfig, GemsConfigState, GemTypeMintWindow, Gem, ProtocolConfig }
