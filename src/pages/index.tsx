@@ -89,6 +89,9 @@ const Home: NextPage = () => {
 		gem2: initialGemConfigState,
 	})
 	const [protocolConfig, setProtocolConfig] = useState<ProtocolConfig>()
+	// const [taxTiers, setTaxTiers] = useState({ 
+
+	// })
 
 	const [vaultAmounts, setVaultAmounts] = useState<BigNumber[]>([]);
 
@@ -128,7 +131,8 @@ const Home: NextPage = () => {
 	}, [status, account, signer])
 
 	useEffect(() => {
-		console.log('my gems: ', myCurrentGems);
+		// console.log('my gems: ', myCurrentGems)
+		// console.log('protocolConfig taxRates: ', protocolConfig?.taxRates)
 	}, [myCurrentGems])
 
 	const fetchAccountData = async () => {
@@ -138,7 +142,9 @@ const Home: NextPage = () => {
 		const userTotalDonated = await diamondContract.getTotalDonated()
 		const allTotalDonated = await diamondContract.getTotalDonatedAllUsers()
 		const currProtocolConfig: ProtocolConfig = await diamondContract.getConfig()
-		const yourCurrStake = await diamondContract.getTotalStaked() 
+		const yourCurrStake = await diamondContract.getTotalStaked()
+		// console.log('TAX RATES: ', protocolConfig?.taxRates);
+		// protocolConfig?.taxRates.forEach(tax => console.log(tax.toString()))
 
 		setTotalDonations(totalCharity)
 		setTotalStaked(totalStake)
@@ -193,27 +199,7 @@ const Home: NextPage = () => {
 			}
 			currentGems.push(newGem)
 		}
-
 		setMyCurrentGems(currentGems)
-
-		// 	let gemTyped: GemType = {
-		// 		id: gemId.toString(),
-		// 		MintTime: gem[0],
-		// 		LastReward: gem[1],
-		// 		LastMaintained: gem[2],
-		// 		GemType: gem[3],
-		// 		TaperCount: gem[4],
-		// 		Booster: gem[5],
-		// 		claimedReward: gem[7],
-		// 		pendingReward: pendingReward,
-		// 		vaultAmount: vaultAmount,
-		// 		isEligableForClaim: isGemEligable,
-		// 		taxTier: taxTier,
-		// 		nextTaxTier: wenNextTier
-		// 	}
-
-		// const vaultAmounts = await diamondContract.getAllVaultAmounts(account)
-		// setVaultAmounts(vaultAmounts);
 	}
 
 	const getPendingRewardsForGems = (gemIds: any) => {
@@ -403,13 +389,6 @@ const Home: NextPage = () => {
 	}
 
 
-	const handleVaultStrategy = async (gemIds: string[]) => {
-		console.log(gemIds);
-		console.log(selectedVaultStrategy);
-
-
-	}
-
 	const columns: GridColDef[] = [
 		{
 			flex: 1,
@@ -508,13 +487,40 @@ const Home: NextPage = () => {
 	]
 
 	useEffect(() => {
-		console.log('selected rows: ', selectedRows)
+		// console.log('selected rows: ', selectedRows)
 	}, [selectedRows])
 
 	const areSelectedGemsClaimable = () => {
 		return myCurrentGems
 			.filter(gem => selectedRows.includes(gem.id))
 			.some(gem => gem.isClaimable)
+	}
+
+	const calculateTaxTier = (gemIds: string[]) => {
+		// const amount = gemInstance.pendingReward.div(100).mul(vaultStrategyPercentage)
+		const result = ethers.utils.formatEther(
+			myCurrentGems
+				.filter(gem => selectedRows.includes(gem.id))
+				.reduce(
+					(
+						n,
+						{ rewardAmount, taxTier }
+					) => {
+						if (taxTier === 0) {
+							return BigNumber.from(0)
+						}
+						// @ts-ignore
+						const taxTierPercentage = +(protocolConfig?.taxRates[taxTier].toString()) / 100
+						// console.log('taxTierPercentage: ', taxTierPercentage)
+						const calculatedAmount = rewardAmount.div(100).mul(taxTierPercentage)
+						// console.log('calculatedAmount: ', ethers.utils.formatEther(calculatedAmount));
+						return n.add(calculatedAmount)
+					},
+					BigNumber.from(0)
+				))
+
+		// console.log('result: ', result);
+		return (<>123 </>)
 	}
 
 	return (
@@ -863,6 +869,48 @@ const Home: NextPage = () => {
 															BigNumber.from(0)
 														))
 											} DAI ($0)
+										</Typography>
+									</Grid>
+								</Grid>
+								<Grid container justifyContent={"space-between"} >
+									<Grid item>
+										<Typography fontWeight={"bold"} variant="body2">TAX TIER:</Typography>
+									</Grid>
+									<Grid item>
+										<Typography variant="body2">
+											{
+												ethers.utils.formatEther(
+													myCurrentGems
+														.filter(gem => selectedRows.includes(gem.id))
+														.reduce(
+															(
+																n,
+																{ rewardAmount, taxTier }
+															) => {
+																if (taxTier === 0) {
+																	return BigNumber.from(0)
+																}
+																// @ts-ignore
+																const taxTierPercentage = +(protocolConfig?.taxRates[taxTier].toString()) / 100
+																// console.log('taxTierPercentage: ', taxTierPercentage)
+																const calculatedAmount = rewardAmount.div(100).mul(taxTierPercentage)
+																// console.log('calculatedAmount: ', ethers.utils.formatEther(calculatedAmount));
+																return n.add(calculatedAmount)
+															},
+															BigNumber.from(0)
+														))}
+											<> DEFO ($0)</>
+										</Typography>
+									</Grid>
+								</Grid>
+								<hr />
+								<Grid container justifyContent={"space-between"} >
+									<Grid item>
+										<Typography fontWeight={"bold"} variant="body2">TOTAL RECEIVE:</Typography>
+									</Grid>
+									<Grid item>
+										<Typography variant="body2">
+											0.0 DAI ($0)
 										</Typography>
 									</Grid>
 								</Grid>

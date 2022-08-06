@@ -105,10 +105,9 @@ export const NATIVE_CURRENCY = {
 }
 
 export const TAX_TIER_MAPPER: any = { 
-    '0': "0%",
     '1': "30%",
-    '2': "15%",
-    '3': "5%",
+    '2': "30%",
+    '3': "15%",
     '4': "0%"
 }
 
