@@ -136,7 +136,6 @@ const Home: NextPage = () => {
 	}, [myCurrentGems])
 
 	const fetchAccountData = async () => {
-		const totalCharity = await diamondContract.getTotalDonated()
 		const totalStake = await diamondContract.getTotalStakedAllUsers();
 		const pendingRewards = await diamondContract.getCumulatedReward()
 		const userTotalDonated = await diamondContract.getTotalDonated()
@@ -146,10 +145,9 @@ const Home: NextPage = () => {
 		// console.log('TAX RATES: ', protocolConfig?.taxRates);
 		// protocolConfig?.taxRates.forEach(tax => console.log(tax.toString()))
 
-		setTotalDonations(totalCharity)
-		setTotalStaked(totalStake)
 		setYourDonations(userTotalDonated)
 		setTotalDonations(allTotalDonated)
+		setTotalStaked(totalStake)
 		setYourStake(yourCurrStake)
 		setProtocolConfig(currProtocolConfig)
 
