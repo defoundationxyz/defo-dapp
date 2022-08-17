@@ -7,13 +7,13 @@ import {
     useState,
 } from "react";
 import Web3Modal, { IProviderOptions } from "web3modal";
-import { providers, Signer } from "ethers";
-import { hexlify, hexValue } from "ethers/lib/utils";
+import { providers } from "ethers";
+import { hexValue } from "ethers/lib/utils";
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
 import { ACTIVE_NETWORK, INFURA_ID, NATIVE_CURRENCY, RPC } from "shared/utils/constants";
 import CHAIN_STATUS from "./types/ChainStatusTypes";
 
-const Web3Provider = ({theme = "light", children}: {theme: "dark" | "light"; children: ReactChild | ReactChild[]}) => {
+const Web3Provider = ({ theme = "light", children }: { theme: "dark" | "light"; children: ReactChild | ReactChild[] }) => {
 
     const snackbar = useSnackbar()
 
@@ -23,7 +23,6 @@ const Web3Provider = ({theme = "light", children}: {theme: "dark" | "light"; chi
     const [web3Provider, setWeb3Provider] = useState<providers.Web3Provider>();
     const [signer, setSigner] = useState<any>(defaultProvider);
     const [account, setAccount] = useState<string>();
-    const [defoInstance, setDefoInstance] = useState();
 
     const switchNetwork = async () => {
         const AVALANCHE_MAINNET_PARAMS = {
@@ -60,6 +59,27 @@ const Web3Provider = ({theme = "light", children}: {theme: "dark" | "light"; chi
         }
     }
 
+    const connectAccount = async (provider: any) => {
+        const web3Provider = new providers.Web3Provider(provider, "any");
+        const signer = web3Provider.getSigner();
+        const accounts = await web3Provider.listAccounts();
+
+        const net = await web3Provider.getNetwork()
+
+        setWeb3Provider(web3Provider);
+        setAccount(accounts[0]);
+
+        if (net.chainId === ACTIVE_NETWORK.CHAIN_ID) {
+            setSigner(signer);
+            setStatus("CONNECTED")
+            snackbar.execute("Success", "success")
+        } else {
+            setSigner(defaultProvider)
+            setStatus("DIFFERENT_CHAIN")
+            snackbar.execute(`Please Switch To ${ACTIVE_NETWORK.CHAIN_NAME}`, "warning")
+        }
+
+    }
 
     const connect = async () => {
         try {
@@ -82,31 +102,8 @@ const Web3Provider = ({theme = "light", children}: {theme: "dark" | "light"; chi
                 });
 
                 web3Modal.clearCachedProvider();
-                const provider = await web3Modal.connect();                
-                const web3Provider = new providers.Web3Provider(provider, "any");
-                const signer = web3Provider.getSigner();
-                const accounts = await web3Provider.listAccounts();
-                
-                // console.log('signer: ', signer);
-                // console.log('accounts: ', accounts);
-                
-                const net = await web3Provider.getNetwork()
-                console.log('net: ', net);
-                
-
-                setWeb3Provider(web3Provider);
-                setAccount(accounts[0]);
-
-                if (net.chainId === ACTIVE_NETWORK.CHAIN_ID) {
-                    setSigner(signer);
-                    setStatus("CONNECTED")
-                    snackbar.execute("Success", "success")
-                } else {
-                    setSigner(defaultProvider)
-                    setStatus("DIFFERENT_CHAIN")
-                    snackbar.execute(`Please Switch To ${ACTIVE_NETWORK.CHAIN_NAME}`, "warning")
-                }
-
+                const provider = await web3Modal.connect();
+                await connectAccount(provider);
 
                 provider.on("chainChanged", async (chainId: number) => {
 
@@ -134,6 +131,11 @@ const Web3Provider = ({theme = "light", children}: {theme: "dark" | "light"; chi
 
 
                 });
+
+                provider.on("accountsChanged", async (accounts: string[]) => {
+                    console.log('---accountsChanged---');
+                    connectAccount(provider)
+                })
 
             }
         } catch (error) {

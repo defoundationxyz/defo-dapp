@@ -71,7 +71,7 @@ export const CONTRACTS = {
     },
 
     Main: {
-        address: "0x095Db998B45FEAB2b8A3260bD630816a069DbDc4", // localhost
+        address: "0x66Cf45e57D524959B539e0907FE4B18F8AfC4D84", // localhost
         abi: [
             ...ConfigFacet,
             ...LimiterFacet,

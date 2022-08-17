@@ -12,9 +12,10 @@ import YieldGemModalBox from "./YieldGemModalBox/YieldGemModalBox"
 import YieldGemInfoBox from "./YieldGemInfoBox/YieldGemInfoBox"
 import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes"
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
+import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 
 
-const YieldGems = ({ myGems, gemsConfig, fetchAccountData }: { myGems: Gem[], gemsConfig: GemsConfigState, fetchAccountData: Function }) => {
+const YieldGems = () => {
     const gemsModalRef = useRef<any>();
     const { status } = useWeb3()
 
@@ -22,15 +23,16 @@ const YieldGems = ({ myGems, gemsConfig, fetchAccountData }: { myGems: Gem[], ge
     const [gemsCount, setGemsCount] = useState([0, 0, 0])
 	const { diamondContract } = useDiamondContext()
 
+    const { gemsConfig, gemsCollection } = useGemsContext()
 
     useEffect(() => {
         const currentGemsCount = [0, 0, 0];
 
-        myGems.forEach((gem: Gem) => {
+        gemsCollection.forEach((gem: Gem) => {
             currentGemsCount[gem.gemTypeId]++;
         })
         setGemsCount(currentGemsCount);
-    }, [myGems])
+    }, [gemsCollection])
 
 
     const handleOpenModal = () => {
@@ -115,7 +117,6 @@ const YieldGems = ({ myGems, gemsConfig, fetchAccountData }: { myGems: Gem[], ge
                             }
                         }}
                         handleCloseModal={handleCloseModal}
-                        fetchAccountData={fetchAccountData}
                     />
 
                     <YieldGemModalBox
@@ -130,7 +131,6 @@ const YieldGems = ({ myGems, gemsConfig, fetchAccountData }: { myGems: Gem[], ge
                         }}
                         handleCloseModal={handleCloseModal}
                         gemConfig={gemsConfig.gem1}
-                        fetchAccountData={fetchAccountData}
                     />
 
                     <YieldGemModalBox
@@ -145,7 +145,6 @@ const YieldGems = ({ myGems, gemsConfig, fetchAccountData }: { myGems: Gem[], ge
                         }}
                         handleCloseModal={handleCloseModal}
                         gemConfig={gemsConfig.gem2}
-                        fetchAccountData={fetchAccountData}
                     />
 
                 </Grid>

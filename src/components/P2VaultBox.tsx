@@ -1,97 +1,96 @@
 import { Close, HelpOutline } from "@mui/icons-material"
 import { Box, Button, Grid, IconButton, LinearProgress, Modal, Paper, Tooltip, Typography, useTheme } from "@mui/material"
-import { DataGrid, GridColDef, GridRowId } from "@mui/x-data-grid"
-import { BigNumber, ethers } from "ethers"
-import { formatUnits } from "ethers/lib/utils"
-import moment from "moment"
+import { DataGrid, GridColDef } from "@mui/x-data-grid"
+import { ethers } from "ethers"
 import { useEffect, useState } from "react"
-import { GemType } from "shared/utils/constants";
 import ContentBox from "./ContentBox"
 import { useWeb3 } from "shared/context/Web3/Web3Provider"
-import { formatNumber } from "shared/utils/format"
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
+import { Gem } from "shared/types/DataTypes"
+import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
+import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 
 
 
-
-const P2VaultBox = ({
-    totalStaked,
-    yourStake,
-    myGems,
-    fetchAccountData
-}: {
-    totalStaked: BigNumber,
-    yourStake: BigNumber,
-    myGems: GemType[],
-    fetchAccountData: Function
-}) => {
+const P2VaultBox = () => {
     const theme = useTheme()
-    const { status, account } = useWeb3()
+    const { status } = useWeb3()
 
+    const [vaultGems, setVaultGems] = useState<Gem[]>([])
     const [withdrawModalOpen, setWithdrawModalOpen] = useState(false)
     const { diamondContract } = useDiamondContext()
     const snackbar = useSnackbar()
 
-    const withdraw = async (gem: GemType) => {
-        // console.log('gem: ', gem);
-        if (!isGemWithdrawable(gem)) {
-            console.log('Not allowed!');
-            return;
-        }
+    const { stake, updateStake, updateDonations } = useStatsContext()
+    const { gemsCollection, updateGemsCollection } = useGemsContext()
 
-        console.log('allowed');
-        console.log(gem.id, gem.vaultAmount);
-        // 99642
-        // 118.68
+    useEffect(() => {
+        if (gemsCollection.length === 0) { return; }
+        const filteredGems = gemsCollection.filter((gem: Gem) => !gem.staked.isZero())
+        setVaultGems(filteredGems)
+    }, [gemsCollection])
+
+    const withdraw = async (gem: Gem) => {
+        const stakedAmount = await diamondContract.getStaked(gem.id)
 
         try {
-            const tx = await diamondContract.removeFromVault(gem.id, gem.vaultAmount);
+            const tx = await diamondContract.unStakeReward(gem.id, gem.staked);
             snackbar.execute("Withdrawing from the vault on progress, please wait.", "info")
             await tx.wait()
-            await fetchAccountData()
+            await updateStake()
+            await updateDonations()
+            await updateGemsCollection()
         } catch (error) {
             console.log('error on withdraw: ', error);
             snackbar.execute("Error occured while withdrawing from the vault", "error")
         }
     }
 
-    const isGemWithdrawable = (gem: GemType) => {
-        return !(gem.vaultAmount && !+ethers.utils.formatEther(gem.vaultAmount));
-    }
 
     const columns: GridColDef[] = [
         {
             flex: 1,
             field: 'name',
-            headerName: 'Name',
+            headerName: 'Gem Type',
             renderCell: (params) => {
-                const gem: GemType = params.row;
-                if (gem.GemType === 0) {
+                const gem: Gem = params.row;
+                if (gem.gemTypeId === 0) {
                     return "Sapphire"
-                } else if (gem.GemType === 1) {
+                } else if (gem.gemTypeId === 1) {
                     return "Ruby"
-                } else if (gem.GemType === 2) {
+                } else if (gem.gemTypeId === 2) {
                     return "Diamond"
                 }
+            }
+        },
+        // {
+        //     flex: 1,
+        //     field: 'created',
+        //     headerName: 'Created',
+        //     renderCell: (params) => {
+        //         const gem: Gem = params.row;
+        //         return moment(gem.mintTime, "X").format("MMM DD YYYY HH:mm")
+        //     }
+        // },
+        {
+            flex: 1,
+            field: 'rewards',
+            headerName: 'Staked Rewards',
+            renderCell: (params) => {
+                const gem: Gem = params.row;
+                return `${(+ethers.utils.formatEther(gem.staked)).toFixed(3)} DEFO ($0.0)`
             }
         },
         {
             flex: 1,
             field: 'created',
-            headerName: 'Created',
+            headerName: 'Withdrawable Amount',
             renderCell: (params) => {
-                const gem: GemType = params.row;
-                return moment(gem.MintTime, "X").format("MMM DD YYYY HH:mm")
-            }
-        },
-        {
-            flex: 1,
-            field: 'rewards',
-            headerName: 'Rewards',
-            renderCell: (params) => {
-                const gem: GemType = params.row;
-                return `${formatNumber(+formatUnits(gem.vaultAmount ? gem.vaultAmount : 0, "ether"))} DEFO`
+                const gem: Gem = params.row;
+                const WITHDRAW_VAULT_FEE_PERCENTAGE = 10
+                const amountToWithdraw = gem.staked.div(100).mul(WITHDRAW_VAULT_FEE_PERCENTAGE)
+                return <>{`${(+ethers.utils.formatEther(gem.staked.sub(amountToWithdraw))).toFixed(3)}`} DEFO ($0.0)</>
             }
         },
         {
@@ -100,7 +99,7 @@ const P2VaultBox = ({
             headerName: 'Withdraw',
             minWidth: 200,
             renderCell: (params) => <Box>
-                <Button
+                {/* <Button
                     variant="contained"
                     color="primary"
                     onClick={() => withdraw(params.row)}
@@ -111,7 +110,23 @@ const P2VaultBox = ({
                         },
                         marginRight: theme.spacing(1),
 
-                    }}>Withdraw</Button>
+                    }}>Withdraw</Button> */}
+                <Tooltip title="123">
+                    <span>
+                        <Button
+                            onClick={() => withdraw(params.row)}
+                            variant="contained"
+                            endIcon={<HelpOutline />}
+                            color="primary"
+                            sx={{
+                                marginLeft: {
+                                    xs: theme.spacing(0),
+                                    md: theme.spacing(2)
+                                },
+                                marginRight: theme.spacing(1),
+                            }}>Withdraw</Button>
+                    </span>
+                </Tooltip>
             </Box>
         },
     ]
@@ -123,7 +138,7 @@ const P2VaultBox = ({
                 title="P2 Vault"
                 color="#FCBD00"
                 button={
-                    <Tooltip title="This will withdraw your funds from the P2 Vault and add them to the pending rewards.">
+                    <Tooltip title="This will withdraw your funds from the P2 Vault and add them to the pending gem rewards.">
                         <span>
                             <Button
                                 onClick={() => setWithdrawModalOpen(true)}
@@ -162,9 +177,9 @@ const P2VaultBox = ({
                                 variant="h4"
                                 fontWeight={"600"}
                             >
-                                { (+ethers.utils.formatEther(yourStake)).toFixed(3) }
+                                {(+ethers.utils.formatEther(stake.userStake)).toFixed(3)}
                             </Typography>
-                            <Box sx={{
+                            {/* <Box sx={{
                                 display: "flex",
                                 flexDirection: "row",
                                 alignItems: "center",
@@ -187,7 +202,7 @@ const P2VaultBox = ({
                             </Box>
                             <LinearProgress sx={{
                                 marginTop: theme.spacing(1)
-                            }} color='info' variant="determinate" value={45} />
+                            }} color='info' variant="determinate" value={45} /> */}
                         </Paper>
                     </Grid>
 
@@ -207,10 +222,9 @@ const P2VaultBox = ({
                                 variant="h4"
                                 fontWeight={"600"}
                             >
-                                {/* {formatNumber(+formatUnits(totalStaked, "ether"))} */}
-                                {(+ethers.utils.formatEther(totalStaked)).toFixed(3)}
+                                {(+ethers.utils.formatEther(stake.totalStake)).toFixed(3)}
                             </Typography>
-                            <Box sx={{
+                            {/* <Box sx={{
                                 display: "flex",
                                 flexDirection: "row",
                                 alignItems: "center",
@@ -233,7 +247,7 @@ const P2VaultBox = ({
                             </Box>
                             <LinearProgress sx={{
                                 marginTop: theme.spacing(1)
-                            }} color='warning' variant="determinate" value={65} />
+                            }} color='warning' variant="determinate" value={65} /> */}
                         </Paper>
                     </Grid>
                 </Grid>
@@ -299,7 +313,7 @@ const P2VaultBox = ({
                             marginTop: theme.spacing(2)
                         }}>
                             <DataGrid
-                                rows={myGems}
+                                rows={vaultGems}
                                 columns={columns}
                                 pageSize={5}
                                 rowsPerPageOptions={[5]}

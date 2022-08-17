@@ -4,18 +4,14 @@ import { ArrowUpward } from '@mui/icons-material'
 import { BigNumber, ethers } from "ethers"
 import { formatNumber } from "shared/utils/format"
 import { formatUnits } from "ethers/lib/utils"
+import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
+import { useEffect } from "react"
 
 
-const DonationsBox = ({
-    yourDonations,
-    totalDonations
-}: {
-    yourDonations: BigNumber,
-    totalDonations: BigNumber
-
-}) => {
+const DonationsBox = () => {
 
     const theme = useTheme()
+    const { donations, updateDonations } = useStatsContext()
 
     return (
         <ContentBox
@@ -50,9 +46,9 @@ const DonationsBox = ({
                             fontWeight={"600"}
                         >
                             {/* ${formatNumber(+yourDonations * 5)} */}
-                            { (+ethers.utils.formatEther(yourDonations)).toFixed(3)}
+                            { (+ethers.utils.formatEther(donations.userDonations)).toFixed(3)}
                         </Typography>
-                        <Box sx={{
+                        {/* <Box sx={{
                             display: "flex",
                             flexDirection: "row",
                             alignItems: "center"
@@ -83,7 +79,7 @@ const DonationsBox = ({
                                     color: "gray"
                                 }}
                             >last 7d</Typography>
-                        </Box>
+                        </Box> */}
                     </Paper>
                 </Grid>
 
@@ -106,9 +102,9 @@ const DonationsBox = ({
                             fontWeight={"600"}
                         >   
                             {/* TODO: CREATE DOLLAR BASED VALUE */}
-                            ${(+ethers.utils.formatEther(totalDonations)).toFixed(3)}
+                            {(+ethers.utils.formatEther(donations.totalDonations)).toFixed(3)}
                         </Typography>
-                        <Box sx={{
+                        {/* <Box sx={{
                             display: "flex",
                             flexDirection: "row",
                             alignItems: "center"
@@ -139,7 +135,7 @@ const DonationsBox = ({
                                     color: "gray"
                                 }}
                             >last 7d</Typography>
-                        </Box>
+                        </Box> */}
                     </Paper>
                 </Grid>
 

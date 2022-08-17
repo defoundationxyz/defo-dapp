@@ -3,16 +3,16 @@ import { Grid, Paper, Typography, Box, useTheme, Button } from "@mui/material"
 import { BigNumber, Contract, ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider";
+import { useGemsContext } from "shared/context/GemContext/GemContextProvider";
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
 import { useWeb3 } from "shared/context/Web3/Web3Provider";
 import { GemTypeConfig, GemTypeMintWindow } from "shared/types/DataTypes";
 import { CONTRACTS } from "shared/utils/constants";
 import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper";
 
-const YieldGemModalBox = ({ gemType, name, fetchAccountData, gemConfig, gemTypeMintWindow, handleCloseModal }: {
+const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleCloseModal }: {
     gemType: 0 | 1 | 2,
     name: "Sapphire" | "Ruby" | "Diamond",
-    fetchAccountData: Function
     gemConfig: GemTypeConfig,
     gemTypeMintWindow: () => Promise<GemTypeMintWindow>
     handleCloseModal: () => void
@@ -22,11 +22,13 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, gemConfig, gemTypeM
     const snackbar = useSnackbar();
 
     const { signer, account } = useWeb3();
+    const { updateGemsCollection } = useGemsContext()
 
     const [gemMintWindow, setGemMintWindow] = useState<GemTypeMintWindow>({
         mintCount: BigNumber.from(0),
         endOfMintLimitWindow: 0
     })
+
 
     useEffect(() => {
         const loadData = async () => {
@@ -46,19 +48,19 @@ const YieldGemModalBox = ({ gemType, name, fetchAccountData, gemConfig, gemTypeM
 
             if (defoAllowance.isZero()) {
                 const tx = await defo.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
-                tx.wait()
+                await tx.wait()
             }
 
             if (daiAllowance.isZero()) {
                 const tx = await dai.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
-                tx.wait()
+                await tx.wait()
             }
-
 
                 const tx = await diamondContract.mint(gemType.toString())
                 snackbar.execute("Creating, please wait.", "info")
                 await tx.wait()
-                await fetchAccountData()
+                
+                await updateGemsCollection()
                 snackbar.execute("Created", "success")
                 handleCloseModal()
         } catch (error: any) {
