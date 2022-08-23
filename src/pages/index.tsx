@@ -159,18 +159,19 @@ const Home: NextPage = () => {
 			snackbar.execute("Selected gem/s are not eligable for claim yet or fee is not paid", "error");
 			return
 		}
-		console.log('ADDING TO THE VAULT....');
 
 		try {
 			const selectedGems = gemsCollection.filter((gem: Gem) => gemIds.includes(gem.id))
 			const gemIdsAsNumber = gemIds.map(gemId => +gemId)
-			console.log('selectedGems: ', selectedGems);
-			const gemAmounts = selectedGems.map((gem: Gem) => {
-				const amount = gem.rewardAmount.div(100).mul(vaultStrategyPercentage)
-				return amount
+
+			const gemAmounts = gemIds.map((gemId: string) => { 
+				const currentGem = selectedGems.find((gem: Gem) => gem.id === gemId)
+				const amount = currentGem.rewardAmount.div(100).mul(vaultStrategyPercentage)
+				return amount;
 			})
 
-			// const addToVaultTX = gemIdsAsNumber.length === 1 ? await diamondContract.stakeReward(gemIdsAsNumber[0], gemAmounts[0]) : await diamondContract.batchStakeReward(gemIdsAsNumber, gemAmounts);
+			
+			// // const addToVaultTX = gemIdsAsNumber.length === 1 ? await diamondContract.stakeReward(gemIdsAsNumber[0], gemAmounts[0]) : await diamondContract.batchStakeReward(gemIdsAsNumber, gemAmounts);
 			const addToVaultTX = await diamondContract.batchStakeReward(gemIdsAsNumber, gemAmounts);
 			snackbar.execute("Adding to the vault on progress, please wait.", "info")
 			await addToVaultTX.wait()
@@ -396,7 +397,7 @@ const Home: NextPage = () => {
 												).toFixed(3)}
 											</Typography>
 											<Typography ml={1} variant="h6">
-												($29.35)
+												($0.00)
 											</Typography>
 										</Box>
 										{/* <Typography variant="h5" fontWeight={"bold"}>
@@ -678,7 +679,7 @@ const Home: NextPage = () => {
 
 								<Grid container justifyContent={"space-between"} >
 									<Grid item>
-										<Typography fontWeight={"bold"} variant="body2">TAX TIER:</Typography>
+										<Typography fontWeight={"bold"} variant="body2">CLAIM TAX TIER:</Typography>
 									</Grid>
 									<Grid item>
 										<Typography variant="body2">
@@ -689,7 +690,7 @@ const Home: NextPage = () => {
 								<hr />
 								<Grid container justifyContent={"space-between"} >
 									<Grid item>
-										<Typography fontWeight={"bold"} variant="body2">TOTAL RECEIVE:</Typography>
+										<Typography fontWeight={"bold"} variant="body2">CLAIMABLE:</Typography>
 									</Grid>
 									<Grid item>
 										<Typography variant="body2">

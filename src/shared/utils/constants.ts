@@ -67,7 +67,7 @@ export const CONTRACTS = {
     DefoToken: {
         abi: Dai_ABI,
         // address: "0x5C7ea2D484464a6Be1c2028CE1E9e1Ec339Dd3Ae",
-        address: "0x4a6B7DCD5c271B2E36B8CE0fbB3097c2268ceC24",
+        address: "0xEFac7869B91F3dc100340a61dfE77839B89ba86D",
     },
 
     Main: {
