@@ -1,15 +1,14 @@
 import { Box, Button, Container, FormControlLabel, Grid, IconButton, Modal, Paper, Switch, Tooltip, Typography, useTheme } from '@mui/material'
 import type { NextPage } from 'next'
 import Footer from 'components/Footer'
-import { CONTRACTS, GemType, GemTypeMetadata, TAX_TIER_MAPPER } from "shared/utils/constants"
-import { BigNumber, Contract, ethers } from 'ethers'
+import { ACTIVE_NETOWORKS_COLLECTION, GemTypeMetadata, TAX_TIER_MAPPER } from "shared/utils/constants"
+import { BigNumber, ethers } from 'ethers'
 import { useWeb3 } from 'shared/context/Web3/Web3Provider'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Navbar from 'components/Navbar'
 import Head from 'next/head'
-import { Close, FormatUnderlinedTwoTone, HelpOutline, SafetyDividerOutlined } from '@mui/icons-material'
+import { Close, HelpOutline } from '@mui/icons-material'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import { formatUnits } from 'ethers/lib/utils'
 import ContentBox from 'components/ContentBox'
 import DonationsBox from 'components/DonationsBox'
 import YieldGems from "components/YieldGems/YieldGems";
@@ -17,13 +16,12 @@ import P2VaultBox from 'components/P2VaultBox'
 import moment from 'moment'
 import { useSnackbar } from 'shared/context/Snackbar/SnackbarProvider'
 import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextProvider'
-import { formatNumber, getGemTypes } from 'shared/utils/format'
-import { getIsEligableForClaim } from 'shared/utils/helper'
-import { getHoursFromSecondsInRange } from "shared/utils/format";
-import { Gem, GemsConfigState, GemTypeConfig, ProtocolConfig } from 'shared/types/DataTypes'
-import { getMaxAge } from 'next/dist/server/image-optimizer'
+import { Gem, GemTypeConfig, ProtocolConfig } from 'shared/types/DataTypes'
 import { useStatsContext } from 'shared/context/StatsContext/StatsContextProvider'
 import { useGemsContext } from 'shared/context/GemContext/GemContextProvider'
+import { InvalidNetworkView } from 'components/InvalidNetworkView/InvalidNetworkView'
+import { useChain } from 'react-moralis'
+
 
 type yieldGemsMetadataType = {
 	gem0: GemTypeMetadata | {},
@@ -56,16 +54,16 @@ const initialProtocolConfigState: ProtocolConfig = {
 	mintLimitWindow: 0,
 }
 
-// TODO: Create STATS hook
 
 const Home: NextPage = () => {
 
 	const theme = useTheme()
 	const snackbar = useSnackbar()
 
-	const { status, account, signer } = useWeb3()
+	const { status } = useWeb3()
+	const { chainId } = useChain()
 
-	const { setDiamondContract, diamondContract } = useDiamondContext()
+	const { diamondContract } = useDiamondContext()
 
 	const [selectedRows, setSelectedRows] = useState<string[]>([])
 
@@ -80,33 +78,6 @@ const Home: NextPage = () => {
 		protocolConfig
 	} = useStatsContext()
 
-
-	useEffect(() => {
-		(async () => {
-			try {
-				const mainContract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer)
-
-				if (mainContract.address) {
-					setDiamondContract(mainContract)
-				}
-
-			} catch (error) {
-				console.log(error)
-			}
-		})()
-
-		return () => { }
-	}, [signer])
-
-	useEffect(() => {
-		console.log('my gems: ', gemsCollection)
-	}, [gemsCollection])
-
-	const fetchAccountData = async () => {
-
-	}
-
-
 	const handlePayFee = async (gemIds: string[]) => {
 		const gemIdsAsNumber = gemIds.map(gemId => +gemId)
 
@@ -114,7 +85,6 @@ const Home: NextPage = () => {
 			const tx = gemIdsAsNumber.length === 1 ? await diamondContract.maintain(gemIdsAsNumber[0]) : await diamondContract.batchMaintain(gemIdsAsNumber);
 			snackbar.execute("Paying Maintenance Fee on progress, please wait.", "info")
 			await tx.wait()
-			await fetchAccountData()
 			await updateDonations()
 			await updateGemsCollection()
 			setClaimRewardsModalOpen(false)
@@ -125,8 +95,8 @@ const Home: NextPage = () => {
 	}
 
 	const handleBatchClaimRewards = async (gemIds: string[]) => {
-		console.log('selectedRows: ', selectedRows)
-		console.log('gemIds: ', gemIds)
+		// console.log('selectedRows: ', selectedRows)
+		// console.log('gemIds: ', gemIds)
 
 		if (!areSelectedGemsClaimable()) {
 			snackbar.execute("Selected gem/s are not eligable for claim yet or fee is not paid", "error");
@@ -144,7 +114,6 @@ const Home: NextPage = () => {
 			const tx = gemIdsAsNumber.length === 1 ? await diamondContract.claimReward(gemIdsAsNumber[0]) : await diamondContract.batchClaimReward(gemIdsAsNumber);
 			snackbar.execute("Claiming on progress, please wait.", "info")
 			await tx.wait()
-			await fetchAccountData()
 			await updateDonations()
 			await updateGemsCollection()
 			setClaimRewardsModalOpen(false)
@@ -164,13 +133,13 @@ const Home: NextPage = () => {
 			const selectedGems = gemsCollection.filter((gem: Gem) => gemIds.includes(gem.id))
 			const gemIdsAsNumber = gemIds.map(gemId => +gemId)
 
-			const gemAmounts = gemIds.map((gemId: string) => { 
+			const gemAmounts = gemIds.map((gemId: string) => {
 				const currentGem = selectedGems.find((gem: Gem) => gem.id === gemId)
 				const amount = currentGem.rewardAmount.div(100).mul(vaultStrategyPercentage)
 				return amount;
 			})
 
-			
+
 			// // const addToVaultTX = gemIdsAsNumber.length === 1 ? await diamondContract.stakeReward(gemIdsAsNumber[0], gemAmounts[0]) : await diamondContract.batchStakeReward(gemIdsAsNumber, gemAmounts);
 			const addToVaultTX = await diamondContract.batchStakeReward(gemIdsAsNumber, gemAmounts);
 			snackbar.execute("Adding to the vault on progress, please wait.", "info")
@@ -178,7 +147,6 @@ const Home: NextPage = () => {
 			// if (vaultStrategyPercentage < 100) {
 			// 	await handleBatchClaimRewards(gemIds)
 			// }
-			await fetchAccountData()
 			await updateDonations()
 			await updateStake()
 			await updateGemsCollection()
@@ -223,6 +191,7 @@ const Home: NextPage = () => {
 			headerName: 'Rewards',
 			renderCell: (params) => {
 				const gem: Gem = params.row;
+				// console.log('GEM IN TABLE: ', gem);
 				return (ethers.utils.formatEther(gem.rewardAmount) || 0).toString() + ' DEFO'
 				// return `9999 DEFO` // gem.pendingReward
 			}
@@ -329,158 +298,169 @@ const Home: NextPage = () => {
 	}
 
 	return (
-		<Box>
+		<Box height={"100%"}>
 			<Head>
 				<title>DEFO</title>
 				<meta name="viewport" content="initial-scale=1.0, width=device-width" />
 			</Head>
 			<Navbar />
-			<Container>
-				<Typography variant="h4" fontWeight={"bold"}>
-					Welcome Philanthropist!
-				</Typography>
-				<Typography variant='body1' color={"gray"}>
-					Ready to make the world a better place for the less fortunate?
-				</Typography>
+			{(chainId && ACTIVE_NETOWORKS_COLLECTION.includes(parseInt(chainId, 16))) ?
+				<Container>
+					<Typography variant="h4" fontWeight={"bold"}>
+						Welcome Philanthropist!
+					</Typography>
+					<Typography variant='body1' color={"gray"}>
+						Ready to make the world a better place for the less fortunate?
+					</Typography>
 
-				{/* Donations */}
-				<Grid
-					container
-					justifyContent={"space-between"}
-					sx={{
-						margin: theme.spacing(8, 0),
-					}}
-				>
-					<Grid item xs={12} md={5.8}>
-						<DonationsBox />
-					</Grid>
+					{diamondContract ?
+						<>
+							{/* Donations */}
+							<Grid
+								container
+								justifyContent={"space-between"}
+								sx={{
+									margin: theme.spacing(8, 0),
+								}}
+							>
+								<Grid item xs={12} md={5.8}>
+									<DonationsBox />
+								</Grid>
 
-					<Grid item xs={12} md={5.8}>
-						<YieldGems />
-					</Grid>
-				</Grid>
+								<Grid item xs={12} md={5.8}>
+									<YieldGems />
+								</Grid>
+							</Grid>
 
-				{/* P2 Vault */}
-				<Grid
-					container
-					justifyContent={"space-between"}
-				>
-					<Grid item xs={12} md={7.9}>
-						<P2VaultBox />
-					</Grid>
-
-					<Grid item xs={12} md={3.75}>
-						<ContentBox
-							title="Rewards"
-							color="#FCBD00"
-						>
+							{/* P2 Vault */}
 							<Grid
 								container
 								justifyContent={"space-between"}
 							>
-								<Grid item xs={12}>
-									<Paper
-										sx={{
-											padding: {
-												xs: theme.spacing(2),
-												md: theme.spacing(2, 4)
-											},
-										}}>
-										<Typography variant="body2">PENDING REWARDS</Typography>
-										<Box display={"flex"}  alignItems="center">
-											<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-												{(+ethers.utils.formatEther(
-													gemsCollection.reduce(
-														(n: BigNumber, { rewardAmount }: Gem) => rewardAmount.add(n),
-														BigNumber.from(0))
-												)
-												).toFixed(3)}
-											</Typography>
-											<Typography ml={1} variant="h6">
-												($0.00)
-											</Typography>
-										</Box>
-										{/* <Typography variant="h5" fontWeight={"bold"}>
-											$0.00
-										</Typography> */}
-									</Paper>
+								<Grid item xs={12} md={7.9}>
+									<P2VaultBox />
 								</Grid>
+
+								<Grid item xs={12} md={3.75}>
+									<ContentBox
+										title="Rewards"
+										color="#FCBD00"
+									>
+										<Grid
+											container
+											justifyContent={"space-between"}
+										>
+											<Grid item xs={12}>
+												<Paper
+													sx={{
+														padding: {
+															xs: theme.spacing(2),
+															md: theme.spacing(2, 4)
+														},
+													}}>
+													<Typography variant="body2">PENDING REWARDS</Typography>
+													<Box display={"flex"} alignItems="center">
+														<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
+															{(+ethers.utils.formatEther(
+																gemsCollection.reduce(
+																	(n: BigNumber, { rewardAmount }: Gem) => rewardAmount.add(n),
+																	BigNumber.from(0))
+															)
+															).toFixed(3)}
+														</Typography>
+														<Typography ml={1} variant="h6">
+															($0.00)
+														</Typography>
+													</Box>
+													{/* <Typography variant="h5" fontWeight={"bold"}>
+										$0.00
+									</Typography> */}
+												</Paper>
+											</Grid>
+										</Grid>
+									</ContentBox>
+								</Grid>
+
 							</Grid>
-						</ContentBox>
-					</Grid>
 
-				</Grid>
-
-				{/* GEM Table */}
-				<Box
-					sx={{
-						margin: theme.spacing(8, 0)
-					}}
-				>
-
-					<Grid container alignItems={"center"}>
-						<Grid item xs={12} md="auto" >
-							<Typography>{selectedRows?.length || 0} nodes selected</Typography>
-						</Grid>
-						<Grid item>
-						</Grid>
-						<Grid item>
-							<Button
-								disabled={status !== "CONNECTED" || selectedRows.length === 0}
-								onClick={
-									() => setClaimRewardsModalOpen(true)
-								}
-								variant="contained"
-								color="primary"
+							{/* GEM Table */}
+							<Box
 								sx={{
-									color: "white",
-									borderColor: "white",
-									marginLeft: theme.spacing(1),
-									"&:hover": {
-										color: "gray",
-										borderColor: "gray",
-									}
-								}}>CLAIM REWARDS</Button>
-						</Grid>
-					</Grid>
+									margin: theme.spacing(8, 0)
+								}}
+							>
+
+								<Grid container alignItems={"center"}>
+									<Grid item xs={12} md="auto" >
+										<Typography>{selectedRows?.length || 0} nodes selected</Typography>
+									</Grid>
+									<Grid item>
+									</Grid>
+									<Grid item>
+										<Button
+											disabled={status !== "CONNECTED" || selectedRows.length === 0}
+											onClick={
+												() => setClaimRewardsModalOpen(true)
+											}
+											variant="contained"
+											color="primary"
+											sx={{
+												color: "white",
+												borderColor: "white",
+												marginLeft: theme.spacing(1),
+												"&:hover": {
+													color: "gray",
+													borderColor: "gray",
+												}
+											}}>CLAIM REWARDS</Button>
+									</Grid>
+								</Grid>
 
 
-					<Box sx={{
-						height: "400px",
-						marginTop: theme.spacing(2)
-					}}>
-						<DataGrid
-							rows={gemsCollection}
-							columns={columns}
-							pageSize={5}
-							rowsPerPageOptions={[5]}
-							checkboxSelection
-							hideFooterSelectedRowCount
-							selectionModel={selectedRows}
-							onSelectionModelChange={(newSelection: any) => {
-								setSelectedRows(newSelection);
-							}}
-							disableSelectionOnClick
-							rowHeight={59}
-							sx={{
-								border: "none",
-								".MuiDataGrid-columnHeaders": {
-									border: "none"
-								},
-								".MuiDataGrid-virtualScrollerContent": {
-									backgroundColor: "rgba(255,255,255,0.05)",
-									borderRadius: "10px"
-								},
-								"& .Mui-checked": {
-									color: "#2EBE73 !important",
-								}
-							}}
-						/>
-					</Box>
+								<Box sx={{
+									height: "400px",
+									marginTop: theme.spacing(2)
+								}}>
+									<DataGrid
+										rows={gemsCollection}
+										columns={columns}
+										pageSize={5}
+										rowsPerPageOptions={[5]}
+										checkboxSelection
+										hideFooterSelectedRowCount
+										selectionModel={selectedRows}
+										onSelectionModelChange={(newSelection: any) => {
+											setSelectedRows(newSelection);
+										}}
+										disableSelectionOnClick
+										rowHeight={59}
+										sx={{
+											border: "none",
+											".MuiDataGrid-columnHeaders": {
+												border: "none"
+											},
+											".MuiDataGrid-virtualScrollerContent": {
+												backgroundColor: "rgba(255,255,255,0.05)",
+												borderRadius: "10px"
+											},
+											"& .Mui-checked": {
+												color: "#2EBE73 !important",
+											}
+										}}
+									/>
+								</Box>
 
-				</Box>
+							</Box>
+						</>
+						:
+						<div>Please Connect using metamask</div>
+					}
+				</Container>
+				:
+				<InvalidNetworkView />
 
-			</Container >
+			}
+
 			<Footer />
 
 			{/* Claim Modal */}
@@ -860,8 +840,6 @@ const Home: NextPage = () => {
 				</Paper>
 			</Modal>
 		</Box>
-
-
 	)
 }
 

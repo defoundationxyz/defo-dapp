@@ -1,4 +1,5 @@
 import { providers, Signer } from "ethers";
+import { ConfigType } from "shared/utils/constants";
 import CHAIN_STATUS from "./ChainStatusTypes";
 
 export interface IWeb3Context {
@@ -6,7 +7,8 @@ export interface IWeb3Context {
     connect: any;
     signer: Signer | providers.Provider | undefined;
     account: string | undefined;
-    switchNetwork: any
+    switchNetwork: any,
+    config: ConfigType | null
 }
 
 

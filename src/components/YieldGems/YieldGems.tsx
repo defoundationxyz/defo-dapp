@@ -1,7 +1,6 @@
 import { Button, Grid, } from "@mui/material"
 import moment from "moment"
 import { useEffect, useRef, useState } from "react"
-import { CONTRACTS, GemType, GemTypeMetadata } from "shared/utils/constants"
 import ContentBox from "../ContentBox"
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
 import { useWeb3 } from "shared/context/Web3/Web3Provider"

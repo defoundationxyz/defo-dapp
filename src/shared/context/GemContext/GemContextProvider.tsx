@@ -1,7 +1,7 @@
 import { BigNumber, Contract } from "ethers";
 import { useContext, useEffect, useState } from "react";
 import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes";
-import { CONTRACTS, GemTypeMetadata } from "shared/utils/constants";
+import { GemTypeMetadata } from "shared/utils/constants";
 import { useDiamondContext } from "../DiamondContext/DiamondContextProvider";
 import { useWeb3 } from "../Web3/Web3Provider";
 import GemContext from "./GemContext";
@@ -19,7 +19,7 @@ const initialGemConfigState: GemTypeConfig = {
 
 const GemContextProvider = ({ children }: { children: any }) => {
     const { diamondContract } = useDiamondContext()
-    const { signer, status, account } = useWeb3();
+    const { signer, status, account, provider, isWeb3Enabled, chainId } = useWeb3();
     const [gemsMetadata, setGemsMetadata] = useState({
         gem0: {},
         gem1: {},
@@ -35,17 +35,18 @@ const GemContextProvider = ({ children }: { children: any }) => {
     })
 
     useEffect(() => {
-        if (status === "CONNECTED") {
-            updateGemsCollection()
-            updateGemsConfig()
+        const load = async () => {            
+            if (isWeb3Enabled && diamondContract) {
+                await updateGemsCollection();
+                await updateGemsConfig();
+            }
         }
-    }, [status, account, signer])
+        load()
+    }, [diamondContract])
 
 
     const fetchGemMetadata = async (gemType: 0 | 1 | 2) => {
-        const contract = new Contract(CONTRACTS.Main.address, CONTRACTS.Main.abi, signer);
-
-        const currentGem = await contract.GetGemTypeMetadata(gemType);
+        const currentGem = await diamondContract.GetGemTypeMetadata(gemType);
         let currentGemTyped: GemTypeMetadata = {
             LastMint: currentGem[0],
             MaintenanceFee: currentGem[1],
@@ -63,55 +64,64 @@ const GemContextProvider = ({ children }: { children: any }) => {
         } else if (gemType === 2) {
             setGemsMetadata({ ...gemsMetadata, gem2: currentGemTyped });
         }
-
     }
 
     const updateGemsConfig = async () => {
-        const gemsConfig = await diamondContract.getGemTypesConfig()
-        let gem0Config: GemTypeConfig = gemsConfig[0]
-        let gem1Config: GemTypeConfig = gemsConfig[1]
-        let gem2Config: GemTypeConfig = gemsConfig[2]
+        try {
+            const gemsConfig = await diamondContract.getGemTypesConfig()
+            let gem0Config: GemTypeConfig = gemsConfig[0]
+            let gem1Config: GemTypeConfig = gemsConfig[1]
+            let gem2Config: GemTypeConfig = gemsConfig[2]
 
-        gem0Config = { ...gem0Config, isMintAvailable: await diamondContract.isMintAvailable(0) }
-        gem1Config = { ...gem1Config, isMintAvailable: await diamondContract.isMintAvailable(1) }
-        gem2Config = { ...gem2Config, isMintAvailable: await diamondContract.isMintAvailable(2) }
+            gem0Config = { ...gem0Config, isMintAvailable: await diamondContract.isMintAvailable(0) }
+            gem1Config = { ...gem1Config, isMintAvailable: await diamondContract.isMintAvailable(1) }
+            gem2Config = { ...gem2Config, isMintAvailable: await diamondContract.isMintAvailable(2) }
 
-        setGemsConfig({
-            gem0: gem0Config,
-            gem1: gem1Config,
-            gem2: gem2Config,
-        })
+            setGemsConfig({
+                gem0: gem0Config,
+                gem1: gem1Config,
+                gem2: gem2Config,
+            })
+        } catch (error) {
+            console.log('ERROR while updateGemsConfig');
+            console.log(error);
+        }
     }
 
     const updateGemsCollection = async () => {
-        const gemsInfo = await diamondContract.getGemsInfo()
         const currentGems: Gem[] = []
+        try {
+            const gemsInfo = await diamondContract.getGemsInfo()
 
-        for (let i = 0; i < gemsInfo[0].length; i++) {
-            const gemId: BigNumber = gemsInfo[0][i]
-            const gemData = gemsInfo[1][i]
-            const pendingMaintenanceFee = await diamondContract.getPendingMaintenanceFee(gemId)
-            const taxTier = await diamondContract.getTaxTier(gemId)
-            const rewardAmount = await diamondContract.getRewardAmount(gemId)
-            const isClaimable = await diamondContract.isClaimable(gemId)
-            const staked = await diamondContract.getStaked(gemId)
+            for (let i = 0; i < gemsInfo[0].length; i++) {
+                const gemId: BigNumber = gemsInfo[0][i]
+                const gemData = gemsInfo[1][i]
+                const pendingMaintenanceFee = await diamondContract.getPendingMaintenanceFee(gemId)
+                const taxTier = await diamondContract.getTaxTier(gemId)
+                const rewardAmount = await diamondContract.getRewardAmount(gemId)
+                const isClaimable = await diamondContract.isClaimable(gemId)
+                const staked = await diamondContract.getStaked(gemId)
 
-            
-            const newGem: Gem = {
-                id: gemId.toString(),
-                gemTypeId: gemData.gemTypeId,
-                booster: gemData.booster,
-                mintTime: gemData.mintTime,
-                boostTime: gemData.boostTime,
-                lastRewardWithdrawalTime: gemData.lastRewardWithdrawalTime,
-                lastMaintenanceTime: gemData.lastMaintenanceTime,
-                pendingMaintenanceFee,
-                taxTier,
-                rewardAmount,
-                isClaimable,
-                staked
+
+                const newGem: Gem = {
+                    id: gemId.toString(),
+                    gemTypeId: gemData.gemTypeId,
+                    booster: gemData.booster,
+                    mintTime: gemData.mintTime,
+                    boostTime: gemData.boostTime,
+                    lastRewardWithdrawalTime: gemData.lastRewardWithdrawalTime,
+                    lastMaintenanceTime: gemData.lastMaintenanceTime,
+                    pendingMaintenanceFee,
+                    taxTier,
+                    rewardAmount,
+                    isClaimable,
+                    staked
+                }
+                currentGems.push(newGem)
             }
-            currentGems.push(newGem)
+        } catch (error) {
+            console.log('ERROR while updateGemsCollection');
+            console.log(error);
         }
         setGemsCollection(currentGems)
     }

@@ -127,6 +127,29 @@
     {
         "inputs": [
             {
+                "internalType": "address",
+                "name": "_to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint8",
+                "name": "_gemType",
+                "type": "uint8"
+            },
+            {
+                "internalType": "enum Booster",
+                "name": "_booster",
+                "type": "uint8"
+            }
+        ],
+        "name": "createBooster",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "_tokenId",
                 "type": "uint256"
@@ -181,11 +204,6 @@
                     {
                         "internalType": "uint32",
                         "name": "mintTime",
-                        "type": "uint32"
-                    },
-                    {
-                        "internalType": "uint32",
-                        "name": "boostTime",
                         "type": "uint32"
                     },
                     {
@@ -288,11 +306,6 @@
                     {
                         "internalType": "uint32",
                         "name": "mintTime",
-                        "type": "uint32"
-                    },
-                    {
-                        "internalType": "uint32",
-                        "name": "boostTime",
                         "type": "uint32"
                     },
                     {
@@ -487,6 +500,11 @@
                 "internalType": "address",
                 "name": "_to",
                 "type": "address"
+            },
+            {
+                "internalType": "enum Booster",
+                "name": "_booster",
+                "type": "uint8"
             }
         ],
         "name": "mintTo",

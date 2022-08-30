@@ -7,22 +7,26 @@ import { SnackbarProvider } from 'shared/context/Snackbar/SnackbarProvider'
 import { DiamondContextProvider } from 'shared/context/DiamondContext/DiamondContextProvider';
 import { GemContextProvider } from 'shared/context/GemContext/GemContextProvider';
 import { StatsContextProvider } from 'shared/context/StatsContext/StatsContextProvider';
+import { MoralisProvider } from 'react-moralis'
+
 
 function MyApp({ Component, pageProps }: AppProps) {
     return (
-        <ThemeProvider>
-            <DiamondContextProvider>
-                <SnackbarProvider>
-                    <Web3Provider theme='dark'>
-                        <StatsContextProvider>
-                            <GemContextProvider>
-                                <Component {...pageProps} />
-                            </GemContextProvider>
-                        </StatsContextProvider>
-                    </Web3Provider>
-                </SnackbarProvider>
-            </DiamondContextProvider>
-        </ThemeProvider>
+        <MoralisProvider initializeOnMount={false}>
+            <Web3Provider theme='dark'>
+                <DiamondContextProvider>
+                    <ThemeProvider>
+                        <SnackbarProvider>
+                            <StatsContextProvider>
+                                <GemContextProvider>
+                                    <Component {...pageProps} />
+                                </GemContextProvider>
+                            </StatsContextProvider>
+                        </SnackbarProvider>
+                    </ThemeProvider>
+                </DiamondContextProvider>
+            </Web3Provider>
+        </MoralisProvider>
     )
 }
 

@@ -59,7 +59,8 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
     }, [status, account, signer])
 
     const updateStake = async () => {
-        let totalStake, userStake
+        let totalStake = BigNumber.from(0);
+        let userStake = BigNumber.from(0);
 
         try {
             totalStake = await diamondContract.getTotalStakedAllUsers();

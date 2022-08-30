@@ -64,15 +64,6 @@ const P2VaultBox = () => {
                 }
             }
         },
-        // {
-        //     flex: 1,
-        //     field: 'created',
-        //     headerName: 'Created',
-        //     renderCell: (params) => {
-        //         const gem: Gem = params.row;
-        //         return moment(gem.mintTime, "X").format("MMM DD YYYY HH:mm")
-        //     }
-        // },
         {
             flex: 1,
             field: 'rewards',
@@ -99,18 +90,6 @@ const P2VaultBox = () => {
             headerName: 'Withdraw',
             minWidth: 200,
             renderCell: (params) => <Box>
-                {/* <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => withdraw(params.row)}
-                    sx={{
-                        marginLeft: {
-                            xs: theme.spacing(0),
-                            md: theme.spacing(2)
-                        },
-                        marginRight: theme.spacing(1),
-
-                    }}>Withdraw</Button> */}
                 <Tooltip title="123">
                     <span>
                         <Button
@@ -177,32 +156,8 @@ const P2VaultBox = () => {
                                 variant="h4"
                                 fontWeight={"600"}
                             >
-                                {(+ethers.utils.formatEther(stake.userStake)).toFixed(3)}
+                                {(+ethers.utils.formatEther(stake.userStake)).toFixed(3) || 0}
                             </Typography>
-                            {/* <Box sx={{
-                                display: "flex",
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "space-between"
-                            }}>
-
-                                <Typography
-                                    sx={{
-                                        fontSize: "12px",
-                                    }}
-                                >Your % staked</Typography>
-
-                                <Typography
-                                    sx={{
-                                        fontSize: "12px",
-                                    }}
-                                >45%</Typography>
-
-
-                            </Box>
-                            <LinearProgress sx={{
-                                marginTop: theme.spacing(1)
-                            }} color='info' variant="determinate" value={45} /> */}
                         </Paper>
                     </Grid>
 

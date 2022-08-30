@@ -1,13 +1,13 @@
 import { FiberManualRecord } from "@mui/icons-material";
 import { Grid, Paper, Typography, Box, useTheme, Button } from "@mui/material"
 import { BigNumber, Contract, ethers } from "ethers";
+import moment from "moment";
 import { useEffect, useState } from "react";
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider";
 import { useGemsContext } from "shared/context/GemContext/GemContextProvider";
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
 import { useWeb3 } from "shared/context/Web3/Web3Provider";
 import { GemTypeConfig, GemTypeMintWindow } from "shared/types/DataTypes";
-import { CONTRACTS } from "shared/utils/constants";
 import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper";
 
 const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleCloseModal }: {
@@ -21,38 +21,55 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
     const { diamondContract } = useDiamondContext()
     const snackbar = useSnackbar();
 
-    const { signer, account } = useWeb3();
+    const { signer, account, config } = useWeb3();
     const { updateGemsCollection } = useGemsContext()
 
-    const [gemMintWindow, setGemMintWindow] = useState<GemTypeMintWindow>({
-        mintCount: BigNumber.from(0),
-        endOfMintLimitWindow: 0
-    })
+    // const [gemMintWindow, setGemMintWindow] = useState<GemTypeMintWindow>({
+    //     mintCount: BigNumber.from(0),
+    //     endOfMintLimitWindow: 0
+    // })
 
+    const [mintWindow, setMintWindow] = useState({ 
+        leftHours: 0,
+        availableMintCount: BigNumber.from(0)
+    })    
 
     useEffect(() => {
         const loadData = async () => {
             const currentGemMintWindow = await gemTypeMintWindow()
-            setGemMintWindow(currentGemMintWindow)
+            const current = moment()
+            const endOfMintLimitWindow = moment(currentGemMintWindow.endOfMintLimitWindow, "X") //.format("MMM DD YYYY HH:mm")
+            const diffHours = endOfMintLimitWindow.diff(current, "hours")
+            setMintWindow({
+                leftHours: diffHours,
+                availableMintCount: currentGemMintWindow.mintCount
+            })
+
+            // setGemMintWindow(currentGemMintWindow)
         }
         loadData()
-    }, [])
+    }, [gemTypeMintWindow])
 
     // TODO: check if allowance is less that required sum => trigger approve
     const createYieldGem = async (gemType: 0 | 1 | 2) => {
         try {
-            const defo = new Contract(CONTRACTS.DefoToken.address, CONTRACTS.DefoToken.abi, signer)
-            const defoAllowance = await defo.allowance(account, CONTRACTS.Main.address)
-            const dai = new Contract(CONTRACTS.Dai.mainnetAddress, CONTRACTS.Dai.abi, signer)
-            const daiAllowance = await dai.allowance(account, CONTRACTS.Main.address)
+            if(!config?.deployments) { 
+                console.log('MISSING DEPLOYMENTS');
+                return
+            }
+
+            const defo = new Contract(config.deployments.defo.address, config.deployments.defo.abi, signer)
+            const defoAllowance = await defo.allowance(account, config.deployments.diamond.address)
+            const dai = new Contract(config.deployments?.dai.address, config.deployments.dai.abi, signer)
+            const daiAllowance = await dai.allowance(account, config.deployments.diamond.address)
 
             if (defoAllowance.isZero()) {
-                const tx = await defo.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
+                const tx = await defo.approve(config.deployments.diamond.address, ethers.constants.MaxUint256)
                 await tx.wait()
             }
 
             if (daiAllowance.isZero()) {
-                const tx = await dai.approve(CONTRACTS.Main.address, ethers.constants.MaxUint256)
+                const tx = await dai.approve(config.deployments.diamond.address, ethers.constants.MaxUint256)
                 await tx.wait()
             }
 
@@ -135,7 +152,7 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
                         <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
                         <Typography variant="body2">
 
-                            {+gemConfig.maxMintsPerLimitWindow - +(gemMintWindow.mintCount.toString())} / {gemConfig.maxMintsPerLimitWindow}
+                            {+gemConfig.maxMintsPerLimitWindow - +(mintWindow.availableMintCount.toString())} / {gemConfig.maxMintsPerLimitWindow}
                         </Typography>
                     </Box>
                     <Box sx={{
@@ -145,7 +162,7 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
                         margin: theme.spacing(0.5, 0)
                     }}>
                         <Typography variant="body2" fontWeight={"600"}>Refresh:</Typography>
-                        <Typography variant="body2">{'TO FIX'} hours</Typography>
+                        <Typography variant="body2">{mintWindow.leftHours} hours</Typography>
                     </Box>
                     <Button
                         onClick={() => createYieldGem(gemType)}
