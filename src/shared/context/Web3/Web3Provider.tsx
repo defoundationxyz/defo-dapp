@@ -17,17 +17,6 @@ import { useDiamondContext } from "../DiamondContext/DiamondContextProvider";
 
 import { useChain, useMoralis } from 'react-moralis'
 
-const initialConfig = {
-    chainName: "",
-    chainId: -1,
-    chainRPC: "",
-    chainExplorer: "",
-    nativeCurrency: {
-        name: "AVAX",
-        symbol: "AVAX",
-        decimals: 18
-    }
-}
 
 const defaultProvider = new providers.JsonRpcProvider(ACTIVE_NETWORK.chainRPC)
 
@@ -37,8 +26,7 @@ const Web3Provider = ({ theme = "light", children }: { theme: "dark" | "light"; 
     // const [web3Provider, setWeb3Provider] = useState<providers.Web3Provider>();
     // const [signer, setSigner] = useState<any>(defaultProvider);
     // const [account, setAccount] = useState<string>();
-    const [config, setConfig] = useState<ConfigType>(initialConfig);
-    const { setDiamondContract, diamondContract } = useDiamondContext()
+    
 
     // ------STATE------
 
@@ -367,7 +355,6 @@ const Web3Provider = ({ theme = "light", children }: { theme: "dark" | "light"; 
                 signer,
                 provider,
                 changeChainTo,
-                config
             }}
         >
             {children}

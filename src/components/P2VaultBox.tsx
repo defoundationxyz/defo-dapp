@@ -10,13 +10,15 @@ import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
 import { Gem } from "shared/types/DataTypes"
 import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
 import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
-
+import { useChain } from 'react-moralis'
+import { ACTIVE_NETOWORKS_COLLECTION } from "shared/utils/constants"
 
 
 const P2VaultBox = () => {
     const theme = useTheme()
-    const { status } = useWeb3()
-
+    const { status, isWeb3Enabled } = useWeb3()
+    const { chainId } = useChain()    
+    
     const [vaultGems, setVaultGems] = useState<Gem[]>([])
     const [withdrawModalOpen, setWithdrawModalOpen] = useState(false)
     const { diamondContract } = useDiamondContext()
@@ -121,7 +123,7 @@ const P2VaultBox = () => {
                         <span>
                             <Button
                                 onClick={() => setWithdrawModalOpen(true)}
-                                disabled={status !== "CONNECTED"}
+                                disabled={!(isWeb3Enabled || chainId && ACTIVE_NETOWORKS_COLLECTION.includes(parseInt(chainId, 16)))}
                                 endIcon={<HelpOutline />}
                                 variant="contained"
                                 color="secondary"

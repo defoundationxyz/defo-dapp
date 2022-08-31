@@ -43,7 +43,7 @@ const initialProtocolConfigState: ProtocolConfig = {
 
 const StatsContextProvider = ({ children }: { children: ReactChild }) => {
     const { diamondContract } = useDiamondContext()
-    const { status, account, signer } = useWeb3()
+    const { status, account, signer, provider, isWeb3Enabled } = useWeb3()
 
     const [stake, setStake] = useState<StakeState>(stateInit)
     const [donations, setDonations] = useState<DonationsState>(donationsInit)
@@ -51,12 +51,12 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
 
     // main fetch init/change
     useEffect(() => {
-        if (status === "CONNECTED") {
+        if (isWeb3Enabled) {
             updateStake()
             updateDonations()
             updateProtocolConfig()
         }
-    }, [status, account, signer])
+    }, [account, signer, provider])
 
     const updateStake = async () => {
         let totalStake = BigNumber.from(0);

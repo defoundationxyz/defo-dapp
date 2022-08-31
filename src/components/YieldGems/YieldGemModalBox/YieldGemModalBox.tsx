@@ -18,16 +18,11 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
     handleCloseModal: () => void
 }) => {
     const theme = useTheme();
-    const { diamondContract } = useDiamondContext()
+    const { diamondContract, config } = useDiamondContext()
     const snackbar = useSnackbar();
 
-    const { signer, account, config } = useWeb3();
+    const { signer, account } = useWeb3();
     const { updateGemsCollection } = useGemsContext()
-
-    // const [gemMintWindow, setGemMintWindow] = useState<GemTypeMintWindow>({
-    //     mintCount: BigNumber.from(0),
-    //     endOfMintLimitWindow: 0
-    // })
 
     const [mintWindow, setMintWindow] = useState({ 
         leftHours: 0,
@@ -37,6 +32,7 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
     useEffect(() => {
         const loadData = async () => {
             const currentGemMintWindow = await gemTypeMintWindow()
+            // console.log('currentGemMintWindow: ', currentGemMintWindow);
             const current = moment()
             const endOfMintLimitWindow = moment(currentGemMintWindow.endOfMintLimitWindow, "X") //.format("MMM DD YYYY HH:mm")
             const diffHours = endOfMintLimitWindow.diff(current, "hours")
@@ -57,6 +53,7 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
                 console.log('MISSING DEPLOYMENTS');
                 return
             }
+            
 
             const defo = new Contract(config.deployments.defo.address, config.deployments.defo.abi, signer)
             const defoAllowance = await defo.allowance(account, config.deployments.diamond.address)

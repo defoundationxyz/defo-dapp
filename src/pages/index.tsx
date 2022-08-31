@@ -60,7 +60,7 @@ const Home: NextPage = () => {
 	const theme = useTheme()
 	const snackbar = useSnackbar()
 
-	const { status } = useWeb3()
+	const { isWeb3Enabled } = useWeb3()
 	const { chainId } = useChain()
 
 	const { diamondContract } = useDiamondContext()
@@ -398,7 +398,8 @@ const Home: NextPage = () => {
 									</Grid>
 									<Grid item>
 										<Button
-											disabled={status !== "CONNECTED" || selectedRows.length === 0}
+											// disabled={status !== "CONNECTED" || selectedRows.length === 0}
+											disabled={!((selectedRows.length !== 0 && chainId && ACTIVE_NETOWORKS_COLLECTION.includes(parseInt(chainId, 16))))}
 											onClick={
 												() => setClaimRewardsModalOpen(true)
 											}
