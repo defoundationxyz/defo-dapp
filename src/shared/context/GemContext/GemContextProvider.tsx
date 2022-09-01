@@ -2,6 +2,7 @@ import { BigNumber, Contract } from "ethers";
 import { useContext, useEffect, useState } from "react";
 import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes";
 import { GemTypeMetadata } from "shared/utils/constants";
+import { getNextTier } from "shared/utils/helper";
 import { useDiamondContext } from "../DiamondContext/DiamondContextProvider";
 import { useWeb3 } from "../Web3/Web3Provider";
 import GemContext from "./GemContext";
@@ -92,7 +93,7 @@ const GemContextProvider = ({ children }: { children: any }) => {
         const currentGems: Gem[] = []
         try {
             const gemsInfo = await diamondContract.getGemsInfo()
-
+            
             for (let i = 0; i < gemsInfo[0].length; i++) {
                 const gemId: BigNumber = gemsInfo[0][i]
                 const gemData = gemsInfo[1][i]
@@ -102,6 +103,7 @@ const GemContextProvider = ({ children }: { children: any }) => {
                 const isClaimable = await diamondContract.isClaimable(gemId)
                 const staked = await diamondContract.getStaked(gemId)
 
+                const nextTier = await getNextTier(provider, gemData.lastMaintenanceTime, gemData.mintTime);
 
                 const newGem: Gem = {
                     id: gemId.toString(),
@@ -111,11 +113,12 @@ const GemContextProvider = ({ children }: { children: any }) => {
                     boostTime: gemData.boostTime,
                     lastRewardWithdrawalTime: gemData.lastRewardWithdrawalTime,
                     lastMaintenanceTime: gemData.lastMaintenanceTime,
+                    nextTierDaysLeft: nextTier,
                     pendingMaintenanceFee,
                     taxTier,
                     rewardAmount,
                     isClaimable,
-                    staked
+                    staked,
                 }
                 currentGems.push(newGem)
             }

@@ -43,7 +43,7 @@ const initialProtocolConfigState: ProtocolConfig = {
 
 const StatsContextProvider = ({ children }: { children: ReactChild }) => {
     const { diamondContract } = useDiamondContext()
-    const { status, account, signer, provider, isWeb3Enabled } = useWeb3()
+    const { account, signer, provider, isWeb3Enabled } = useWeb3()
 
     const [stake, setStake] = useState<StakeState>(stateInit)
     const [donations, setDonations] = useState<DonationsState>(donationsInit)
@@ -70,7 +70,6 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
             console.log(error);
         }
         setStake({ totalStake, userStake })
-        // return { totalStake, userStake }
     }
 
     const updateDonations = async () => {

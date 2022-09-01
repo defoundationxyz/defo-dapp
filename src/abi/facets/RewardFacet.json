@@ -70,6 +70,24 @@
                 "type": "uint256[]"
             },
             {
+                "internalType": "uint256",
+                "name": "_percent",
+                "type": "uint256"
+            }
+        ],
+        "name": "batchStakeAndClaim",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256[]",
+                "name": "_tokenIds",
+                "type": "uint256[]"
+            },
+            {
                 "internalType": "uint256[]",
                 "name": "_amounts",
                 "type": "uint256[]"
@@ -112,7 +130,7 @@
         "outputs": [
             {
                 "internalType": "uint256",
-                "name": "",
+                "name": "allForAllTotalReward_",
                 "type": "uint256"
             }
         ],
@@ -200,6 +218,24 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_tokenId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_percent",
+                "type": "uint256"
+            }
+        ],
+        "name": "stakeAndClaim",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {

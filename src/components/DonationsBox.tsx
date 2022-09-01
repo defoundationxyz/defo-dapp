@@ -1,18 +1,14 @@
-import { Box, Paper, Grid, Typography, useTheme } from "@mui/material"
+import { Paper, Grid, Typography, useTheme } from "@mui/material"
 import ContentBox from './ContentBox'
-import { ArrowUpward } from '@mui/icons-material'
-import { BigNumber, ethers } from "ethers"
-import { formatNumber } from "shared/utils/format"
-import { formatUnits } from "ethers/lib/utils"
+import { ethers } from "ethers"
 import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
-import { useEffect } from "react"
+import React, { useEffect } from "react"
 
 
-const DonationsBox = () => {
-
+const DonationsBox = React.memo(() => {
     const theme = useTheme()
-    const { donations, updateDonations } = useStatsContext()
-
+    const { donations } = useStatsContext()
+    
     return (
         <ContentBox
             title="Donations"
@@ -45,7 +41,6 @@ const DonationsBox = () => {
                             variant="h4"
                             fontWeight={"600"}
                         >
-                            {/* ${formatNumber(+yourDonations * 5)} */}
                             { (+ethers.utils.formatEther(donations.userDonations)).toFixed(3)}
                         </Typography>
                         {/* <Box sx={{
@@ -142,7 +137,7 @@ const DonationsBox = () => {
             </Grid>
         </ContentBox>
     )
-}
+})
 
 
 export default DonationsBox
