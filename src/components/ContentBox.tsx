@@ -8,7 +8,6 @@ const ContentBox = ({ title, children, button, color }: { title: string, childre
 
   return (
     <Box
-      // component={Container}
       width={"100%"}
       sx={{
         height: "100%",

@@ -2,7 +2,7 @@ import { Paper, Grid, Typography, useTheme } from "@mui/material"
 import ContentBox from './ContentBox'
 import { ethers } from "ethers"
 import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
-import React, { useEffect } from "react"
+import React from "react"
 
 
 const DonationsBox = React.memo(() => {

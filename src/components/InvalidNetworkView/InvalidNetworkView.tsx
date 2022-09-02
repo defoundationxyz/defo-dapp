@@ -1,5 +1,4 @@
 import { Box, Button } from "@mui/material"
-import { useWeb3 } from "shared/context/Web3/Web3Provider"
 import { SUPPORTED_NETWORKS } from "shared/utils/constants"
 import { useChain } from 'react-moralis'
 

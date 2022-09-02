@@ -1,12 +1,5 @@
 import { BigNumber } from "ethers";
 
-type Booster = {
-
-}
-
-type Fi = {
-
-}
 
 interface GemTypeConfig {
     maintenanceFeeDai: BigNumber;
@@ -49,16 +42,13 @@ interface ProtocolConfig {
     paymentTokens: string[];
     wallets: string[];
     incomeDistributionOnMint: string[];
-    // time periods
     maintenancePeriod: number;
     rewardPeriod: number;
     taxScaleSinceLastClaimPeriod: number;
-    // taxes and contributions
     taxRates: BigNumber[];
     charityContributionRate: BigNumber;
     vaultWithdrawalTaxRate: BigNumber;
     taperRate: BigNumber;
-    // locks
     mintLock: boolean;
     transferLock: boolean;
     // mint limit period for coutner reset

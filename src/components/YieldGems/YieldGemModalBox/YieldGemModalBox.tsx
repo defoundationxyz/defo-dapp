@@ -32,7 +32,6 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
     useEffect(() => {
         const loadData = async () => {
             const currentGemMintWindow = await gemTypeMintWindow()
-            // console.log('currentGemMintWindow: ', currentGemMintWindow);
             const current = moment()
             const endOfMintLimitWindow = moment(currentGemMintWindow.endOfMintLimitWindow, "X") //.format("MMM DD YYYY HH:mm")
             const diffHours = endOfMintLimitWindow.diff(current, "hours")
@@ -40,13 +39,10 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
                 leftHours: diffHours,
                 availableMintCount: currentGemMintWindow.mintCount
             })
-
-            // setGemMintWindow(currentGemMintWindow)
         }
         loadData()
     }, [gemTypeMintWindow])
 
-    // TODO: check if allowance is less that required sum => trigger approve
     const createYieldGem = async (gemType: 0 | 1 | 2) => {
         try {
             if(!config?.deployments) { 

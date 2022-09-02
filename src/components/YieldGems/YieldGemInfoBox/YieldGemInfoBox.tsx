@@ -1,7 +1,6 @@
 import { FiberManualRecord } from "@mui/icons-material"
 import { Box, Grid, Paper, Typography, useTheme } from "@mui/material"
-import { GemTypeConfig } from "shared/types/DataTypes"
-import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper"
+import { primaryColorMapper } from "../utils/colorMapper"
 
 
 const YieldGemInfoBox = ({ gemType, name, minted }: {

@@ -49,9 +49,6 @@ export const NETWORK_MAPPER: { [key: number]: string } = {
 
 export const ACTIVE_NETOWORKS_COLLECTION = [1337, 43113]
 
-// export type SUPPORTED_NETWORKS_TYPE = {
-//     [networkName in SUPPORTED_NETWORKS_ENUM]: ConfigType
-// }
 
 export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
     avax_mainnet: {
@@ -143,14 +140,9 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
 }
 
 
-
 // change this to change the required network
 export const ACTIVE_NETWORK = SUPPORTED_NETWORKS.hardhat
 
-
-export const CONTRACTS_MAPPER = {
-
-}
 
 export const GEM_MINT_LIMIT_HOURS = 12;
 export const MIN_REWARD_TIME = (3600 * 24) * 7; // (seconds in a day) * count days
