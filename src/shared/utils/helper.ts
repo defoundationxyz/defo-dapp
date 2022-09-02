@@ -27,6 +27,13 @@ export const getNextTier = async (provider: any, lastMaintenanceTimestamp: any, 
 	const currBlock = await getCurrentBlock(provider);
 	const todayDate = moment.unix(currBlock.timestamp)
 
+	// const today_mint_diff = todayDate.diff(mintDate, "day")
+	// console.log('today_mint_diff: ', today_mint_diff);
+	if(todayDate.diff(mintDate, "day") < 7) { 
+		console.log('In first week...');
+		return null
+	}
+
 	let nextTierDate = lastMaintenanceDate.clone();
 	let iterations = 0
 
@@ -41,12 +48,14 @@ export const getNextTier = async (provider: any, lastMaintenanceTimestamp: any, 
 	// console.log('nextTierDate: ', nextTierDate.format("MMM DD YYYY HH:mm"));
 
 	if (endOfMaintenanceDate.isBefore(nextTierDate)) {
-		// console.log("Next tier date passes Maintenance fee until");
+		console.log("Next tier date passes Maintenance fee until");
 		return null
 	}
 
 	const leftDays = nextTierDate.diff(todayDate, 'day')
-	return leftDays;
+	console.log('leftDays: ', leftDays);
+	
+	return leftDays + 1;
 }
 
 const getCurrentBlock = async (provider: any) => {

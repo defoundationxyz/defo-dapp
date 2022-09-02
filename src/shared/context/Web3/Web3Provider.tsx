@@ -1,35 +1,19 @@
 import Web3Context from "./Web3Context";
-import IWeb3Context from "./types/IWeb3Context";
-import WalletConnectProvider from "@walletconnect/web3-provider";
 import {
     ReactChild,
     useContext,
     useEffect,
     useState,
 } from "react";
-import Web3Modal, { IProviderOptions } from "web3modal";
-import { Contract, ethers, providers } from "ethers";
-import { hexValue } from "ethers/lib/utils";
-import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
-import { ACTIVE_NETWORK, ConfigType, INFURA_ID, NATIVE_CURRENCY, NETWORK_MAPPER, RPC, SUPPORTED_NETWORKS } from "shared/utils/constants";
-import CHAIN_STATUS from "./types/ChainStatusTypes";
-import { useDiamondContext } from "../DiamondContext/DiamondContextProvider";
+import { ethers, providers } from "ethers";
+import { ACTIVE_NETWORK } from "shared/utils/constants";
 
-import { useChain, useMoralis } from 'react-moralis'
+import { useMoralis, useChain } from 'react-moralis'
 
 
 const defaultProvider = new providers.JsonRpcProvider(ACTIVE_NETWORK.chainRPC)
 
-const Web3Provider = ({ theme = "light", children }: { theme: "dark" | "light"; children: ReactChild | ReactChild[] }) => {
-    const snackbar = useSnackbar()
-    // const [status, setStatus] = useState<CHAIN_STATUS>("NOT_CONNECTED");
-    // const [web3Provider, setWeb3Provider] = useState<providers.Web3Provider>();
-    // const [signer, setSigner] = useState<any>(defaultProvider);
-    // const [account, setAccount] = useState<string>();
-    
-
-    // ------STATE------
-
+const Web3Provider = ({ children }: { children: ReactChild | ReactChild[] }) => {
     const {
         account,
         isWeb3Enabled,
@@ -100,7 +84,7 @@ const Web3Provider = ({ theme = "light", children }: { theme: "dark" | "light"; 
                 window.location.reload();
             }
         }
-
+        
         if (window.ethereum) {
             currProvider = new ethers.providers.Web3Provider(window.ethereum, "any");
             currProvider.on("network", networkCb);
@@ -351,6 +335,7 @@ const Web3Provider = ({ theme = "light", children }: { theme: "dark" | "light"; 
                 chainId: chainId ? parseInt(chainId) : null,
                 chainIdHex: chainId,
                 isWeb3Enabled,
+                isWeb3EnableLoading,
                 connectWeb3,
                 signer,
                 provider,

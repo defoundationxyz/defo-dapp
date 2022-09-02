@@ -1,5 +1,5 @@
 import { Close, HelpOutline } from "@mui/icons-material"
-import { Box, Button, Grid, IconButton, LinearProgress, Modal, Paper, Tooltip, Typography, useTheme } from "@mui/material"
+import { Box, Button, Grid, IconButton, Modal, Paper, Tooltip, Typography, useTheme } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { ethers } from "ethers"
 import { useEffect, useState } from "react"
@@ -92,12 +92,10 @@ const P2VaultBox = () => {
             headerName: 'Withdraw',
             minWidth: 200,
             renderCell: (params) => <Box>
-                <Tooltip title="123">
                     <span>
                         <Button
                             onClick={() => withdraw(params.row)}
                             variant="contained"
-                            endIcon={<HelpOutline />}
                             color="primary"
                             sx={{
                                 marginLeft: {
@@ -107,7 +105,6 @@ const P2VaultBox = () => {
                                 marginRight: theme.spacing(1),
                             }}>Withdraw</Button>
                     </span>
-                </Tooltip>
             </Box>
         },
     ]
@@ -119,7 +116,7 @@ const P2VaultBox = () => {
                 title="P2 Vault"
                 color="#FCBD00"
                 button={
-                    <Tooltip title="This will withdraw your funds from the P2 Vault and add them to the pending gem rewards.">
+                    <Tooltip title="Withdraw will move your funds from the P2 Vault to the pending gem rewards.">
                         <span>
                             <Button
                                 onClick={() => setWithdrawModalOpen(true)}

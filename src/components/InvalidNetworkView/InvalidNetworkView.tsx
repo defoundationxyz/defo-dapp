@@ -42,7 +42,6 @@ export const InvalidNetworkView = ({ }: {}) => {
                 >
                     Switch To Fuji TESTNET
                 </Button>
-
             </Box>
         </Box>
     )
