@@ -45,8 +45,7 @@ const Web3Provider = ({ children }: { children: ReactChild | ReactChild[] }) => 
 
         if (isWeb3Enabled) {
             unsubscribeOnAccountChange = Moralis.onAccountChanged((account: any) => {
-                console.log('onAccountChange: ', account);
-
+                // console.log('onAccountChange: ', account);
                 if (account == null) {
                     window.localStorage.removeItem('connected')
                     deactivateWeb3()

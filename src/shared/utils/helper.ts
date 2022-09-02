@@ -23,7 +23,7 @@ export const getNextTier = async (provider: any, lastMaintenanceTimestamp: any, 
 	// const today_mint_diff = todayDate.diff(mintDate, "day")
 	// console.log('today_mint_diff: ', today_mint_diff);
 	if(todayDate.diff(mintDate, "day") < 7) { 
-		console.log('In first week...');
+		// console.log('In first week...');
 		return null
 	}
 
@@ -46,8 +46,6 @@ export const getNextTier = async (provider: any, lastMaintenanceTimestamp: any, 
 	}
 
 	const leftDays = nextTierDate.diff(todayDate, 'day')
-	console.log('leftDays: ', leftDays);
-	
 	return leftDays + 1;
 }
 

@@ -20,10 +20,9 @@ const initialConfig = {
 const DiamondContextProvider = ({ children }: { children: any }) => {
     const [diamondContract, setDiamondContract] = useState<any>(null);
 
-    // const [config, setConfig] = useState<any>(null);
     const [config, setConfig] = useState<ConfigType>(initialConfig);
 
-    const { signer, provider, isWeb3Enabled, chainId } = useWeb3()
+    const { signer, provider, isWeb3Enabled, chainId, account } = useWeb3()
 
 
     // INITIALIZE DIAMOND
@@ -31,7 +30,7 @@ const DiamondContextProvider = ({ children }: { children: any }) => {
         const signerOrProvider = signer ? signer : provider;
         if (!chainId) { return; }
         connectDEFO(signerOrProvider)
-    }, [signer, provider, chainId])
+    }, [signer, provider, chainId, account])
 
     const connectDEFO = async (signerOrProvider: any) => {
 

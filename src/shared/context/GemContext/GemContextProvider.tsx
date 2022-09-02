@@ -43,7 +43,7 @@ const GemContextProvider = ({ children }: { children: any }) => {
             }
         }
         load()
-    }, [diamondContract])
+    }, [account, signer, provider, diamondContract])
 
 
     const fetchGemMetadata = async (gemType: 0 | 1 | 2) => {

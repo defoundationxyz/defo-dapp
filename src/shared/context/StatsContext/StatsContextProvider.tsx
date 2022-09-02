@@ -56,7 +56,7 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
             updateDonations()
             updateProtocolConfig()
         }
-    }, [account, signer, provider])
+    }, [account, signer, provider, diamondContract])
 
     const updateStake = async () => {
         let totalStake = BigNumber.from(0);
