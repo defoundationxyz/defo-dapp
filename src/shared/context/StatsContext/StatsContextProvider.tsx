@@ -2,6 +2,7 @@ import { BigNumber } from "ethers"
 import { ReactChild, useContext, useEffect, useState } from "react"
 import { ProtocolConfig } from "shared/types/DataTypes"
 import { useDiamondContext } from "../DiamondContext/DiamondContextProvider"
+import { useGemsContext } from "../GemContext/GemContextProvider"
 import { useWeb3 } from "../Web3/Web3Provider"
 import StatsContext from "./StatsContext"
 

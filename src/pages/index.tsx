@@ -3,7 +3,7 @@ import type { NextPage } from 'next'
 import Footer from 'components/Footer'
 import { ACTIVE_NETOWORKS_COLLECTION, TAX_TIER_MAPPER } from "shared/utils/constants"
 import { BigNumber, ethers } from 'ethers'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Navbar from 'components/Navbar'
 import Head from 'next/head'
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
@@ -23,7 +23,7 @@ import { useWeb3 } from 'shared/context/Web3/Web3Provider'
 
 const Home: NextPage = () => {
 	const theme = useTheme()
-	const { provider, isWeb3Enabled, isWeb3EnableLoading } = useWeb3()
+	const { provider, isWeb3Enabled, account } = useWeb3()
 	const { chainId } = useChain()
 	const { diamondContract } = useDiamondContext()
 	const { gemsCollection } = useGemsContext()
@@ -31,13 +31,18 @@ const Home: NextPage = () => {
 	const [selectedRows, setSelectedRows] = useState<string[]>([])
 	const [claimRewardsModalOpen, setClaimRewardsModalOpen] = useState(false)
 
+	useEffect(() => {
+		// console.log('gemsCollection: ', gemsCollection);
+	}, [gemsCollection])
+
 	const handleCloseClaimModal = () => {
 		setClaimRewardsModalOpen(false)
 	}
 
 	const claimRewardsDisabled = () => {
 		const isActive = ((selectedRows.length !== 0 && chainId && ACTIVE_NETOWORKS_COLLECTION.includes(parseInt(chainId, 16))))
-		return !isActive || !areSelectedGemsClaimable();
+		// return !isActive || !areSelectedGemsClaimable();
+		return !isActive;
 	}
 
 	const areSelectedGemsClaimable = () => {
@@ -47,13 +52,13 @@ const Home: NextPage = () => {
 		// check if every gem is claimable
 		return selectedRows.every((gemId: any) => {
 			const gem: Gem = gemsCollection.find((gem: Gem) => gem.id == gemId);
-			return gem.isClaimable === true;
+			console.log('gem: ', gem);
+			return gem.isClaimable === true || false;
 		})
 	}
 
 
 	const columns = useMemo((): GridColDef[] => { 
-		console.log('RE-RENDER Columns');
 		return [
 			{
 				flex: 1,

@@ -17,11 +17,11 @@ function MyApp({ Component, pageProps }: AppProps) {
                 <DiamondContextProvider>
                     <ThemeProvider>
                         <SnackbarProvider>
-                            <StatsContextProvider>
-                                <GemContextProvider>
+                            <GemContextProvider>
+                                <StatsContextProvider>
                                     <Component {...pageProps} />
-                                </GemContextProvider>
-                            </StatsContextProvider>
+                                </StatsContextProvider>
+                            </GemContextProvider>
                         </SnackbarProvider>
                     </ThemeProvider>
                 </DiamondContextProvider>

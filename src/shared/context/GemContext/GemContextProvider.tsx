@@ -1,4 +1,4 @@
-import { BigNumber, Contract } from "ethers";
+import { BigNumber } from "ethers";
 import { useContext, useEffect, useState } from "react";
 import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes";
 import { GemTypeMetadata } from "shared/utils/constants";
@@ -19,7 +19,7 @@ const initialGemConfigState: GemTypeConfig = {
 
 
 const GemContextProvider = ({ children }: { children: any }) => {
-    const { diamondContract } = useDiamondContext()
+    const { diamondContract, config} = useDiamondContext()
     const { signer, status, account, provider, isWeb3Enabled, chainId } = useWeb3();
     const [gemsMetadata, setGemsMetadata] = useState({
         gem0: {},
@@ -91,6 +91,7 @@ const GemContextProvider = ({ children }: { children: any }) => {
 
     const updateGemsCollection = async () => {
         const currentGems: Gem[] = []
+        
         try {
             const gemsInfo = await diamondContract.getGemsInfo()
             
@@ -126,6 +127,8 @@ const GemContextProvider = ({ children }: { children: any }) => {
             console.log('ERROR while updateGemsCollection');
             console.log(error);
         }
+        // TODO: returning the old gems even though the account is changed
+        // console.log('current gems: ', currentGems);
         setGemsCollection(currentGems)
     }
 

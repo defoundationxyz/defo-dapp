@@ -2,7 +2,7 @@ import { Close, HelpOutline } from "@mui/icons-material"
 import { Box, Button, Grid, IconButton, Modal, Paper, Tooltip, Typography, useTheme } from "@mui/material"
 import { DataGrid, GridColDef } from "@mui/x-data-grid"
 import { ethers } from "ethers"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import ContentBox from "./ContentBox"
 import { useWeb3 } from "shared/context/Web3/Web3Provider"
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
@@ -17,8 +17,8 @@ import { ACTIVE_NETOWORKS_COLLECTION } from "shared/utils/constants"
 const P2VaultBox = () => {
     const theme = useTheme()
     const { status, isWeb3Enabled } = useWeb3()
-    const { chainId } = useChain()    
-    
+    const { chainId } = useChain()
+
     const [vaultGems, setVaultGems] = useState<Gem[]>([])
     const [withdrawModalOpen, setWithdrawModalOpen] = useState(false)
     const { diamondContract } = useDiamondContext()
@@ -48,50 +48,50 @@ const P2VaultBox = () => {
             snackbar.execute("Error occured while withdrawing from the vault", "error")
         }
     }
-
-
-    const columns: GridColDef[] = [
-        {
-            flex: 1,
-            field: 'name',
-            headerName: 'Gem Type',
-            renderCell: (params) => {
-                const gem: Gem = params.row;
-                if (gem.gemTypeId === 0) {
-                    return "Sapphire"
-                } else if (gem.gemTypeId === 1) {
-                    return "Ruby"
-                } else if (gem.gemTypeId === 2) {
-                    return "Diamond"
+    
+    const columns = useMemo((): GridColDef[] => {
+        return [
+            {
+                flex: 1,
+                field: 'name',
+                headerName: 'Gem Type',
+                renderCell: (params) => {
+                    const gem: Gem = params.row;
+                    if (gem.gemTypeId === 0) {
+                        return "Sapphire"
+                    } else if (gem.gemTypeId === 1) {
+                        return "Ruby"
+                    } else if (gem.gemTypeId === 2) {
+                        return "Diamond"
+                    }
                 }
-            }
-        },
-        {
-            flex: 1,
-            field: 'rewards',
-            headerName: 'Staked Rewards',
-            renderCell: (params) => {
-                const gem: Gem = params.row;
-                return `${(+ethers.utils.formatEther(gem.staked)).toFixed(3)} DEFO ($0.0)`
-            }
-        },
-        {
-            flex: 1,
-            field: 'created',
-            headerName: 'Withdrawable Amount',
-            renderCell: (params) => {
-                const gem: Gem = params.row;
-                const WITHDRAW_VAULT_FEE_PERCENTAGE = 10
-                const amountToWithdraw = gem.staked.div(100).mul(WITHDRAW_VAULT_FEE_PERCENTAGE)
-                return <>{`${(+ethers.utils.formatEther(gem.staked.sub(amountToWithdraw))).toFixed(3)}`} DEFO ($0.0)</>
-            }
-        },
-        {
-            flex: 1.5,
-            field: 'payClaim',
-            headerName: 'Withdraw',
-            minWidth: 200,
-            renderCell: (params) => <Box>
+            },
+            {
+                flex: 1,
+                field: 'rewards',
+                headerName: 'Staked Rewards',
+                renderCell: (params) => {
+                    const gem: Gem = params.row;
+                    return `${(+ethers.utils.formatEther(gem.staked)).toFixed(3)} DEFO ($0.0)`
+                }
+            },
+            {
+                flex: 1,
+                field: 'created',
+                headerName: 'Withdrawable Amount',
+                renderCell: (params) => {
+                    const gem: Gem = params.row;
+                    const WITHDRAW_VAULT_FEE_PERCENTAGE = 10
+                    const amountToWithdraw = gem.staked.div(100).mul(WITHDRAW_VAULT_FEE_PERCENTAGE)
+                    return <>{`${(+ethers.utils.formatEther(gem.staked.sub(amountToWithdraw))).toFixed(3)}`} DEFO ($0.0)</>
+                }
+            },
+            {
+                flex: 1.5,
+                field: 'payClaim',
+                headerName: 'Withdraw',
+                minWidth: 200,
+                renderCell: (params) => <Box>
                     <span>
                         <Button
                             onClick={() => withdraw(params.row)}
@@ -105,9 +105,10 @@ const P2VaultBox = () => {
                                 marginRight: theme.spacing(1),
                             }}>Withdraw</Button>
                     </span>
-            </Box>
-        },
-    ]
+                </Box>
+            },
+        ]
+    }, [])
 
 
     return (

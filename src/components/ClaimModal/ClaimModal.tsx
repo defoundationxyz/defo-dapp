@@ -2,7 +2,7 @@ import { Close, HelpOutline } from "@mui/icons-material"
 import { Paper, IconButton, Grid, Typography, Box, Tooltip, Button, FormControlLabel, Switch, Modal, useTheme } from "@mui/material"
 import ContentBox from "components/ContentBox"
 import { ethers, BigNumber } from "ethers"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
 import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
@@ -23,6 +23,18 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
 
     const [vaultStrategyEnabled, setVaultStrategyEnabled] = useState(false)
     const [selectedVaultStrategy, setSelectedVaultStrategy] = useState(20)
+    const [values, setValues] = useState({
+        pendingRewards: BigNumber.from(0),
+        charityTax: BigNumber.from(0),
+        tierTax: BigNumber.from(0),
+        maintenanceFee: BigNumber.from(0),
+        claimable: BigNumber.from(0)
+    })
+
+    useEffect(() => {
+        // console.log('Re-render');
+        // console.log('getPendingRewards: ', getPendingRewards);
+    }, [selectedRows])
 
     // CORE
     const handlePayFee = async (gemIds: string[]) => {
@@ -127,8 +139,22 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
             .some((gem: Gem) => gem.pendingMaintenanceFee.isZero())
     }
 
-    const getCharityTax = () => {
-        return ethers.utils.formatEther(gemsCollection
+    const pendingRewards = useMemo(() => {
+        return gemsCollection
+            .filter((gem: Gem) => selectedRows.includes(gem.id))
+            .reduce(
+                (
+                    n: BigNumber,
+                    { rewardAmount }: Gem
+                ) => {
+                    return rewardAmount.add(n)
+                },
+                BigNumber.from(0)
+            )
+    }, [gemsCollection, selectedRows])
+
+    const charityTax = useMemo(() => {
+        return gemsCollection
             .filter((gem: Gem) => selectedRows.includes(gem.id))
             .reduce(
                 (
@@ -136,49 +162,43 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                     { rewardAmount }: Gem
                 ) => rewardAmount.add(n),
                 BigNumber.from(0)
-            ).div(100).mul(5))
-    }
+            ).div(100).mul(5)
+    }, [gemsCollection, selectedRows])
 
-    const getTierTax = () => {
-        if (gemsCollection.length == 0) { return; }
-        try {
-            const selectedGems = gemsCollection.filter((gem: Gem) => selectedRows.includes(gem.id))
-            if (selectedGems.length === 0) { return; }
-            return ethers.utils.formatEther(selectedGems
-                .reduce(
-                    (
-                        n: BigNumber,
-                        { rewardAmount, taxTier }: Gem
-                    ) => {
-                        if (taxTier === 0) {
-                            return n.add(BigNumber.from(0))
-                        }
-                        // @ts-ignore
-                        const taxTierPercentage = +(protocolConfig.taxRates[taxTier].toString()) / 100
-                        const calculatedAmount = rewardAmount.div(100).mul(taxTierPercentage)
-                        return n.add(calculatedAmount)
-                    },
-                    BigNumber.from(0)
-                ))
-        } catch (error) {
-            console.log('error while getTaxTier');
-            console.log(error);
-        }
-        return ethers.utils.formatEther(BigNumber.from(0))
-    }
+    const tierTax = useMemo(() => {
+        return gemsCollection
+            .filter((gem: Gem) => selectedRows.includes(gem.id))
+            .reduce(
+                (
+                    n: BigNumber,
+                    { rewardAmount, taxTier }: Gem
+                ) => { 
+                    if (taxTier === 0) { 
+                        return n.add(BigNumber.from(0))
+                    }
+                    const taxTierPercentage = +(protocolConfig.taxRates[taxTier].toString()) / 100
+                    const calculatedAmount = rewardAmount.div(100).mul(taxTierPercentage)
+                    return n.add(calculatedAmount)
+                },
+                BigNumber.from(0)
+            )
+    }, [gemsCollection, selectedRows])
 
-    const getMaintenanceFee = () => {
-        return ethers.utils.formatEther(
-            gemsCollection
-                .filter((gem: Gem) => selectedRows.includes(gem.id))
-                .reduce(
-                    (
-                        n: BigNumber,
-                        { pendingMaintenanceFee }: Gem
-                    ) => pendingMaintenanceFee.add(n),
-                    BigNumber.from(0)
-                ))
-    }
+    const maintenanceFee = useMemo(() => {
+        return gemsCollection
+            .filter((gem: Gem) => selectedRows.includes(gem.id))
+            .reduce(
+                (
+                    n: BigNumber,
+                    { pendingMaintenanceFee }: Gem
+                ) => pendingMaintenanceFee.add(n),
+                BigNumber.from(0)
+            )
+    }, [gemsCollection, selectedRows])
+
+    const claimableAmount = useMemo(() => {
+        return pendingRewards.sub(tierTax.add(charityTax))
+    }, [gemsCollection, selectedRows])
 
     return (
         <Modal
@@ -251,20 +271,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                         sx={{
                                             marginRight: theme.spacing(1)
                                         }}>
-                                        {
-                                            ethers.utils.formatEther(
-                                                gemsCollection
-                                                    .filter((gem: Gem) => selectedRows.includes(gem.id))
-                                                    .reduce(
-                                                        (
-                                                            n: BigNumber,
-                                                            { rewardAmount }: Gem
-                                                        ) => {
-                                                            return rewardAmount.add(n)
-                                                        },
-                                                        BigNumber.from(0)
-                                                    ))
-                                        } DEFO</Typography>
+                                        {ethers.utils.formatEther(pendingRewards)} DEFO</Typography>
                                 </Grid>
                                 <Grid item>
                                     <Typography variant='h6' fontWeight={"500"}>($0)</Typography>
@@ -336,7 +343,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 </Grid>
                                 <Grid item>
                                     <Typography variant="body2">
-                                        {getMaintenanceFee()} DAI
+                                        {ethers.utils.formatEther(maintenanceFee)} DAI
                                     </Typography>
                                 </Grid>
                             </Grid>
@@ -349,7 +356,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     <Typography fontWeight={"bold"} variant="body2">CHARITY TAX:</Typography>
                                 </Grid>
                                 <Grid item>
-                                    <Typography variant="body2">{getCharityTax()} DEFO ($0)</Typography>
+                                    <Typography variant="body2">{ethers.utils.formatEther(charityTax)} DEFO ($0)</Typography>
                                 </Grid>
                             </Grid>
 
@@ -359,7 +366,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 </Grid>
                                 <Grid item>
                                     <Typography variant="body2">
-                                        {getTierTax()} DEFO ($0)
+                                        {ethers.utils.formatEther(tierTax)} DEFO ($0)
                                     </Typography>
                                 </Grid>
                             </Grid>
@@ -370,7 +377,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 </Grid>
                                 <Grid item>
                                     <Typography variant="body2">
-                                        0.0 DEFO ($0)
+                                        {ethers.utils.formatEther(claimableAmount)} DEFO ($0)
                                     </Typography>
                                 </Grid>
                             </Grid>

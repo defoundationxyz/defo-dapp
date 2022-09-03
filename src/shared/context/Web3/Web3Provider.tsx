@@ -81,16 +81,37 @@ const Web3Provider = ({ children }: { children: ReactChild | ReactChild[] }) => 
                 window.location.reload();
             }
         }
-        
+
         if (window.ethereum) {
             currProvider = new ethers.providers.Web3Provider(window.ethereum, "any");
             currProvider.on("network", networkCb);
         }
 
-        return () => { 
-            if(currProvider) { 
+        return () => {
+            if (currProvider) {
                 console.log('UNSUB network');
                 currProvider.off("network", networkCb)
+            }
+        }
+    }, [])
+
+    // on account change listener
+    useEffect(() => {
+        let currProvider: ethers.providers.Web3Provider;
+
+        const accountsChangeCb = (newAccount: any) => {
+            // emit something on account change
+            // window.location.reload();
+        }
+
+        if (window.ethereum) {
+            currProvider = new ethers.providers.Web3Provider(window.ethereum, "any");
+            window.ethereum.on("accountsChanged", accountsChangeCb)
+        }
+
+        return () => {
+            if (currProvider) {
+                window.ethereum.off("accountsChanged", accountsChangeCb)
             }
         }
     }, [])
