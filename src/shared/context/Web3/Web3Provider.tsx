@@ -45,7 +45,7 @@ const Web3Provider = ({ children }: { children: ReactChild | ReactChild[] }) => 
 
         if (isWeb3Enabled) {
             unsubscribeOnAccountChange = Moralis.onAccountChanged((account: any) => {
-                // console.log('onAccountChange: ', account);
+
                 if (account == null) {
                     window.localStorage.removeItem('connected')
                     deactivateWeb3()
@@ -91,27 +91,6 @@ const Web3Provider = ({ children }: { children: ReactChild | ReactChild[] }) => 
             if (currProvider) {
                 console.log('UNSUB network');
                 currProvider.off("network", networkCb)
-            }
-        }
-    }, [])
-
-    // on account change listener
-    useEffect(() => {
-        let currProvider: ethers.providers.Web3Provider;
-
-        const accountsChangeCb = (newAccount: any) => {
-            // emit something on account change
-            // window.location.reload();
-        }
-
-        if (window.ethereum) {
-            currProvider = new ethers.providers.Web3Provider(window.ethereum, "any");
-            window.ethereum.on("accountsChanged", accountsChangeCb)
-        }
-
-        return () => {
-            if (currProvider) {
-                window.ethereum.off("accountsChanged", accountsChangeCb)
             }
         }
     }, [])

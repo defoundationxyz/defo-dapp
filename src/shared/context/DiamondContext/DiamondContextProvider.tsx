@@ -1,5 +1,6 @@
 import { Contract } from "ethers";
 import { useContext, useEffect, useState } from "react";
+import { useWeb3Contract } from "react-moralis";
 import { NETWORK_MAPPER, SUPPORTED_NETWORKS, ConfigType } from "shared/utils/constants";
 import { useWeb3 } from "../Web3/Web3Provider";
 import DiamondContext from "./DiamondContext";
@@ -23,8 +24,7 @@ const DiamondContextProvider = ({ children }: { children: any }) => {
     const [config, setConfig] = useState<ConfigType>(initialConfig);
 
     const { signer, provider, isWeb3Enabled, chainId, account } = useWeb3()
-    const [test, setTest] = useState(0)
-    
+
     // INITIALIZE DIAMOND
     useEffect(() => {
         const signerOrProvider = signer ? signer : provider;
@@ -32,6 +32,7 @@ const DiamondContextProvider = ({ children }: { children: any }) => {
         connectDEFO(signerOrProvider)
     }, [account, signer, provider, chainId])
 
+    
     const connectDEFO = async (signerOrProvider: any) => {
 
         const networkName = NETWORK_MAPPER[chainId];
@@ -40,12 +41,10 @@ const DiamondContextProvider = ({ children }: { children: any }) => {
             console.log('MISSING DEPLOYMENTS AT connectDEFO');
             return
         }
-        // console.log('signerOrProvider: ', signerOrProvider._address);
+
         const mainContract = new Contract(currentConfig.deployments.diamond.address, currentConfig.deployments.diamond.abi, signerOrProvider);
-        // const oldMainContract = {...diamondContract}
-        // console.log('mainContract signer: ', mainContract.signer);
-        // console.log('oldMainContract signer: ', oldMainContract.signer);
-        // console.log('-------------------');
+        
+
         setDiamondContract(mainContract);
         setConfig(currentConfig);
     }

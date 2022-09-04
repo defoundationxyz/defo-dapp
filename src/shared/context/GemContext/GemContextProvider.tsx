@@ -1,5 +1,6 @@
 import { BigNumber } from "ethers";
 import { useContext, useEffect, useState } from "react";
+import { useWeb3Contract } from "react-moralis";
 import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes";
 import { GemTypeMetadata } from "shared/utils/constants";
 import { getNextTier } from "shared/utils/helper";
@@ -19,7 +20,7 @@ const initialGemConfigState: GemTypeConfig = {
 
 
 const GemContextProvider = ({ children }: { children: any }) => {
-    const { diamondContract, config} = useDiamondContext()
+    const { diamondContract, config } = useDiamondContext()
     const { signer, status, account, provider, isWeb3Enabled, chainId } = useWeb3();
     const [gemsMetadata, setGemsMetadata] = useState({
         gem0: {},
@@ -35,8 +36,10 @@ const GemContextProvider = ({ children }: { children: any }) => {
         gem2: initialGemConfigState,
     })
 
+    const { runContractFunction } = useWeb3Contract({});
+
     useEffect(() => {
-        const load = async () => {            
+        const load = async () => {
             if (isWeb3Enabled && diamondContract) {
                 await updateGemsCollection();
                 await updateGemsConfig();
@@ -91,10 +94,17 @@ const GemContextProvider = ({ children }: { children: any }) => {
 
     const updateGemsCollection = async () => {
         const currentGems: Gem[] = []
-        
+
+        const options = {
+            abi: config.deployments.diamond.abi,
+            contractAddress: config.deployments.diamond.address,
+            functionName: "getGemsInfo"
+        }
+
         try {
-            const gemsInfo = await diamondContract.getGemsInfo()
-            
+            const gemsInfo: any = await runContractFunction({ params: options })
+            // const gemsInfo = await diamondContract.getGemsInfo()
+
             for (let i = 0; i < gemsInfo[0].length; i++) {
                 const gemId: BigNumber = gemsInfo[0][i]
                 const gemData = gemsInfo[1][i]
@@ -127,8 +137,7 @@ const GemContextProvider = ({ children }: { children: any }) => {
             console.log('ERROR while updateGemsCollection');
             console.log(error);
         }
-        // TODO: returning the old gems even though the account is changed
-        // console.log('current gems: ', currentGems);
+
         setGemsCollection(currentGems)
     }
 

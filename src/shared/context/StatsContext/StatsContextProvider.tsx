@@ -1,5 +1,6 @@
 import { BigNumber } from "ethers"
 import { ReactChild, useContext, useEffect, useState } from "react"
+import { useWeb3Contract } from "react-moralis"
 import { ProtocolConfig } from "shared/types/DataTypes"
 import { useDiamondContext } from "../DiamondContext/DiamondContextProvider"
 import { useGemsContext } from "../GemContext/GemContextProvider"
@@ -43,25 +44,31 @@ const initialProtocolConfigState: ProtocolConfig = {
 }
 
 const StatsContextProvider = ({ children }: { children: ReactChild }) => {
-    const { diamondContract } = useDiamondContext()
+    const { diamondContract, config } = useDiamondContext()
     const { account, signer, provider, isWeb3Enabled } = useWeb3()
 
     const [stake, setStake] = useState<StakeState>(stateInit)
     const [donations, setDonations] = useState<DonationsState>(donationsInit)
     const [protocolConfig, setProtocolConfig] = useState<ProtocolConfig>(initialProtocolConfigState)
 
+    const { runContractFunction } = useWeb3Contract({});
+
     // main fetch init/change
     useEffect(() => {
-        if (isWeb3Enabled) {
-            updateStake()
-            updateDonations()
-            updateProtocolConfig()
+        const load = async () => {
+            if (isWeb3Enabled && config) {
+                await updateStake();
+                await updateDonations();
+                await updateProtocolConfig();
+            }
         }
+
+        load()
     }, [account, signer, provider, diamondContract])
 
     const updateStake = async () => {
-        let totalStake = BigNumber.from(0);
-        let userStake = BigNumber.from(0);
+        let totalStake: any = BigNumber.from(0);
+        let userStake: any = BigNumber.from(0);
 
         try {
             totalStake = await diamondContract.getTotalStakedAllUsers();
@@ -73,13 +80,34 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
         setStake({ totalStake, userStake })
     }
 
+    const updateStake2 = async () => {
+        console.log('updateStake EXECUTED...!');
+        const options = {
+            abi: config.deployments.diamond.abi,
+            contractAddress: config.deployments.diamond.address,
+            functionName: "getTotalStakedAllUsers"
+        }
+        const totalStake: any = await runContractFunction({ params: options })
+        const userStake: any = await runContractFunction({ params: { ...options, functionName: "getTotalStaked" } });
+
+        setStake({ totalStake, userStake })
+    }
+
     const updateDonations = async () => {
-        let totalDonations = BigNumber.from(0);
-        let userDonations = BigNumber.from(0);
+        let totalDonations: any = BigNumber.from(0);
+        let userDonations: any = BigNumber.from(0);
+
+        const options = {
+            abi: config.deployments.diamond.abi,
+            contractAddress: config.deployments.diamond.address
+        }
 
         try {
-            totalDonations = await diamondContract.getTotalDonatedAllUsers();
+            // totalDonations = await runContractFunction({ params: { ...options, functionName: "getTotalDonatedAllUsers" }});
+            // userDonations = await runContractFunction({ params: { ...options, functionName: "getTotalDonated" }});
             userDonations = await diamondContract.getTotalDonated();
+            totalDonations = await diamondContract.getTotalDonatedAllUsers();
+
         } catch (error) {
             console.log('Error while fetching the DONATIONS');
             console.log(error);

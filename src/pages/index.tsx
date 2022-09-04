@@ -16,13 +16,15 @@ import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextP
 import { Gem } from 'shared/types/DataTypes'
 import { useGemsContext } from 'shared/context/GemContext/GemContextProvider'
 import { InvalidNetworkView } from 'components/InvalidNetworkView/InvalidNetworkView'
-import { useChain } from 'react-moralis'
+import { useChain, useMoralis } from 'react-moralis'
 import { ClaimModal } from 'components/ClaimModal/ClaimModal'
 import { useWeb3 } from 'shared/context/Web3/Web3Provider'
 
 
 const Home: NextPage = () => {
 	const theme = useTheme()
+	const { Moralis } = useMoralis()
+
 	const { provider, isWeb3Enabled, account } = useWeb3()
 	const { chainId } = useChain()
 	const { diamondContract } = useDiamondContext()
@@ -31,29 +33,48 @@ const Home: NextPage = () => {
 	const [selectedRows, setSelectedRows] = useState<string[]>([])
 	const [claimRewardsModalOpen, setClaimRewardsModalOpen] = useState(false)
 
-	useEffect(() => {
-		// console.log('gemsCollection: ', gemsCollection);
-	}, [gemsCollection])
-
 	const handleCloseClaimModal = () => {
 		setClaimRewardsModalOpen(false)
 	}
 
 	const claimRewardsDisabled = () => {
 		const isActive = ((selectedRows.length !== 0 && chainId && ACTIVE_NETOWORKS_COLLECTION.includes(parseInt(chainId, 16))))
-		// return !isActive || !areSelectedGemsClaimable();
-		return !isActive;
+		const isClaimable = areSelectedGemsClaimable();
+
+		return !isActive || !isClaimable;
+		// return !isActive;
 	}
 
+	useEffect(() => {
+		setSelectedRows([])
+	}, [account])
+
+	useEffect(() => {
+        let unsubscribeOnAccountChange: any;
+
+        if (isWeb3Enabled) {
+            unsubscribeOnAccountChange = Moralis.onAccountChanged((account: any) => {
+				setSelectedRows([])
+            })
+        }
+
+        return () => {
+            if (unsubscribeOnAccountChange) {
+                unsubscribeOnAccountChange()
+            }
+        }
+    }, [isWeb3Enabled])
+
+	
 	const areSelectedGemsClaimable = () => {
 		if (selectedRows.length === 0) {
 			return false;
 		}
+		
 		// check if every gem is claimable
 		return selectedRows.every((gemId: any) => {
 			const gem: Gem = gemsCollection.find((gem: Gem) => gem.id == gemId);
-			console.log('gem: ', gem);
-			return gem.isClaimable === true || false;
+			return gem.isClaimable === true;
 		})
 	}
 
