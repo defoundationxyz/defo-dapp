@@ -6,12 +6,11 @@ import {
     useState,
 } from "react";
 import { ethers, providers } from "ethers";
-import { ACTIVE_NETWORK } from "shared/utils/constants";
 
 import { useMoralis, useChain } from 'react-moralis'
 
 
-const defaultProvider = new providers.JsonRpcProvider(ACTIVE_NETWORK.chainRPC)
+// const defaultProvider = new providers.JsonRpcProvider(ACTIVE_NETWORK.chainRPC)
 
 const Web3Provider = ({ children }: { children: ReactChild | ReactChild[] }) => {
     const {
@@ -26,7 +25,7 @@ const Web3Provider = ({ children }: { children: ReactChild | ReactChild[] }) => 
     const { chainId } = useChain()
 
     // TODO: set default provider
-    const [provider, setProvider] = useState<ethers.providers.Provider>(defaultProvider)
+    const [provider, setProvider] = useState<ethers.providers.Provider | null>(null)
     const [signer, setSigner] = useState<ethers.Signer | null>(null)
 
     // refresh handler

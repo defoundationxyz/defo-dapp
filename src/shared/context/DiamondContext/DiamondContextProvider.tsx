@@ -27,13 +27,17 @@ const DiamondContextProvider = ({ children }: { children: any }) => {
 
     // INITIALIZE DIAMOND
     useEffect(() => {
-        const signerOrProvider = signer ? signer : provider;
-        if (!chainId) { return; }
-        connectDEFO(signerOrProvider)
+        // const signerOrProvider = signer ? signer : provider;
+        if (!chainId && !signer) { return; }
+
+        if (signer) {
+            connectDEFO()
+        }
+
     }, [account, signer, provider, chainId])
 
-    
-    const connectDEFO = async (signerOrProvider: any) => {
+
+    const connectDEFO = async () => {
 
         const networkName = NETWORK_MAPPER[chainId];
         const currentConfig = SUPPORTED_NETWORKS[networkName];
@@ -42,8 +46,7 @@ const DiamondContextProvider = ({ children }: { children: any }) => {
             return
         }
 
-        const mainContract = new Contract(currentConfig.deployments.diamond.address, currentConfig.deployments.diamond.abi, signerOrProvider);
-        
+        const mainContract = new Contract(currentConfig.deployments.diamond.address, currentConfig.deployments.diamond.abi, signer);
 
         setDiamondContract(mainContract);
         setConfig(currentConfig);

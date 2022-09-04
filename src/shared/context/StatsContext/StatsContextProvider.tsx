@@ -56,7 +56,7 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
     // main fetch init/change
     useEffect(() => {
         const load = async () => {
-            if (isWeb3Enabled && config) {
+            if (isWeb3Enabled && config && diamondContract) {
                 await updateStake();
                 await updateDonations();
                 await updateProtocolConfig();
@@ -69,13 +69,13 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
     const updateStake = async () => {
         let totalStake: any = BigNumber.from(0);
         let userStake: any = BigNumber.from(0);
-
+        
         try {
             totalStake = await diamondContract.getTotalStakedAllUsers();
             userStake = await diamondContract.getTotalStaked();
         } catch (error) {
             console.log('Error while fetching the STAKE');
-            console.log(error);
+            // console.log(error);
         }
         setStake({ totalStake, userStake })
     }
@@ -97,10 +97,10 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
         let totalDonations: any = BigNumber.from(0);
         let userDonations: any = BigNumber.from(0);
 
-        const options = {
-            abi: config.deployments.diamond.abi,
-            contractAddress: config.deployments.diamond.address
-        }
+        // const options = {
+        //     abi: config.deployments.diamond.abi,
+        //     contractAddress: config.deployments.diamond.address
+        // }
 
         try {
             // totalDonations = await runContractFunction({ params: { ...options, functionName: "getTotalDonatedAllUsers" }});
@@ -110,7 +110,7 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
 
         } catch (error) {
             console.log('Error while fetching the DONATIONS');
-            console.log(error);
+            // console.log(error);
         }
         setDonations({ totalDonations, userDonations })
     }
@@ -121,7 +121,7 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
             setProtocolConfig(currentProtocolConfig)
         } catch (error) {
             console.log('Error while fetching PROTOCOL CONFIG');
-            console.log(error);
+            // console.log(error);
         }
     }
 
