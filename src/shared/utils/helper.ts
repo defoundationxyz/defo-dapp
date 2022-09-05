@@ -41,7 +41,6 @@ export const getNextTier = async (provider: any, lastMaintenanceTimestamp: any, 
 	// console.log('nextTierDate: ', nextTierDate.format("MMM DD YYYY HH:mm"));
 
 	if (endOfMaintenanceDate.isBefore(nextTierDate)) {
-		console.log("Next tier date passes Maintenance fee until");
 		return null
 	}
 

@@ -172,8 +172,8 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                 (
                     n: BigNumber,
                     { rewardAmount, taxTier }: Gem
-                ) => { 
-                    if (taxTier === 0) { 
+                ) => {
+                    if (taxTier === 0) {
                         return n.add(BigNumber.from(0))
                     }
                     const taxTierPercentage = +(protocolConfig.taxRates[taxTier].toString()) / 100
@@ -282,7 +282,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                             <Box sx={{
                             }}>
                                 {/* I AM HERE */}
-                                <Tooltip title="This will claim all pending rewards to your wallet.">
+                                <Tooltip title="All pending rewards will be claimed to your wallet after taxes are deducted.">
                                     <span>
                                         <Button
                                             variant="contained"
@@ -301,12 +301,13 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     </span>
                                 </Tooltip>
 
-                                <Tooltip title="This will send all pending rewards to the Vault. Withdrawing from the Vault to your wallet has a fee.">
+                                <Tooltip title="This will put all your available rewards in the Vault.">
                                     <span>
                                         <Button
                                             onClick={() => handleAddToVault(selectedRows, 100)}
                                             disabled={!areSelectedGemsClaimable()}
                                             variant="outlined"
+                                            color={"info"}
                                             endIcon={<HelpOutline />}
                                             sx={{
                                                 color: "white",
@@ -392,7 +393,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 alignItems: "center",
                                 marginBottom: theme.spacing(2)
                             }}>
-                                <Typography variant="body1" sx={{ marginRight: theme.spacing(1) }}>VAULT STRATEGY</Typography>
+                                {/* <Typography variant="body1" sx={{ marginRight: theme.spacing(1) }}>VAULT STRATEGY</Typography>
                                 <Tooltip title="Vault Strategy is a way to put only specific amount to the P2 Vault">
                                     <HelpOutline sx={{ marginRight: theme.spacing(4) }} />
                                 </Tooltip>
@@ -400,24 +401,24 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     onClick={() => setVaultStrategyEnabled(!vaultStrategyEnabled)}
                                     control={<Switch color='success' checked={vaultStrategyEnabled} value={vaultStrategyEnabled} />}
                                     label={vaultStrategyEnabled ? "On" : "Off"}
-                                />
-                                <Tooltip title="This will determine the percentage of your pending rewards that goes to the Vault. The rest will be claimed and send to your wallet.">
-                                    <span>
+                                /> */}
+                                <Tooltip title="This will send the selected percentage towards the Vault and the rest will be claimed.">
                                         <Button
                                             onClick={() => handleAddToVaultStrategy(selectedRows, selectedVaultStrategy)}
-                                            disabled={!vaultStrategyEnabled}
                                             variant="outlined"
                                             endIcon={<HelpOutline />}
-                                            color={vaultStrategyEnabled ? "info" : "primary"}
-                                            sx={vaultStrategyEnabled ? {} : {
-                                                color: "white",
-                                                borderColor: "white",
+                                            color={"info"}
+                                            sx={{
+                                                padding: 1,
+                                                borderWidth: "2px",
+                                                width: "50%",
+                                                // margin: '0 auto',
+                                                // textAlign: 'center',
                                                 "&:hover": {
-                                                    color: "gray",
-                                                    borderColor: "gray",
+                                                    borderWidth: "2px"
                                                 }
-                                            }}>Hybrid Vault</Button>
-                                    </span>
+                                            }}
+                                        >Hybrid Vault</Button>
                                 </Tooltip>
                             </Box>
 
@@ -429,7 +430,6 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                             >
                                 <Grid item md={2.8}>
                                     <Button
-                                        disabled={!vaultStrategyEnabled}
                                         fullWidth
                                         variant="outlined"
                                         onClick={() => setSelectedVaultStrategy(20)}
@@ -455,7 +455,6 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
 
                                 <Grid item md={2.8}>
                                     <Button
-                                        disabled={!vaultStrategyEnabled}
                                         fullWidth
                                         variant="outlined"
                                         onClick={() => setSelectedVaultStrategy(40)}
@@ -481,7 +480,6 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
 
                                 <Grid item md={2.8}>
                                     <Button
-                                        disabled={!vaultStrategyEnabled}
                                         fullWidth
                                         variant="outlined"
                                         onClick={() => setSelectedVaultStrategy(60)}
@@ -507,7 +505,6 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
 
                                 <Grid item md={2.8}>
                                     <Button
-                                        disabled={!vaultStrategyEnabled}
                                         fullWidth
                                         variant="outlined"
                                         onClick={() => setSelectedVaultStrategy(80)}

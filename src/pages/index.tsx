@@ -158,7 +158,7 @@ const Home: NextPage = () => {
 								setSelectedRows([gem.id])
 								setClaimRewardsModalOpen(true)
 							}}
-							disabled={!gem.isClaimable}
+							// disabled={!gem.isClaimable}
 							variant="contained"
 							color="primary"
 							sx={{
@@ -180,6 +180,7 @@ const Home: NextPage = () => {
 			<Head>
 				<title>DEFO</title>
 				<meta name="viewport" content="initial-scale=1.0, width=device-width" />
+				<link rel="shortcut icon" href="/logo.png" />
 			</Head>
 			<Navbar />
 			{isWeb3Enabled ?
@@ -278,7 +279,7 @@ const Home: NextPage = () => {
 											</Grid>
 											<Grid item>
 												<Button
-													disabled={claimRewardsDisabled()}
+													// disabled={claimRewardsDisabled()}
 													onClick={
 														() => setClaimRewardsModalOpen(true)
 													}
