@@ -1,34 +1,36 @@
 import { Button, Grid, } from "@mui/material"
-import moment from "moment"
 import { useEffect, useRef, useState } from "react"
-import { CONTRACTS, GemType, GemTypeMetadata } from "shared/utils/constants"
 import ContentBox from "../ContentBox"
-import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
 import { useWeb3 } from "shared/context/Web3/Web3Provider"
-import { getBalance, getGemTypes } from "shared/utils/format"
-import erc20ABI from "abi/ERC20ABI.json";
 import ModalLayout from "shared/components/DialogLayout/ModalLayout"
 import YieldGemModalBox from "./YieldGemModalBox/YieldGemModalBox"
 import YieldGemInfoBox from "./YieldGemInfoBox/YieldGemInfoBox"
+import { Gem } from "shared/types/DataTypes"
+import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
+import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
+import { ACTIVE_NETOWORKS_COLLECTION } from "shared/utils/constants"
+import { useChain } from 'react-moralis'
 
 
-const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccountData: Function }) => {
+const YieldGems = () => {
     const gemsModalRef = useRef<any>();
-	const { status } = useWeb3()
+    const { status, isWeb3Enabled } = useWeb3()
+    const { chainId } = useChain()
 
     // index representing the GemType
     const [gemsCount, setGemsCount] = useState([0, 0, 0])
+    const { diamondContract } = useDiamondContext()
 
+    const { gemsConfig, gemsCollection } = useGemsContext()
 
     useEffect(() => {
         const currentGemsCount = [0, 0, 0];
-        
-        myGems.forEach(gem => {
-            currentGemsCount[gem.GemType]++;
 
-        })        
+        gemsCollection.forEach((gem: Gem) => {
+            currentGemsCount[gem.gemTypeId]++;
+        })
         setGemsCount(currentGemsCount);
-    }, [myGems])
+    }, [gemsCollection])
 
 
     const handleOpenModal = () => {
@@ -41,6 +43,13 @@ const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccou
         gemsModalRef?.current?.handleClose();
     }
 
+    const getMintWindow = async (gemType: number) => {
+        const currentMintWindow = await diamondContract.getMintWindow(gemType)
+        return {
+            mintCount: currentMintWindow.mintCount,
+            endOfMintLimitWindow: currentMintWindow.endOfMintLimitWindow
+        }
+    }
 
     return (
         <>
@@ -48,7 +57,7 @@ const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccou
                 title="Your Yield Gems"
                 color="#C6E270"
                 button={<Button
-                    disabled={status !== "CONNECTED"}
+                    disabled={!(isWeb3Enabled || chainId && ACTIVE_NETOWORKS_COLLECTION.includes(parseInt(chainId, 16)))}
                     onClick={handleOpenModal}
                     variant="contained"
                     color="secondary"
@@ -104,22 +113,25 @@ const YieldGems = ({ myGems, fetchAccountData }: { myGems: GemType[], fetchAccou
                     <YieldGemModalBox
                         name={"Sapphire"}
                         gemType={0}
-                        mintedGems={gemsCount[0]}
-                        fetchAccountData={fetchAccountData}
+                        gemConfig={gemsConfig.gem0}
+                        gemTypeMintWindow={() => getMintWindow(0)}
+                        handleCloseModal={handleCloseModal}
                     />
 
                     <YieldGemModalBox
                         name={"Ruby"}
                         gemType={1}
-                        mintedGems={gemsCount[1]}
-                        fetchAccountData={fetchAccountData}
+                        gemTypeMintWindow={() => getMintWindow(1)}
+                        handleCloseModal={handleCloseModal}
+                        gemConfig={gemsConfig.gem1}
                     />
 
                     <YieldGemModalBox
                         name={"Diamond"}
                         gemType={2}
-                        mintedGems={gemsCount[2]}
-                        fetchAccountData={fetchAccountData}
+                        gemTypeMintWindow={() => getMintWindow(2)}
+                        handleCloseModal={handleCloseModal}
+                        gemConfig={gemsConfig.gem2}
                     />
 
                 </Grid>

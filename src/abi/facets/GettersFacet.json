@@ -78,9 +78,9 @@
               "type": "uint256"
             },
             {
-              "internalType": "uint16",
-              "name": "RewardRate",
-              "type": "uint16"
+              "internalType": "uint256",  
+              "name": "RewardRate",  
+              "type": "uint256"  
             },
             {
               "internalType": "uint8",

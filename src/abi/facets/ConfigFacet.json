@@ -1,0 +1,310 @@
+[
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "contract IERC20[2]",
+                        "name": "paymentTokens",
+                        "type": "address[2]"
+                    },
+                    {
+                        "internalType": "address[7]",
+                        "name": "wallets",
+                        "type": "address[7]"
+                    },
+                    {
+                        "internalType": "uint256[3][2]",
+                        "name": "incomeDistributionOnMint",
+                        "type": "uint256[3][2]"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "maintenancePeriod",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "rewardPeriod",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "taxScaleSinceLastClaimPeriod",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint256[5]",
+                        "name": "taxRates",
+                        "type": "uint256[5]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "charityContributionRate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "vaultWithdrawalTaxRate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "taperRate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "mintLock",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "transferLock",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "mintLimitWindow",
+                        "type": "uint32"
+                    }
+                ],
+                "indexed": false,
+                "internalType": "struct ProtocolConfig",
+                "name": "config",
+                "type": "tuple"
+            }
+        ],
+        "name": "ConfigurationChange",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "maintenanceFeeDai",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "rewardAmountDefo",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256[2]",
+                        "name": "price",
+                        "type": "uint256[2]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "taperRewardsThresholdDefo",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "maxMintsPerLimitWindow",
+                        "type": "uint8"
+                    }
+                ],
+                "indexed": false,
+                "internalType": "struct GemTypeConfig",
+                "name": "_gemTypeConfig",
+                "type": "tuple"
+            }
+        ],
+        "name": "GemTypeConfigurationChange",
+        "type": "event"
+    },
+    {
+        "inputs": [],
+        "name": "getConfig",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "contract IERC20[2]",
+                        "name": "paymentTokens",
+                        "type": "address[2]"
+                    },
+                    {
+                        "internalType": "address[7]",
+                        "name": "wallets",
+                        "type": "address[7]"
+                    },
+                    {
+                        "internalType": "uint256[3][2]",
+                        "name": "incomeDistributionOnMint",
+                        "type": "uint256[3][2]"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "maintenancePeriod",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "rewardPeriod",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "taxScaleSinceLastClaimPeriod",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint256[5]",
+                        "name": "taxRates",
+                        "type": "uint256[5]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "charityContributionRate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "vaultWithdrawalTaxRate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "taperRate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "mintLock",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "transferLock",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "mintLimitWindow",
+                        "type": "uint32"
+                    }
+                ],
+                "internalType": "struct ProtocolConfig",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getGemTypesConfig",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "maintenanceFeeDai",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "rewardAmountDefo",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256[2]",
+                        "name": "price",
+                        "type": "uint256[2]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "taperRewardsThresholdDefo",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "maxMintsPerLimitWindow",
+                        "type": "uint8"
+                    }
+                ],
+                "internalType": "struct GemTypeConfig[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "lockMint",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "pause",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "maintenanceFeeDai",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "rewardAmountDefo",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256[2]",
+                        "name": "price",
+                        "type": "uint256[2]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "taperRewardsThresholdDefo",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint8",
+                        "name": "maxMintsPerLimitWindow",
+                        "type": "uint8"
+                    }
+                ],
+                "internalType": "struct GemTypeConfig[]",
+                "name": "_gemTypesConfig",
+                "type": "tuple[]"
+            }
+        ],
+        "name": "setGemTypesConfig",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "unlockMint",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "unpause",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

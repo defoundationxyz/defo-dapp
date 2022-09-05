@@ -1,21 +1,14 @@
-import { Box, Paper, Grid, Typography, useTheme } from "@mui/material"
+import { Paper, Grid, Typography, useTheme } from "@mui/material"
 import ContentBox from './ContentBox'
-import { ArrowUpward } from '@mui/icons-material'
-import { BigNumber, ethers } from "ethers"
-import { formatNumber } from "shared/utils/format"
+import { ethers } from "ethers"
+import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
+import React from "react"
 
 
-const DonationsBox = ({
-    yourDonations,
-    totalDonations
-}: {
-    yourDonations: BigNumber,
-    totalDonations: BigNumber
-
-}) => {
-
+const DonationsBox = React.memo(() => {
     const theme = useTheme()
-
+    const { donations } = useStatsContext()
+    
     return (
         <ContentBox
             title="Donations"
@@ -41,10 +34,16 @@ const DonationsBox = ({
                             justifyContent: "center"
 
                         }}>
-                            {/* TOOD: get DEFO price */}
-                        <Typography variant="body2">YOUR DONATIONS</Typography> 
-                        <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>${formatNumber(+yourDonations * 5)}</Typography>
-                        <Box sx={{
+                        {/* TOOD: get DEFO price */}
+                        <Typography variant="body2">YOUR DONATIONS</Typography>
+                        <Typography
+                            sx={{ margin: theme.spacing(1, 0) }}
+                            variant="h4"
+                            fontWeight={"600"}
+                        >
+                            { (+ethers.utils.formatEther(donations.userDonations)).toFixed(3)}
+                        </Typography>
+                        {/* <Box sx={{
                             display: "flex",
                             flexDirection: "row",
                             alignItems: "center"
@@ -75,7 +74,7 @@ const DonationsBox = ({
                                     color: "gray"
                                 }}
                             >last 7d</Typography>
-                        </Box>
+                        </Box> */}
                     </Paper>
                 </Grid>
 
@@ -92,8 +91,15 @@ const DonationsBox = ({
                             justifyContent: "center"
                         }}>
                         <Typography variant="body2">TOTAL DONATIONS</Typography>
-                        <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>${(+ethers.utils.formatEther(totalDonations)) * 5}</Typography>
-                        <Box sx={{
+                        <Typography
+                            sx={{ margin: theme.spacing(1, 0) }}
+                            variant="h4"
+                            fontWeight={"600"}
+                        >   
+                            {/* TODO: CREATE DOLLAR BASED VALUE */}
+                            {(+ethers.utils.formatEther(donations.totalDonations)).toFixed(3)}
+                        </Typography>
+                        {/* <Box sx={{
                             display: "flex",
                             flexDirection: "row",
                             alignItems: "center"
@@ -124,14 +130,14 @@ const DonationsBox = ({
                                     color: "gray"
                                 }}
                             >last 7d</Typography>
-                        </Box>
+                        </Box> */}
                     </Paper>
                 </Grid>
 
             </Grid>
         </ContentBox>
     )
-}
+})
 
 
 export default DonationsBox

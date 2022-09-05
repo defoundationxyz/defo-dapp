@@ -1,157 +1,147 @@
 import Web3Context from "./Web3Context";
-import IWeb3Context from "./types/IWeb3Context";
-import WalletConnectProvider from "@walletconnect/web3-provider";
 import {
     ReactChild,
     useContext,
+    useEffect,
     useState,
 } from "react";
-import Web3Modal, { IProviderOptions } from "web3modal";
-import { providers, Signer } from "ethers";
-import { hexlify, hexValue } from "ethers/lib/utils";
-import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
-import { ACTIVE_NETWORK, INFURA_ID, NATIVE_CURRENCY, RPC } from "shared/utils/constants";
-import CHAIN_STATUS from "./types/ChainStatusTypes";
+import { ethers, providers } from "ethers";
 
-const Web3Provider = ({theme = "light", children}: {theme: "dark" | "light"; children: ReactChild | ReactChild[]}) => {
+import { useMoralis, useChain } from 'react-moralis'
 
-    const snackbar = useSnackbar()
 
-    const defaultProvider = new providers.JsonRpcProvider(ACTIVE_NETWORK.CHAIN_RPC)
+// const defaultProvider = new providers.JsonRpcProvider(ACTIVE_NETWORK.chainRPC)
 
-    const [status, setStatus] = useState<CHAIN_STATUS>("NOT_CONNECTED");
-    const [web3Provider, setWeb3Provider] = useState<providers.Web3Provider>();
-    const [signer, setSigner] = useState<any>(defaultProvider);
-    const [account, setAccount] = useState<string>();
-    const [defoInstance, setDefoInstance] = useState();
+const Web3Provider = ({ children }: { children: ReactChild | ReactChild[] }) => {
+    const {
+        account,
+        isWeb3Enabled,
+        isWeb3EnableLoading,
+        enableWeb3,
+        Moralis,
+        deactivateWeb3,
+    } = useMoralis()
 
-    const switchNetwork = async () => {
-        const AVALANCHE_MAINNET_PARAMS = {
-            chainId: hexValue(ACTIVE_NETWORK.CHAIN_ID),
-            chainName: ACTIVE_NETWORK.CHAIN_NAME,
-            nativeCurrency: NATIVE_CURRENCY,
-            rpcUrls: [ACTIVE_NETWORK.CHAIN_RPC],
-            blockExplorerUrls: [ACTIVE_NETWORK.CHAIN_EXPLORER]
+    const { chainId } = useChain()
+
+    // TODO: set default provider
+    const [provider, setProvider] = useState<ethers.providers.Provider | null>(null)
+    const [signer, setSigner] = useState<ethers.Signer | null>(null)
+
+    // refresh handler
+    useEffect(() => {
+        if (isWeb3Enabled) {
+            return
+        }
+        if (typeof window !== 'undefined' && window.localStorage.getItem('connected')) {
+            connectWeb3()
+        }
+    }, [isWeb3Enabled])
+
+    // deactivate web3 handler
+    useEffect(() => {
+        let unsubscribeOnAccountChange: any;
+
+        if (isWeb3Enabled) {
+            unsubscribeOnAccountChange = Moralis.onAccountChanged((account: any) => {
+
+                if (account == null) {
+                    window.localStorage.removeItem('connected')
+                    deactivateWeb3()
+                }
+            })
         }
 
-        if (web3Provider?.provider?.request) {
-
-            try {
-                await web3Provider.provider.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: AVALANCHE_MAINNET_PARAMS.chainId }]
-                })
-                console.log("switch")
-            } catch (error) {
-                console.log("switch error")
-                console.log(error)
-            }
-
-            try {
-                await web3Provider.provider.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [AVALANCHE_MAINNET_PARAMS]
-                })
-                console.log("add")
-            } catch (error) {
-                console.log("add error")
-                console.log(error)
+        return () => {
+            if (unsubscribeOnAccountChange) {
+                unsubscribeOnAccountChange()
             }
         }
+    }, [isWeb3Enabled])
+
+    // activate web3 handler
+    useEffect(() => {
+        const setWeb3 = async () => {
+            await changeSignerAndProvider()
+            window.localStorage.setItem('connected', 'injected')
+        }
+
+        if (isWeb3Enabled) {
+            setWeb3()
+        }
+    }, [isWeb3Enabled, account])
+
+    // refresh on network change
+    useEffect(() => {
+        let currProvider: ethers.providers.Web3Provider;
+
+        const networkCb = (newNetwork: any, oldNetwork: any) => {
+            if (oldNetwork) {
+                window.location.reload();
+            }
+        }
+
+        if (window.ethereum) {
+            currProvider = new ethers.providers.Web3Provider(window.ethereum, "any");
+            currProvider.on("network", networkCb);
+        }
+
+        return () => {
+            if (currProvider) {
+                console.log('UNSUB network');
+                currProvider.off("network", networkCb)
+            }
+        }
+    }, [])
+
+
+    const connectWeb3 = async () => {
+        await enableWeb3()
     }
 
+    const changeChainTo = async (network: any) => {
+        console.log('Trying to change the chain');
+        // if (!(network.chainId in SUPPORTED_NETWORKS)) {
+        //     console.log(`${network.chainId} Chain Not Supported!`)
+        //     return null
+        // }
 
-    const connect = async () => {
-        try {
-            if (typeof window !== "undefined") {
-                const providerOptions: IProviderOptions = {
-                    walletconnect: {
-                        package: WalletConnectProvider,
-                        options: {
-                            infuraId: INFURA_ID,
-                            rpc: RPC,
-                            chainId: ACTIVE_NETWORK.CHAIN_ID
-                        },
-                    },
-                }
+        // try {
+        //     await switchNetwork(network.chainIdHex)
+        // } catch (error) {
+        //     console.error(`${network.name} Chain Not Supported!`)
+        // }
+    }
 
-                const web3Modal: Web3Modal = new Web3Modal({
-                    theme: theme,
-                    cacheProvider: false,
-                    providerOptions,
-                });
+    const changeSignerAndProvider = async () => {
+        const moralisProvider: any = Moralis.provider
+        const accountAddress: any = account
+        const currChainId: any = chainId
 
-                web3Modal.clearCachedProvider();
-                const provider = await web3Modal.connect();                
-                const web3Provider = new providers.Web3Provider(provider, "any");
-                const signer = web3Provider.getSigner();
-                const accounts = await web3Provider.listAccounts();
-                
-                // console.log('signer: ', signer);
-                // console.log('accounts: ', accounts);
-                
-                const net = await web3Provider.getNetwork()
-                console.log('net: ', net);
-                
+        const newProvider = new ethers.providers.Web3Provider(moralisProvider)
+        const newSigner = newProvider.getSigner(accountAddress)
 
-                setWeb3Provider(web3Provider);
-                setAccount(accounts[0]);
-
-                if (net.chainId === ACTIVE_NETWORK.CHAIN_ID) {
-                    setSigner(signer);
-                    setStatus("CONNECTED")
-                    snackbar.execute("Success", "success")
-                } else {
-                    setSigner(defaultProvider)
-                    setStatus("DIFFERENT_CHAIN")
-                    snackbar.execute(`Please Switch To ${ACTIVE_NETWORK.CHAIN_NAME}`, "warning")
-                }
-
-
-                provider.on("chainChanged", async (chainId: number) => {
-
-                    console.log(chainId);
-                    console.log(provider)
-                    const web3Provider = new providers.Web3Provider(
-                        provider
-                    );
-
-                    const net = await web3Provider.getNetwork()
-
-                    if (net.chainId === ACTIVE_NETWORK.CHAIN_ID) {
-
-                        setSigner(signer);
-                        setStatus("CONNECTED")
-                        snackbar.execute("Success", "success")
-
-                    } else {
-
-                        setSigner(defaultProvider)
-                        setStatus("DIFFERENT_CHAIN")
-                        snackbar.execute(`Please Switch To ${ACTIVE_NETWORK.CHAIN_NAME}`, "warning")
-
-                    }
-
-
-                });
-
-            }
-        } catch (error) {
-            console.log(error)
-            setAccount(undefined);
-            setSigner(defaultProvider)
-            snackbar.execute("Wallet Connection Error", "warning")
+        if (newProvider) {
+            setProvider(newProvider)
         }
-    };
+
+        if (newSigner) {
+            setSigner(newSigner)
+        }
+    }
 
     return (
         <Web3Context.Provider
             value={{
-                status,
-                connect,
-                signer,
                 account,
-                switchNetwork,
+                chainId: chainId ? parseInt(chainId) : null,
+                chainIdHex: chainId,
+                isWeb3Enabled,
+                isWeb3EnableLoading,
+                connectWeb3,
+                signer,
+                provider,
+                changeChainTo,
             }}
         >
             {children}
@@ -160,7 +150,7 @@ const Web3Provider = ({theme = "light", children}: {theme: "dark" | "light"; chi
 };
 
 
-const useWeb3 = (): IWeb3Context => {
+const useWeb3 = (): any => {
     const context = useContext(Web3Context);
     if (!context) {
         throw new Error(`Cannot use the Web3 Context`);

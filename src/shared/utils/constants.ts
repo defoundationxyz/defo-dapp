@@ -1,15 +1,16 @@
 import { BigNumber } from 'ethers'
 import Dai_ABI from 'abi/DAI.json'
-import DiamonCutFacet_ABI from 'abi/facets/DiamondCutFacet.json'
-import DiamonLoupeFacet_ABI from 'abi/facets/DiamondLoupeFacet.json'
-import ERC721EnumerableFacet_ABI from 'abi/facets/ERC721EnumerableFacet.json'
-import ERC721Facet_ABI from 'abi/facets/ERC721Facet.json'
-import GemFacet_ABI from 'abi/facets/GemFacet.json'
-import GemGettersFacet_ABI from 'abi/facets/GettersFacet.json'
-import NodeLimiterFacet_ABI from 'abi/facets/NodeLimiterFacet.json'
-import OwnerFacet_ABI from 'abi/facets/OwnerFacet.json'
-import OwnershipFacet_ABI from 'abi/facets/OwnershipFacet.json'
-import VaultStakingFacet_ABI from 'abi/facets/VaultStakingFacet.json'
+
+import ConfigFacet from 'abi/facets/ConfigFacet.json'
+import LimiterFacet from 'abi/facets/LimiterFacet.json'
+import MaintenanceFacet from 'abi/facets/MaintenanceFacet.json'
+import RedeemFacet from 'abi/facets/RedeemFacet.json'
+import RewardFacet from 'abi/facets/RewardFacet.json'
+import VaultFacet from 'abi/facets/VaultFacet.json'
+import YieldGemFacet from 'abi/facets/YieldGemFacet.json'
+import GettersFacet from 'abi/facets/GettersFacet.json'
+import DonationsFacet from 'abi/facets/DonationsFacet.json'
+
 
 export const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID
 
@@ -20,75 +21,128 @@ export const RPC = {
     1337: `http://localhost:8545`
 }
 
-export const MAINNET_CONFIG = {
-    CHAIN_NAME: "Avalanche Mainnet C-Chain",
-    CHAIN_ID: 43114,
-    CHAIN_RPC: RPC[43114],
-    CHAIN_EXPLORER: "https://snowtrace.io/",
+export const CONTRACTS_ABI = [
+    ...ConfigFacet,
+    ...LimiterFacet,
+    ...MaintenanceFacet,
+    ...RedeemFacet,
+    ...RewardFacet,
+    ...VaultFacet,
+    ...YieldGemFacet,
+    ...GettersFacet,
+    ...DonationsFacet
+]
+
+export enum SUPPORTED_NETWORKS_ENUM {
+    AVAX_MAINNET = 'avax_mainnet',
+    FUJI_TESTNET = 'fuji_testnet',
+    HARDHAT = 'hardhat',
+    RINKEBY = 'rinkeby',
 }
 
-export const TESTNET_CONFIG = {
-    CHAIN_NAME: "Avalanche FUJI C-Chain",
-    CHAIN_ID: 43113,
-    CHAIN_RPC: RPC[43113],
-    CHAIN_EXPLORER: "https://testnet.snowtrace.io/",
+export const NETWORK_MAPPER: { [key: number]: string } = {
+    43114: SUPPORTED_NETWORKS_ENUM.AVAX_MAINNET,
+    43113: SUPPORTED_NETWORKS_ENUM.FUJI_TESTNET,
+    1337: SUPPORTED_NETWORKS_ENUM.HARDHAT,
+    4: SUPPORTED_NETWORKS_ENUM.RINKEBY
 }
 
+export const ACTIVE_NETOWORKS_COLLECTION = [1337, 43113]
 
-export const RINKEBY_CONFIG = {
-    CHAIN_NAME: "Rinkeby Test Network",
-    CHAIN_ID: 4,
-    CHAIN_RPC: RPC[4],
-    CHAIN_EXPLORER: "https://rinkeby.etherscan.io/",
-}
 
-export const LOCALHOST_HARDHAT_CONFIG = { 
-    CHAIN_NAME: "Hardhat localhost",
-    CHAIN_ID: 1337,
-    CHAIN_RPC: RPC[1337],
-    CHAIN_EXPLORER: "https://testnet.snowtrace.io/",
+export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
+    avax_mainnet: {
+        chainName: "Avalanche Mainnet C-Chain",
+        chainId: 43114,
+        chainRPC: "https://api.avax.network/ext/bc/C/rpc",
+        chainExplorer: "https://snowtrace.io/",
+        nativeCurrency: {
+            name: "AVAX",
+            symbol: "AVAX",
+            decimals: 18
+        },
+        deployments: { 
+            dai: { 
+                abi: Dai_ABI,
+                address: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70"
+            },
+            defo: { 
+                abi: Dai_ABI,
+                address: ""
+            },
+            diamond: {
+                abi: CONTRACTS_ABI,
+                address: ""
+            },
+        }
+    },
+    fuji_testnet: {
+        chainName: "Avalanche FUJI C-Chain",
+        chainId: 43113,
+        chainRPC: "https://api.avax-test.network/ext/bc/C/rpc",
+        chainExplorer: "https://testnet.snowtrace.io/",
+        nativeCurrency: {
+            name: "AVAX",
+            symbol: "AVAX",
+            decimals: 18
+        },
+        deployments: { 
+            dai: { 
+                abi: Dai_ABI,
+                address: "0x3362FE2f7E17A5a9F90DaBE12E4A6E16E146F19a"
+            },
+            defo: { 
+                abi: Dai_ABI,
+                address: "0xA9D3adb2B5c7d89c56d74584E98ABcea1E4e6a4D"
+            },
+            diamond: { 
+                abi: CONTRACTS_ABI,
+                address: "0xf0d26dD82f6beE798cB677ee17E5466d009193Eb"
+            }
+        }
+    },
+    hardhat: {
+        chainName: "Hardhat localhost",
+        chainId: 1337,
+        chainRPC: RPC[1337],
+        chainExplorer: "https://testnet.snowtrace.io/",
+        nativeCurrency: {
+            name: "GO",
+            symbol: "GO",
+            decimals: 18
+        },
+        deployments: {
+            dai: {
+                abi: Dai_ABI,
+                address: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70"
+            },
+            defo: {
+                abi: Dai_ABI,
+                address: "0xEFac7869B91F3dc100340a61dfE77839B89ba86D"
+            },
+            diamond: {
+                abi: CONTRACTS_ABI,
+                address: "0x66Cf45e57D524959B539e0907FE4B18F8AfC4D84"
+            }
+        }
+    },
+    rinkeby: {
+        chainName: "Rinkeby Test Network",
+        chainId: 4,
+        chainRPC: `https://rinkeby.infura.io/v3/${INFURA_ID}`,
+        chainExplorer: "https://rinkeby.etherscan.io/",
+        nativeCurrency: {
+            name: "ETH",
+            symbol: "ETH",
+            decimals: 18
+        }
+    }
 }
 
 
 // change this to change the required network
-export const ACTIVE_NETWORK = LOCALHOST_HARDHAT_CONFIG
+export const ACTIVE_NETWORK = SUPPORTED_NETWORKS.hardhat
 
-
-export const CONTRACTS = {
-
-    //FUJI
-    Dai: {
-        abi: Dai_ABI,
-        mainnetAddress: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70",
-        address: "0x85a2ff500E0eD9fA93719071EA46A86198181581",      // testnet
-    },
-
-    DefoToken: {
-        abi: Dai_ABI,
-        // address: "0x5C7ea2D484464a6Be1c2028CE1E9e1Ec339Dd3Ae",
-        address: "0x4a6B7DCD5c271B2E36B8CE0fbB3097c2268ceC24",
-    },
-
-    Main: {
-        // address: "0x78c51f56e21994FB5d00D2A817Bca4c5B735FDcb",  // mainnet
-        // address: "0xd274d23b3Ae1b2a6c45b400e66dC64FBB3053222",  // testnet
-        // address: "0xD4BbEE565C8EeDB54eD9d90c5205c92Eb684539C", // FUJI
-        address: "0x095Db998B45FEAB2b8A3260bD630816a069DbDc4", // localhost
-        abi: [
-            ...DiamonCutFacet_ABI,
-            ...DiamonLoupeFacet_ABI,
-            ...ERC721EnumerableFacet_ABI,
-            ...ERC721Facet_ABI,
-            ...GemFacet_ABI,
-            ...GemGettersFacet_ABI,
-            ...NodeLimiterFacet_ABI,
-            ...OwnerFacet_ABI,
-            ...OwnershipFacet_ABI,
-            ...VaultStakingFacet_ABI,
-        ]
-    }
-
-}
 
 export const GEM_MINT_LIMIT_HOURS = 12;
 export const MIN_REWARD_TIME = (3600 * 24) * 7; // (seconds in a day) * count days
@@ -99,6 +153,42 @@ export const NATIVE_CURRENCY = {
     decimals: 18
 }
 
+export const TAX_TIER_MAPPER: any = {
+    '1': "30%",
+    '2': "30%",
+    '3': "15%",
+    '4': "0%"
+}
+
+// 43114: "https://api.avax.network/ext/bc/C/rpc",
+
+export type ConfigType = {
+    chainName: string,
+    chainId: number,
+    chainRPC: string,
+    chainExplorer: string,
+    forkNetwork?: SUPPORTED_NETWORKS_ENUM.AVAX_MAINNET,
+    nativeCurrency: {
+        name: string,
+        symbol: string,
+        decimals: number
+    },
+
+    deployments?: {
+        dai: {
+            address: string
+            abi: any[]
+        }
+        defo: {
+            address: string,
+            abi: any[]
+        },
+        diamond: {
+            address: string,
+            abi: any[]
+        }
+    }
+}
 
 export type GemType = {
     id: string;
@@ -111,14 +201,16 @@ export type GemType = {
     claimedReward: BigNumber;
     pendingReward: BigNumber;
     vaultAmount?: BigNumber;
-    isEligableForClaim?: any
+    isEligableForClaim?: any,
+    taxTier: BigNumber,
+    nextTaxTier: BigNumber,
 }
 
 
 export type GemTypeMetadata = {
     LastMint: number;
     MaintenanceFee: number;
-    RewardRate: number;
+    RewardRate: BigNumber;
     DailyLimit: number;
     MintCount: number;
     DefoPrice: BigNumber;

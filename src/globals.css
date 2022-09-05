@@ -17,3 +17,12 @@ a {
 body {
   background-color: #1f1d2b !important;
 }
+
+html,
+body {
+  height: 100%;
+}
+
+#__next {
+  height: 100%;
+}

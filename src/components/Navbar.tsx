@@ -6,7 +6,11 @@ const Navbar = () => {
 
     const theme = useTheme()
 
-    const { connect, status, account, switchNetwork } = useWeb3()
+    const { connectWeb3, account, isWeb3Enabled } = useWeb3()
+
+    const handleConnect = async () => {
+        await connectWeb3()
+    }
 
     return (
         <AppBar
@@ -105,54 +109,39 @@ const Navbar = () => {
                                 md: "flex-end"
                             }
                         }}>
-                        {
-                            status === "NOT_CONNECTED" ?
-                                <Button
-                                    variant="contained"
-                                    onClick={connect}
-                                    sx={{
-                                        margin: theme.spacing(1),
-                                        padding: theme.spacing(2),
-                                        width: {
-                                            xs: "100%",
-                                            md: "auto"
-                                        }
-                                    }}
-                                >
-                                    Connect Wallet
-                                </Button>
-                                : status === "DIFFERENT_CHAIN"
-                                    ? <Button
-                                        onClick={switchNetwork}
-                                        variant="contained"
-                                        sx={{
-                                            margin: theme.spacing(1),
-                                            padding: theme.spacing(2, 1),
-                                            width: {
-                                                xs: "100%",
-                                                md: "auto"
-                                            }
-                                        }}
-                                    >
-                                        Change Network To Avalanche
-                                    </Button>
-                                    : <Button
-                                        disabled
-                                        variant="contained"
-                                        onClick={() => {
-                                            window.location.reload()
-                                        }}
-                                        sx={{
-                                            margin: theme.spacing(1),
-                                            padding: theme.spacing(2),
-                                            width: {
-                                                xs: "100%",
-                                                md: "auto"
-                                            }
-                                        }}
-                                    >
-                                        {account?.substring(0, 6)}...
-                                    </Button>
+                        {!isWeb3Enabled ?
+                            <Button
+                                variant="contained"
+                                onClick={handleConnect}
+                                sx={{
+                                    margin: theme.spacing(1),
+                                    padding: theme.spacing(2),
+                                    width: {
+                                        xs: "100%",
+                                        md: "auto"
+                                    }
+                                }}
+                            >
+                                Connect Wallet
+                            </Button>
+                            :
+                            <Button
+                                disabled
+                                variant="contained"
+                                onClick={() => {
+                                    window.location.reload()
+                                }}
+                                sx={{
+                                    margin: theme.spacing(1),
+                                    padding: theme.spacing(2),
+                                    width: {
+                                        xs: "100%",
+                                        md: "auto"
+                                    }
+                                }}
+                            >
+                                {account?.substring(0, 6)}...
+                            </Button>
                         }
                     </Grid>
                 </Grid>
