@@ -5,7 +5,7 @@ import { useStatsContext } from "shared/context/StatsContext/StatsContextProvide
 import React from "react"
 
 
-const DonationsBox = React.memo(() => {
+export default React.memo(function DonationsBox()  {
     const theme = useTheme()
     const { donations } = useStatsContext()
     
@@ -138,6 +138,3 @@ const DonationsBox = React.memo(() => {
         </ContentBox>
     )
 })
-
-
-export default DonationsBox
