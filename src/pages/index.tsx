@@ -180,7 +180,7 @@ const Home: NextPage = () => {
 			<Head>
 				<title>DEFO</title>
 				<meta name="viewport" content="initial-scale=1.0, width=device-width" />
-				<link rel="shortcut icon" href="/logo.png" />
+				{/* <link rel="shortcut icon" href="/logo.png" /> */}
 			</Head>
 			<Navbar />
 			{isWeb3Enabled ?
