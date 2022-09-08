@@ -10,7 +10,9 @@ import VaultFacet from 'abi/facets/VaultFacet.json'
 import YieldGemFacet from 'abi/facets/YieldGemFacet.json'
 import GettersFacet from 'abi/facets/GettersFacet.json'
 import DonationsFacet from 'abi/facets/DonationsFacet.json'
-
+import JoeRouterABI from "abi/JoeRouter.json"
+import JoeFactoryABI from "abi/JoeFactory.json"
+import JoePairABI from "abi/JoePair.json"
 
 export const INFURA_ID = process.env.NEXT_PUBLIC_INFURA_ID
 
@@ -61,12 +63,12 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
             symbol: "AVAX",
             decimals: 18
         },
-        deployments: { 
-            dai: { 
+        deployments: {
+            dai: {
                 abi: Dai_ABI,
                 address: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70"
             },
-            defo: { 
+            defo: {
                 abi: Dai_ABI,
                 address: ""
             },
@@ -86,18 +88,30 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
             symbol: "AVAX",
             decimals: 18
         },
-        deployments: { 
-            dai: { 
+        deployments: {
+            dai: {
                 abi: Dai_ABI,
                 address: "0x3362FE2f7E17A5a9F90DaBE12E4A6E16E146F19a"
             },
-            defo: { 
+            defo: {
                 abi: Dai_ABI,
                 address: "0xA9D3adb2B5c7d89c56d74584E98ABcea1E4e6a4D"
             },
-            diamond: { 
+            diamond: {
                 abi: CONTRACTS_ABI,
                 address: "0xf0d26dD82f6beE798cB677ee17E5466d009193Eb"
+            },
+            dex: {
+                router: { 
+                    abi: JoeRouterABI,
+                    address: "0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901"
+                },
+                factory: { 
+                    abi: JoeFactoryABI
+                },
+                pair: { 
+                    abi: JoePairABI
+                }
             }
         }
     },
@@ -186,6 +200,18 @@ export type ConfigType = {
         diamond: {
             address: string,
             abi: any[]
+        },
+        dex?: {
+            router: {
+                address: string,
+                abi: any[]
+            },
+            factory: {
+                abi: any[],
+            },
+            pair: { 
+                abi: any[]
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers"
+import { BigNumber, Contract, ethers } from "ethers"
 import { ReactChild, useContext, useEffect, useState } from "react"
 import { useWeb3Contract } from "react-moralis"
 import { ProtocolConfig } from "shared/types/DataTypes"
@@ -50,8 +50,7 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
     const [stake, setStake] = useState<StakeState>(stateInit)
     const [donations, setDonations] = useState<DonationsState>(donationsInit)
     const [protocolConfig, setProtocolConfig] = useState<ProtocolConfig>(initialProtocolConfigState)
-
-    const { runContractFunction } = useWeb3Contract({});
+    const [defoPrice, setDefoPrice] = useState(0)
 
     // main fetch init/change
     useEffect(() => {
@@ -60,6 +59,7 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
                 await updateStake();
                 await updateDonations();
                 await updateProtocolConfig();
+                await updateDefoPrice();
             }
         }
 
@@ -69,27 +69,14 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
     const updateStake = async () => {
         let totalStake: any = BigNumber.from(0);
         let userStake: any = BigNumber.from(0);
-        
+
         try {
             totalStake = await diamondContract.getTotalStakedAllUsers();
             userStake = await diamondContract.getTotalStaked();
         } catch (error) {
             console.log('Error while fetching the STAKE');
-            // console.log(error);
+            console.log(error);
         }
-        setStake({ totalStake, userStake })
-    }
-
-    const updateStake2 = async () => {
-        console.log('updateStake EXECUTED...!');
-        const options = {
-            abi: config.deployments.diamond.abi,
-            contractAddress: config.deployments.diamond.address,
-            functionName: "getTotalStakedAllUsers"
-        }
-        const totalStake: any = await runContractFunction({ params: options })
-        const userStake: any = await runContractFunction({ params: { ...options, functionName: "getTotalStaked" } });
-
         setStake({ totalStake, userStake })
     }
 
@@ -101,16 +88,15 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
         //     abi: config.deployments.diamond.abi,
         //     contractAddress: config.deployments.diamond.address
         // }
-
+        // totalDonations = await runContractFunction({ params: { ...options, functionName: "getTotalDonatedAllUsers" }});
+        
         try {
-            // totalDonations = await runContractFunction({ params: { ...options, functionName: "getTotalDonatedAllUsers" }});
-            // userDonations = await runContractFunction({ params: { ...options, functionName: "getTotalDonated" }});
             userDonations = await diamondContract.getTotalDonated();
             totalDonations = await diamondContract.getTotalDonatedAllUsers();
 
         } catch (error) {
             console.log('Error while fetching the DONATIONS');
-            // console.log(error);
+            console.log(error);
         }
         setDonations({ totalDonations, userDonations })
     }
@@ -125,11 +111,32 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
         }
     }
 
+    const updateDefoPrice = async () => {
+        if (!config.deployments) { return; }
+        if (!config.deployments.dex || !config.deployments.dex.router.address || !config.deployments.dex.router.abi
+            || !config.deployments.dex.factory.abi || !config.deployments.dex.pair.abi) {
+                console.error('No DEX config provided for this network');
+                setDefoPrice(5.723567756562) 
+                return
+        }
+        const dexRouterContract = new Contract(config.deployments.dex.router.address, config.deployments.dex.router.abi, signer);
+        const factoryAddress = await dexRouterContract.factory();
+        const factoryContract = new Contract(factoryAddress, config.deployments.dex.factory.abi, signer);
+
+        const pairAddress = await factoryContract.getPair(config.deployments.dai.address, config.deployments.defo.address)
+        const pairContract = new Contract(pairAddress, config.deployments.dex.pair.abi, signer);
+
+        const [reservesDefo, reservesDai] = await pairContract.getReserves();
+        const priceDefo: any = reservesDai / reservesDefo;
+        console.log('priceDefo: ', priceDefo);
+        setDefoPrice(priceDefo)
+    }
 
     const value = {
         stake, updateStake,
         donations, updateDonations,
-        protocolConfig, updateProtocolConfig
+        protocolConfig, updateProtocolConfig,
+        defoPrice, updateDefoPrice
     }
 
     return (

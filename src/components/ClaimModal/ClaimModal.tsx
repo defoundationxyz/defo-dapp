@@ -8,6 +8,7 @@ import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
 import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
 import { Gem } from "shared/types/DataTypes"
+import { formatDecimalNumber } from "shared/utils/format"
 
 
 export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows: any, isOpen: boolean, closeModal: () => void }) => {
@@ -15,7 +16,8 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
     const { diamondContract } = useDiamondContext()
     const {
         updateDonations, updateStake,
-        protocolConfig
+        protocolConfig,
+        defoPrice,
     } = useStatsContext()
 
     const snackbar = useSnackbar()
@@ -261,6 +263,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                         justifyContent={"space-between"}
                         alignItems="center"
                     >
+
                         <Grid item xs={12} md={5.5}>
                             <Typography variant='body1'>PENDING REWARDS</Typography>
                             <Grid container alignItems="center">
@@ -271,17 +274,18 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                         sx={{
                                             marginRight: theme.spacing(1)
                                         }}>
-                                        {ethers.utils.formatEther(pendingRewards)} DEFO</Typography>
+                                        {formatDecimalNumber(+ethers.utils.formatEther(pendingRewards), 3)} DEFO</Typography>
                                 </Grid>
                                 <Grid item>
-                                    <Typography variant='h6' fontWeight={"500"}>($0)</Typography>
+                                    <Typography variant='h6' fontWeight={"500"}>
+                                        (${formatDecimalNumber(+ethers.utils.formatEther(pendingRewards) * defoPrice, 2)})
+                                    </Typography>
                                 </Grid>
                             </Grid>
                         </Grid>
+
                         <Grid item xs={12} md={5.5}>
-                            <Box sx={{
-                            }}>
-                                {/* I AM HERE */}
+                            <Box sx={{ textAlign: 'end' }}>
                                 <Tooltip title="All pending rewards will be claimed to your wallet after taxes are deducted.">
                                     <span>
                                         <Button
@@ -291,6 +295,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                             onClick={() => handleBatchClaimRewards(selectedRows)}
                                             disabled={!areSelectedGemsClaimable()}
                                             sx={{
+                                                width: 'auto',
                                                 marginLeft: {
                                                     xs: theme.spacing(0),
                                                     md: theme.spacing(2)
@@ -312,6 +317,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                             sx={{
                                                 color: "white",
                                                 borderColor: "white",
+                                                width: 'auto',
                                                 "&:hover": {
                                                     color: "gray",
                                                     borderColor: "gray",
@@ -320,15 +326,14 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     </span>
                                 </Tooltip>
 
-
                                 <Button
                                     onClick={() => handlePayFee(selectedRows)}
                                     disabled={shouldSelectedGemsPayMaintFee()}
                                     variant="contained"
                                     color="secondary"
-                                    fullWidth
                                     sx={{
                                         mt: 2,
+                                        width: 245,
                                         backgroundColor: "#FCBD00",
                                         "&:hover": {
                                             backgroundColor: "#b58802",
@@ -337,19 +342,16 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 >
                                     Pay Maintenance fee
                                 </Button>
-                            </Box>
-                            <Grid container justifyContent={"space-between"} mt={1} mb={-1}>
-                                <Grid item>
-                                    <Typography fontWeight={"bold"} variant="body2">Maintenance FEE:</Typography>
-                                </Grid>
-                                <Grid item>
+                                <Box display={'flex'} justifyContent='end' mt={1.5}>
+                                    <Typography fontWeight={"bold"} variant="body2" mr={6}>Maintenance FEE:</Typography>
                                     <Typography variant="body2">
                                         {ethers.utils.formatEther(maintenanceFee)} DAI
                                     </Typography>
-                                </Grid>
-                            </Grid>
+                                </Box>
+
+                            </Box>
                         </Grid>
-                        <Grid item xs={12} md={5} sx={{
+                        <Grid item xs={12} md={5.5} sx={{
                             margin: theme.spacing(4, 0),
                         }} >
                             <Grid container justifyContent={"space-between"}  >
@@ -357,7 +359,13 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     <Typography fontWeight={"bold"} variant="body2">CHARITY TAX:</Typography>
                                 </Grid>
                                 <Grid item>
-                                    <Typography variant="body2">{ethers.utils.formatEther(charityTax)} DEFO ($0)</Typography>
+                                    <Typography variant="body2">
+                                        {(() => { 
+                                            const formattedAmount = ethers.utils.formatEther(charityTax)
+                                            const price = formatDecimalNumber(+formattedAmount * defoPrice, 2)
+                                            return <>{`${formattedAmount} DEFO ($${price})`}</>
+                                        })()}
+                                    </Typography>
                                 </Grid>
                             </Grid>
 
@@ -366,8 +374,12 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     <Typography fontWeight={"bold"} variant="body2">CLAIM TAX TIER:</Typography>
                                 </Grid>
                                 <Grid item>
-                                    <Typography variant="body2">
-                                        {ethers.utils.formatEther(tierTax)} DEFO ($0)
+                                    <Typography variant="body2" ml={0.2}>
+                                        {(() => {
+                                            const formattedAmount = formatDecimalNumber(+ethers.utils.formatEther(tierTax), 2)
+                                            const price = formatDecimalNumber(+formattedAmount * defoPrice, 2)
+                                            return <>{`${formattedAmount} DEFO ($${price})`}</>
+                                        })()}
                                     </Typography>
                                 </Grid>
                             </Grid>
@@ -378,7 +390,11 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 </Grid>
                                 <Grid item>
                                     <Typography variant="body2">
-                                        {ethers.utils.formatEther(claimableAmount)} DEFO ($0)
+                                        {(() => {
+                                            const formattedAmount = ethers.utils.formatEther(claimableAmount)
+                                            const price = formatDecimalNumber(+formattedAmount * defoPrice, 2)
+                                            return <>{`${formattedAmount} DEFO ($${price})`}</>
+                                        })()}
                                     </Typography>
                                 </Grid>
                             </Grid>
@@ -403,22 +419,22 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     label={vaultStrategyEnabled ? "On" : "Off"}
                                 /> */}
                                 <Tooltip title="This will send the selected percentage towards the Vault and the rest will be claimed.">
-                                        <Button
-                                            onClick={() => handleAddToVaultStrategy(selectedRows, selectedVaultStrategy)}
-                                            variant="outlined"
-                                            endIcon={<HelpOutline />}
-                                            color={"info"}
-                                            sx={{
-                                                padding: 1,
-                                                borderWidth: "2px",
-                                                width: "50%",
-                                                // margin: '0 auto',
-                                                // textAlign: 'center',
-                                                "&:hover": {
-                                                    borderWidth: "2px"
-                                                }
-                                            }}
-                                        >Hybrid Vault</Button>
+                                    <Button
+                                        onClick={() => handleAddToVaultStrategy(selectedRows, selectedVaultStrategy)}
+                                        variant="outlined"
+                                        endIcon={<HelpOutline />}
+                                        color={"info"}
+                                        sx={{
+                                            padding: 1,
+                                            borderWidth: "2px",
+
+                                            // margin: '0 auto',
+                                            // textAlign: 'center',
+                                            "&:hover": {
+                                                borderWidth: "2px"
+                                            }
+                                        }}
+                                    >Hybrid Vault ({selectedVaultStrategy}%)</Button>
                                 </Tooltip>
                             </Box>
 
