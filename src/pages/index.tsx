@@ -19,6 +19,8 @@ import { InvalidNetworkView } from 'components/InvalidNetworkView/InvalidNetwork
 import { useChain, useMoralis } from 'react-moralis'
 import { ClaimModal } from 'components/ClaimModal/ClaimModal'
 import { useWeb3 } from 'shared/context/Web3/Web3Provider'
+import { formatDecimalNumber } from 'shared/utils/format'
+import { useStatsContext } from 'shared/context/StatsContext/StatsContextProvider'
 
 
 const Home: NextPage = () => {
@@ -29,6 +31,7 @@ const Home: NextPage = () => {
 	const { chainId } = useChain()
 	const { diamondContract } = useDiamondContext()
 	const { gemsCollection } = useGemsContext()
+	const { defoPrice } = useStatsContext()
 
 	const [selectedRows, setSelectedRows] = useState<string[]>([])
 	const [claimRewardsModalOpen, setClaimRewardsModalOpen] = useState(false)
@@ -50,27 +53,27 @@ const Home: NextPage = () => {
 	}, [account])
 
 	useEffect(() => {
-        let unsubscribeOnAccountChange: any;
+		let unsubscribeOnAccountChange: any;
 
-        if (isWeb3Enabled) {
-            unsubscribeOnAccountChange = Moralis.onAccountChanged((account: any) => {
+		if (isWeb3Enabled) {
+			unsubscribeOnAccountChange = Moralis.onAccountChanged((account: any) => {
 				setSelectedRows([])
-            })
-        }
+			})
+		}
 
-        return () => {
-            if (unsubscribeOnAccountChange) {
-                unsubscribeOnAccountChange()
-            }
-        }
-    }, [isWeb3Enabled])
+		return () => {
+			if (unsubscribeOnAccountChange) {
+				unsubscribeOnAccountChange()
+			}
+		}
+	}, [isWeb3Enabled])
 
-	
+
 	const areSelectedGemsClaimable = () => {
 		if (selectedRows.length === 0) {
 			return false;
 		}
-		
+
 		// check if every gem is claimable
 		return selectedRows.every((gemId: any) => {
 			const gem: Gem = gemsCollection.find((gem: Gem) => gem.id == gemId);
@@ -79,7 +82,7 @@ const Home: NextPage = () => {
 	}
 
 
-	const columns = useMemo((): GridColDef[] => { 
+	const columns = useMemo((): GridColDef[] => {
 		return [
 			{
 				flex: 1,
@@ -112,7 +115,9 @@ const Home: NextPage = () => {
 				headerName: 'Rewards',
 				renderCell: (params) => {
 					const gem: Gem = params.row;
-					return (ethers.utils.formatEther(gem.rewardAmount) || 0).toString() + ' DEFO'
+					const amount = formatDecimalNumber(+ethers.utils.formatEther(gem.rewardAmount), 3)
+					return `${amount} DEFO` 
+					// return (ethers.utils.formatEther(gem.rewardAmount) || 0).toString() + ' DEFO'
 				}
 			},
 			{
@@ -241,21 +246,26 @@ const Home: NextPage = () => {
 															}}>
 															<Typography variant="body2">PENDING REWARDS</Typography>
 															<Box display={"flex"} alignItems="center">
-																<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-																	{(+ethers.utils.formatEther(
+																{(() => {
+																	const rewardAmount = +ethers.utils.formatEther(
 																		gemsCollection.reduce(
 																			(n: BigNumber, { rewardAmount }: Gem) => rewardAmount.add(n),
 																			BigNumber.from(0))
 																	)
-																	).toFixed(3)}
-																</Typography>
-																<Typography ml={1} variant="h6">
-																	($0.00)
-																</Typography>
+																	const price = formatDecimalNumber(+rewardAmount * defoPrice, 2)
+
+																	return (
+																		<>
+																			<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
+																				{formatDecimalNumber(rewardAmount, 3)} DEFO
+																			</Typography>
+																			<Typography ml={1} variant="h6">
+																				(${price})
+																		</Typography>
+																		</>
+																	)
+																})()}
 															</Box>
-															{/* <Typography variant="h5" fontWeight={"bold"}>
-										$0.00
-									</Typography> */}
 														</Paper>
 													</Grid>
 												</Grid>

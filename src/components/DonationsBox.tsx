@@ -3,12 +3,14 @@ import ContentBox from './ContentBox'
 import { ethers } from "ethers"
 import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
 import React from "react"
+import { formatDecimalNumber } from "shared/utils/format"
 
 
 export default React.memo(function DonationsBox()  {
     const theme = useTheme()
-    const { donations } = useStatsContext()
+    const { donations, defoPrice } = useStatsContext()
     
+
     return (
         <ContentBox
             title="Donations"
@@ -41,7 +43,7 @@ export default React.memo(function DonationsBox()  {
                             variant="h4"
                             fontWeight={"600"}
                         >
-                            { (+ethers.utils.formatEther(donations.userDonations)).toFixed(3)}
+                            ${ formatDecimalNumber(+ethers.utils.formatEther(donations.userDonations)  * defoPrice, 2)}
                         </Typography>
                         {/* <Box sx={{
                             display: "flex",
@@ -96,8 +98,10 @@ export default React.memo(function DonationsBox()  {
                             variant="h4"
                             fontWeight={"600"}
                         >   
-                            {/* TODO: CREATE DOLLAR BASED VALUE */}
-                            {(+ethers.utils.formatEther(donations.totalDonations)).toFixed(3)}
+                            
+                            {/* {(+ethers.utils.formatEther(donations.totalDonations)).toFixed(3)} */}
+                            ${ formatDecimalNumber(+ethers.utils.formatEther(donations.totalDonations)  * defoPrice, 2)}
+
                         </Typography>
                         {/* <Box sx={{
                             display: "flex",

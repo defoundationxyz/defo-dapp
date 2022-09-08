@@ -12,6 +12,7 @@ import { useStatsContext } from "shared/context/StatsContext/StatsContextProvide
 import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 import { useChain } from 'react-moralis'
 import { ACTIVE_NETOWORKS_COLLECTION } from "shared/utils/constants"
+import { formatDecimalNumber } from "shared/utils/format"
 
 
 const P2VaultBox = () => {
@@ -24,7 +25,7 @@ const P2VaultBox = () => {
     const { diamondContract } = useDiamondContext()
     const snackbar = useSnackbar()
 
-    const { stake, updateStake, updateDonations } = useStatsContext()
+    const { stake, updateStake, updateDonations, defoPrice } = useStatsContext()
     const { gemsCollection, updateGemsCollection } = useGemsContext()
 
     useEffect(() => {
@@ -48,7 +49,7 @@ const P2VaultBox = () => {
             snackbar.execute("Error occured while withdrawing from the vault", "error")
         }
     }
-    
+
     const columns = useMemo((): GridColDef[] => {
         return [
             {
@@ -72,7 +73,9 @@ const P2VaultBox = () => {
                 headerName: 'Staked Rewards',
                 renderCell: (params) => {
                     const gem: Gem = params.row;
-                    return `${(+ethers.utils.formatEther(gem.staked)).toFixed(3)} DEFO ($0.0)`
+                    const staked = +ethers.utils.formatEther(gem.staked);
+                    const price = formatDecimalNumber(staked * defoPrice, 2);
+                    return `${formatDecimalNumber(staked, 3)} DEFO ($${price})`
                 }
             },
             {
@@ -83,7 +86,9 @@ const P2VaultBox = () => {
                     const gem: Gem = params.row;
                     const WITHDRAW_VAULT_FEE_PERCENTAGE = 10
                     const amountToWithdraw = gem.staked.div(100).mul(WITHDRAW_VAULT_FEE_PERCENTAGE)
-                    return <>{`${(+ethers.utils.formatEther(gem.staked.sub(amountToWithdraw))).toFixed(3)}`} DEFO ($0.0)</>
+                    const amount = +ethers.utils.formatEther(gem.staked.sub(amountToWithdraw))
+                    const price = formatDecimalNumber(amount * defoPrice, 2)
+                    return <>{`${formatDecimalNumber(amount, 3)} DEFO ($${price})`}</>
                 }
             },
             {
@@ -150,13 +155,17 @@ const P2VaultBox = () => {
                                     md: theme.spacing(2, 4)
                                 },
                             }}>
-                            <Typography variant="body2">YOUR STAKE</Typography>
+                            <Typography variant="body2">YOUR DEFO</Typography>
                             <Typography
                                 sx={{ margin: theme.spacing(1, 0) }}
                                 variant="h4"
                                 fontWeight={"600"}
                             >
-                                {(+ethers.utils.formatEther(stake.userStake)).toFixed(3) || 0}
+                                {/* {(+ethers.utils.formatEther(stake.userStake)).toFixed(3) || 0} */}
+                                {(() => {
+                                    const formattedAmount = formatDecimalNumber(+ethers.utils.formatEther(stake.userStake), 3)
+                                    return <>{`${formattedAmount}`}</>
+                                })()}
                             </Typography>
                         </Paper>
                     </Grid>
@@ -170,14 +179,18 @@ const P2VaultBox = () => {
                                     md: theme.spacing(2, 4)
                                 },
                             }}>
-                            <Typography variant="body2">TOTAL STAKED</Typography>
+                            <Typography variant="body2">TOTAL DEFO</Typography>
 
                             <Typography
                                 sx={{ margin: theme.spacing(1, 0) }}
                                 variant="h4"
                                 fontWeight={"600"}
                             >
-                                {(+ethers.utils.formatEther(stake.totalStake)).toFixed(3)}
+                                {/* {(+ethers.utils.formatEther(stake.totalStake)).toFixed(3)} */}
+                                {(() => {
+                                    const formattedAmount = formatDecimalNumber(+ethers.utils.formatEther(stake.totalStake), 3)
+                                    return <>{`${formattedAmount}`}</>
+                                })()}
                             </Typography>
                             {/* <Box sx={{
                                 display: "flex",
