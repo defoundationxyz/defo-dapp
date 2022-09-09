@@ -119,7 +119,7 @@ const P2VaultBox = () => {
                 </Box>
             },
         ]
-    }, [])
+    }, [defoPrice])
 
 
     return (
@@ -291,7 +291,6 @@ const P2VaultBox = () => {
                                 columns={columns}
                                 pageSize={5}
                                 rowsPerPageOptions={[5]}
-                                // checkboxSelection
                                 hideFooterSelectedRowCount
                                 disableSelectionOnClick
                                 rowHeight={59}
