@@ -1,8 +1,8 @@
 import { Close, HelpOutline } from "@mui/icons-material"
-import { Paper, IconButton, Grid, Typography, Box, Tooltip, Button, FormControlLabel, Switch, Modal, useTheme } from "@mui/material"
+import { Paper, IconButton, Grid, Typography, Box, Tooltip, Button, Modal, useTheme } from "@mui/material"
 import ContentBox from "components/ContentBox"
 import { ethers, BigNumber } from "ethers"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
 import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
@@ -23,27 +23,16 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
     const snackbar = useSnackbar()
     const theme = useTheme()
 
-    const [vaultStrategyEnabled, setVaultStrategyEnabled] = useState(false)
     const [selectedVaultStrategy, setSelectedVaultStrategy] = useState(20)
-    const [values, setValues] = useState({
-        pendingRewards: BigNumber.from(0),
-        charityTax: BigNumber.from(0),
-        tierTax: BigNumber.from(0),
-        maintenanceFee: BigNumber.from(0),
-        claimable: BigNumber.from(0)
-    })
-
-    useEffect(() => {
-        // console.log('Re-render');
-        // console.log('getPendingRewards: ', getPendingRewards);
-    }, [selectedRows])
 
     // CORE
     const handlePayFee = async (gemIds: string[]) => {
-        const gemIdsAsNumber = gemIds.map(gemId => +gemId)
+        const selectedGems = gemsCollection.filter((gem: Gem) => gemIds.includes(gem.id))
+        const gemsToPayMaint = selectedGems.filter((gem: Gem) => !gem.pendingMaintenanceFee.isZero())
+        const gemIdsAsNumber = gemsToPayMaint.map((gem: Gem) => +gem.id)
 
         try {
-            const tx = gemIdsAsNumber.length === 1 ? await diamondContract.maintain(gemIdsAsNumber[0]) : await diamondContract.batchMaintain(gemIdsAsNumber);
+            const tx = await diamondContract.batchMaintain(gemIdsAsNumber);
             snackbar.execute("Paying Maintenance Fee on progress, please wait.", "info")
             await tx.wait()
             await updateDonations()
@@ -136,9 +125,9 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
     }
 
     const shouldSelectedGemsPayMaintFee = () => {
-        return gemsCollection
+        return !gemsCollection
             .filter((gem: Gem) => selectedRows.includes(gem.id))
-            .some((gem: Gem) => gem.pendingMaintenanceFee.isZero())
+            .some((gem: Gem) => !gem.pendingMaintenanceFee.isZero());
     }
 
     const pendingRewards = useMemo(() => {
@@ -345,7 +334,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 <Box display={'flex'} justifyContent='end' mt={1.5}>
                                     <Typography fontWeight={"bold"} variant="body2" mr={6}>Maintenance FEE:</Typography>
                                     <Typography variant="body2">
-                                        {ethers.utils.formatEther(maintenanceFee)} DAI
+                                        {formatDecimalNumber(+ethers.utils.formatEther(maintenanceFee), 2)} DAI
                                     </Typography>
                                 </Box>
 
@@ -360,10 +349,10 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 </Grid>
                                 <Grid item>
                                     <Typography variant="body2">
-                                        {(() => { 
+                                        {(() => {
                                             const formattedAmount = ethers.utils.formatEther(charityTax)
                                             const price = formatDecimalNumber(+formattedAmount * defoPrice, 2)
-                                            return <>{`${formattedAmount} DEFO ($${price})`}</>
+                                            return <>{`${formatDecimalNumber(+formattedAmount, 3)} DEFO ($${price})`}</>
                                         })()}
                                     </Typography>
                                 </Grid>
@@ -376,9 +365,9 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 <Grid item>
                                     <Typography variant="body2" ml={0.2}>
                                         {(() => {
-                                            const formattedAmount = formatDecimalNumber(+ethers.utils.formatEther(tierTax), 2)
+                                            const formattedAmount = ethers.utils.formatEther(tierTax)
                                             const price = formatDecimalNumber(+formattedAmount * defoPrice, 2)
-                                            return <>{`${formattedAmount} DEFO ($${price})`}</>
+                                            return <>{`${formatDecimalNumber(+formattedAmount, 3)} DEFO ($${price})`}</>
                                         })()}
                                     </Typography>
                                 </Grid>
@@ -393,7 +382,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                         {(() => {
                                             const formattedAmount = ethers.utils.formatEther(claimableAmount)
                                             const price = formatDecimalNumber(+formattedAmount * defoPrice, 2)
-                                            return <>{`${formattedAmount} DEFO ($${price})`}</>
+                                            return <>{`${formatDecimalNumber(+formattedAmount, 3)} DEFO ($${price})`}</>
                                         })()}
                                     </Typography>
                                 </Grid>

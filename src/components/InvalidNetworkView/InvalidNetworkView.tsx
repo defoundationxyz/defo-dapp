@@ -19,6 +19,7 @@ export const InvalidNetworkView = ({ }: {}) => {
                 <Button
                     onClick={() => handleSwitchNetwork(SUPPORTED_NETWORKS.hardhat.chainId)}
                     variant="contained"
+                    disabled
                     sx={{
                         margin: 1,
                         padding: 2,
@@ -26,7 +27,7 @@ export const InvalidNetworkView = ({ }: {}) => {
                         minWidth:"300px"
                     }}
                 >
-                    Switch To HARDHAT
+                    Switch To Avalanche
                 </Button>
 
                 <Button

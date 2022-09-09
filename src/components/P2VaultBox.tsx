@@ -25,13 +25,23 @@ const P2VaultBox = () => {
     const { diamondContract } = useDiamondContext()
     const snackbar = useSnackbar()
 
-    const { stake, updateStake, updateDonations, defoPrice } = useStatsContext()
+    const {
+        stake, updateStake,
+        updateDonations,
+        defoPrice, updateDefoPrice
+    } = useStatsContext()
     const { gemsCollection, updateGemsCollection } = useGemsContext()
 
     useEffect(() => {
+        const load = async () => {
+            // await updateDefoPrice()
+            console.log('DEFO PRICE: ', defoPrice);
+            const filteredGems = gemsCollection.filter((gem: Gem) => !gem.staked.isZero())
+            setVaultGems(filteredGems)    
+        }
+
         if (gemsCollection.length === 0) { return; }
-        const filteredGems = gemsCollection.filter((gem: Gem) => !gem.staked.isZero())
-        setVaultGems(filteredGems)
+        load()
     }, [gemsCollection])
 
     const withdraw = async (gem: Gem) => {
@@ -53,7 +63,7 @@ const P2VaultBox = () => {
     const columns = useMemo((): GridColDef[] => {
         return [
             {
-                flex: 1,
+                flex: 0.5,
                 field: 'name',
                 headerName: 'Gem Type',
                 renderCell: (params) => {

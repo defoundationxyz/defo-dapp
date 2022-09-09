@@ -117,7 +117,6 @@ const Home: NextPage = () => {
 					const gem: Gem = params.row;
 					const amount = formatDecimalNumber(+ethers.utils.formatEther(gem.rewardAmount), 3)
 					return `${amount} DEFO` 
-					// return (ethers.utils.formatEther(gem.rewardAmount) || 0).toString() + ' DEFO'
 				}
 			},
 			{
@@ -244,7 +243,7 @@ const Home: NextPage = () => {
 																	md: theme.spacing(2, 4)
 																},
 															}}>
-															<Typography variant="body2">PENDING REWARDS</Typography>
+															<Typography variant="body2">PENDING DEFO REWARDS</Typography>
 															<Box display={"flex"} alignItems="center">
 																{(() => {
 																	const rewardAmount = +ethers.utils.formatEther(
@@ -257,7 +256,7 @@ const Home: NextPage = () => {
 																	return (
 																		<>
 																			<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-																				{formatDecimalNumber(rewardAmount, 3)} DEFO
+																				{formatDecimalNumber(rewardAmount, 3)} 
 																			</Typography>
 																			<Typography ml={1} variant="h6">
 																				(${price})
