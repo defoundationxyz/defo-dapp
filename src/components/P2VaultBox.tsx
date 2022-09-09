@@ -17,7 +17,7 @@ import { formatDecimalNumber } from "shared/utils/format"
 
 const P2VaultBox = () => {
     const theme = useTheme()
-    const { status, isWeb3Enabled } = useWeb3()
+    const { isWeb3Enabled } = useWeb3()
     const { chainId } = useChain()
 
     const [vaultGems, setVaultGems] = useState<Gem[]>([])
@@ -28,14 +28,12 @@ const P2VaultBox = () => {
     const {
         stake, updateStake,
         updateDonations,
-        defoPrice, updateDefoPrice
+        defoPrice
     } = useStatsContext()
     const { gemsCollection, updateGemsCollection } = useGemsContext()
 
     useEffect(() => {
         const load = async () => {
-            // await updateDefoPrice()
-            console.log('DEFO PRICE: ', defoPrice);
             const filteredGems = gemsCollection.filter((gem: Gem) => !gem.staked.isZero())
             setVaultGems(filteredGems)    
         }
@@ -45,8 +43,6 @@ const P2VaultBox = () => {
     }, [gemsCollection])
 
     const withdraw = async (gem: Gem) => {
-        const stakedAmount = await diamondContract.getStaked(gem.id)
-
         try {
             const tx = await diamondContract.unStakeReward(gem.id, gem.staked);
             snackbar.execute("Withdrawing from the vault on progress, please wait.", "info")

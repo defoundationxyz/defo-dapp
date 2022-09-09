@@ -37,7 +37,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
             await tx.wait()
             await updateDonations()
             await updateGemsCollection()
-            closeModal()
+            // closeModal()
         } catch (error: any) {
             console.log('ERROR while paying the fee');
             snackbar.execute(error?.data?.message || error?.message || error?.error?.message || error?.reason || "ERROR", "error")
