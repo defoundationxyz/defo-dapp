@@ -128,7 +128,6 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
 
         const [reservesDefo, reservesDai] = await pairContract.getReserves();
         const priceDefo: any = reservesDai / reservesDefo;
-        console.log('priceDefo: ', priceDefo);
         setDefoPrice(priceDefo)
     }
 

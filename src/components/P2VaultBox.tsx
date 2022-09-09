@@ -17,7 +17,7 @@ import { formatDecimalNumber } from "shared/utils/format"
 
 const P2VaultBox = () => {
     const theme = useTheme()
-    const { status, isWeb3Enabled } = useWeb3()
+    const { isWeb3Enabled } = useWeb3()
     const { chainId } = useChain()
 
     const [vaultGems, setVaultGems] = useState<Gem[]>([])
@@ -25,18 +25,24 @@ const P2VaultBox = () => {
     const { diamondContract } = useDiamondContext()
     const snackbar = useSnackbar()
 
-    const { stake, updateStake, updateDonations, defoPrice } = useStatsContext()
+    const {
+        stake, updateStake,
+        updateDonations,
+        defoPrice
+    } = useStatsContext()
     const { gemsCollection, updateGemsCollection } = useGemsContext()
 
     useEffect(() => {
+        const load = async () => {
+            const filteredGems = gemsCollection.filter((gem: Gem) => !gem.staked.isZero())
+            setVaultGems(filteredGems)    
+        }
+
         if (gemsCollection.length === 0) { return; }
-        const filteredGems = gemsCollection.filter((gem: Gem) => !gem.staked.isZero())
-        setVaultGems(filteredGems)
+        load()
     }, [gemsCollection])
 
     const withdraw = async (gem: Gem) => {
-        const stakedAmount = await diamondContract.getStaked(gem.id)
-
         try {
             const tx = await diamondContract.unStakeReward(gem.id, gem.staked);
             snackbar.execute("Withdrawing from the vault on progress, please wait.", "info")
@@ -53,7 +59,7 @@ const P2VaultBox = () => {
     const columns = useMemo((): GridColDef[] => {
         return [
             {
-                flex: 1,
+                flex: 0.5,
                 field: 'name',
                 headerName: 'Gem Type',
                 renderCell: (params) => {
