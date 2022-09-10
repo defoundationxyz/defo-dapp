@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import { useWeb3Contract } from "react-moralis";
 import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes";
 import { GemTypeMetadata } from "shared/utils/constants";
-import { getNextTier } from "shared/utils/helper";
+import { getNextTier, getNextTier2 } from "shared/utils/helper";
 import { useDiamondContext } from "../DiamondContext/DiamondContextProvider";
 import { useWeb3 } from "../Web3/Web3Provider";
 import GemContext from "./GemContext";
@@ -73,6 +73,8 @@ const GemContextProvider = ({ children }: { children: any }) => {
     const updateGemsConfig = async () => {
         try {
             const gemsConfig = await diamondContract.getGemTypesConfig()
+            // console.log('gemsConfig: ', gemsConfig);
+
             let gem0Config: GemTypeConfig = gemsConfig[0]
             let gem1Config: GemTypeConfig = gemsConfig[1]
             let gem2Config: GemTypeConfig = gemsConfig[2]
@@ -114,7 +116,10 @@ const GemContextProvider = ({ children }: { children: any }) => {
                 const isClaimable = await diamondContract.isClaimable(gemId)
                 const staked = await diamondContract.getStaked(gemId)
 
-                const nextTier = await getNextTier(provider, gemData.lastMaintenanceTime, gemData.mintTime);
+                let nextTier: any = "";
+                if(taxTier < 4) { 
+                    nextTier = await getNextTier2(provider, gemData.lastRewardWithdrawalTime);
+                }
 
                 const newGem: Gem = {
                     id: gemId.toString(),

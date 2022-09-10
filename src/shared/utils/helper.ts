@@ -15,37 +15,58 @@ export const getNextTier = async (provider: any, lastMaintenanceTimestamp: any, 
 	const mintDate = moment(mintTimestamp, "X");
 	const endOfMaintenanceDate = mintDate.clone().add(1, 'month')
 
-	// console.log('endOfMaintenanceDate: ', endOfMaintenanceDate.format("MMM DD YYYY HH:mm"));
-
 	const currBlock = await getCurrentBlock(provider);
 	const todayDate = moment.unix(currBlock.timestamp)
 
-	// const today_mint_diff = todayDate.diff(mintDate, "day")
-	// console.log('today_mint_diff: ', today_mint_diff);
-	if(todayDate.diff(mintDate, "day") < 7) { 
-		// console.log('In first week...');
+	if (todayDate.diff(mintDate, "day") < 7) {
 		return null
 	}
 
 	let nextTierDate = lastMaintenanceDate.clone();
-	let iterations = 0
-
-	// console.log('mint date: ', mintDate.format("MMM DD YYYY HH:mm"));
-	// console.log('todayDate: ', todayDate.format("MMM DD YYYY HH:mm"));
 
 	while (nextTierDate.isBefore(todayDate)) {
-		// console.log('Adding 1 week...');
 		nextTierDate.add(1, 'week')
-		iterations++;
 	}
-	// console.log('nextTierDate: ', nextTierDate.format("MMM DD YYYY HH:mm"));
 
-	if (endOfMaintenanceDate.isBefore(nextTierDate)) {
-		return null
-	}
+	if (endOfMaintenanceDate.isBefore(nextTierDate)) return null
 
 	const leftDays = nextTierDate.diff(todayDate, 'day')
 	return leftDays + 1;
+}
+
+// lastRewardWithdrawalTime
+
+export const getNextTier2 = async (provider: any, lastRewardWithdrawalTime: any) => {
+	const startTierDate = moment(lastRewardWithdrawalTime, 'X');
+
+	const currBlock = await getCurrentBlock(provider);
+	const todayDate = moment.unix(currBlock.timestamp)
+
+	// console.log('startTierCountDate: ', startTierDate.format("MMM DD YYYY"));
+	// console.log('todayDate: ', todayDate.format("MMM DD YYYY"));
+
+	if (todayDate.diff(startTierDate, "month") >= 1) {
+		// console.log('No Tax tier - after');
+		return null;
+	}
+
+	let nextTierDate = startTierDate.clone();
+	while (nextTierDate.isSameOrBefore(todayDate)) {
+		nextTierDate.add(1, 'week')
+	}
+	// console.log('nextTierDate: ', nextTierDate.format("MMM DD YYYY"));
+
+	const leftDays = nextTierDate.diff(todayDate, 'day')
+	const leftHours = nextTierDate.diff(todayDate, 'hours')
+	if (leftDays === 1) {
+		return `${leftDays} day left`
+	} else if (leftDays > 1) {
+		return `${leftDays} days left`
+	} else {
+		return leftHours === 1 ? `${leftHours} hour left` : `${leftHours} hours left`
+	}
+	// return leftDays >= 1 ? `${leftDays} days left` : `${leftHours} hours left`
+	// return leftDays === 7 ? 7 : leftDays + 1;
 }
 
 const getCurrentBlock = async (provider: any) => {

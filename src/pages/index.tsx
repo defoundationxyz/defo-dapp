@@ -116,7 +116,7 @@ const Home: NextPage = () => {
 				renderCell: (params) => {
 					const gem: Gem = params.row;
 					const amount = formatDecimalNumber(+ethers.utils.formatEther(gem.rewardAmount), 3)
-					return `${amount} DEFO` 
+					return `${amount} DEFO`
 				}
 			},
 			{
@@ -136,7 +136,7 @@ const Home: NextPage = () => {
 				headerName: 'Next Tier',
 				renderCell: (params) => {
 					const gem: Gem = params.row;
-					return !gem.nextTierDaysLeft ? "" : (gem.nextTierDaysLeft === 1 ? `${gem.nextTierDaysLeft} day left` : `${gem.nextTierDaysLeft} days left`);
+					return gem.nextTierDaysLeft;
 				}
 			},
 			{
@@ -145,7 +145,7 @@ const Home: NextPage = () => {
 				headerName: 'Maint. fee until', // Fees due in
 				renderCell: (params) => {
 					const gem: Gem = params.row;
-					return <Typography variant='body2'>{moment(gem.mintTime, "X").add(30, 'days').format("MMM DD YYYY HH:mm")}</Typography>
+					return <Typography variant='body2'>{moment(gem.lastMaintenanceTime, "X").add(1, 'month').format("MMM DD YYYY HH:mm")}</Typography>
 				}
 			},
 			{
@@ -256,11 +256,11 @@ const Home: NextPage = () => {
 																	return (
 																		<>
 																			<Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
-																				{formatDecimalNumber(rewardAmount, 3)} 
+																				{formatDecimalNumber(rewardAmount, 3)}
 																			</Typography>
 																			<Typography ml={1} variant="h6">
 																				(${price})
-																		</Typography>
+																			</Typography>
 																		</>
 																	)
 																})()}

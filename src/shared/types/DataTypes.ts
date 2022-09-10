@@ -34,7 +34,7 @@ interface Gem {
     rewardAmount: BigNumber;
     isClaimable: boolean;
     staked: BigNumber;
-    nextTierDaysLeft: number | null; // null if next tier date is beyond maintenance fee until
+    nextTierDaysLeft: number | string | null; // null if next tier date is beyond maintenance fee until
     fi?: any;
 }
 
