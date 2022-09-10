@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers'
-import Dai_ABI from 'abi/DAI.json'
-
+import DAI_ABI from 'abi/DAI.json'
+import DEFO_ABI from 'abi/DEFO.json'
 import ConfigFacet from 'abi/facets/ConfigFacet.json'
 import LimiterFacet from 'abi/facets/LimiterFacet.json'
 import MaintenanceFacet from 'abi/facets/MaintenanceFacet.json'
@@ -65,11 +65,11 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
         },
         deployments: {
             dai: {
-                abi: Dai_ABI,
+                abi: DAI_ABI,
                 address: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70"
             },
             defo: {
-                abi: Dai_ABI,
+                abi: DAI_ABI,
                 address: ""
             },
             diamond: {
@@ -90,11 +90,11 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
         },
         deployments: {
             dai: {
-                abi: Dai_ABI,
+                abi: DAI_ABI,
                 address: "0x3362FE2f7E17A5a9F90DaBE12E4A6E16E146F19a"
             },
             defo: {
-                abi: Dai_ABI,
+                abi: DEFO_ABI,
                 address: "0xA9D3adb2B5c7d89c56d74584E98ABcea1E4e6a4D"
             },
             diamond: {
@@ -127,11 +127,11 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
         },
         deployments: {
             dai: {
-                abi: Dai_ABI,
+                abi: DAI_ABI,
                 address: "0xd586e7f844cea2f87f50152665bcbc2c279d8d70"
             },
             defo: {
-                abi: Dai_ABI,
+                abi: DEFO_ABI,
                 address: "0xEFac7869B91F3dc100340a61dfE77839B89ba86D"
             },
             diamond: {
