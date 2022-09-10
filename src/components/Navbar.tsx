@@ -1,15 +1,35 @@
 import { AppBar, Box, Button, Container, Grid, Toolbar, Typography, useTheme } from "@mui/material"
 import { useWeb3 } from "shared/context/Web3/Web3Provider"
 import Link from "next/link"
+import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextProvider"
+import { Contract, ethers } from "ethers"
+import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
+import { SUPPORTED_NETWORKS } from "shared/utils/constants"
 
 const Navbar = () => {
-
     const theme = useTheme()
 
-    const { connectWeb3, account, isWeb3Enabled } = useWeb3()
+    const snackbar = useSnackbar()
+    const { connectWeb3, account, isWeb3Enabled, signer, chainId } = useWeb3()
+    const { config } = useDiamondContext()
+
 
     const handleConnect = async () => {
         await connectWeb3()
+    }
+
+    const handleMintDai = async () => {
+        const daiInstance = new Contract(config.deployments.dai.address, config.deployments.dai.abi, signer)
+
+        try {
+            const tx = await daiInstance.mint(account, ethers.utils.parseEther("1000"))
+            snackbar.execute("Minting DAI", "info")
+            await tx.wait()
+            snackbar.execute("Minted successfully", "success")
+        } catch (error) {
+            console.log('Error while minting DAI');
+            console.log(error);
+        }
     }
 
     return (
@@ -68,33 +88,55 @@ const Navbar = () => {
                         justifyContent="space-between"
                         alignItems={"center"}
                     >
-                        <Grid item>
-                            <Link
-                                href={"https://traderjoexyz.com/trade?outputCurrency=0xd586E7F844cEa2F87f50152665BCbc2C279D8d70#/"}
-                            >
-                                <a target={"_blank"}>
-                                    <Typography fontWeight={"500"}>Buy DAI</Typography>
-                                </a>
-                            </Link>
-                        </Grid>
-                        <Grid item>
-                            <Link
-                                href={"https://traderjoexyz.com/trade?outputCurrency=0xd586E7F844cEa2F87f50152665BCbc2C279D8d70#/"}
-                            >
-                                <a target={"_blank"}>
-                                    <Typography fontWeight={"500"}>Buy DEFO</Typography>
-                                </a>
-                            </Link>
-                        </Grid>
-                        <Grid item>
-                            <Link
-                                href={"https://traderjoexyz.com/trade?outputCurrency=0xd586E7F844cEa2F87f50152665BCbc2C279D8d70#/"}
-                            >
-                                <a target={"_blank"}>
-                                    <Typography fontWeight={"500"}>DEFO Chart</Typography>
-                                </a>
-                            </Link>
-                        </Grid>
+                        {chainId === SUPPORTED_NETWORKS.fuji_testnet.chainId ?
+                            <>
+                                <Grid item>
+                                    <a onClick={handleMintDai} target={"_blank"} style={{ cursor: 'pointer' }}>
+                                        <Typography fontWeight={"500"}>Mint DAI</Typography>
+                                    </a>
+                                </Grid>
+                                <Grid item>
+                                    <Link
+                                        href={"https://testnet.snowtrace.io/address/0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901#writeContract"}
+                                    >
+                                        <a target={"_blank"}>
+                                            <Typography fontWeight={"500"}>Swap DEFO</Typography>
+                                        </a>
+                                    </Link>
+                                </Grid>
+                            </>
+                            :
+                            <>
+                                <Grid item>
+                                    <Link
+                                        href={"https://traderjoexyz.com/trade?outputCurrency=0xd586E7F844cEa2F87f50152665BCbc2C279D8d70#/"}
+                                    >
+                                        <a target={"_blank"}>
+                                            <Typography fontWeight={"500"}>Buy DAI</Typography>
+                                        </a>
+                                    </Link>
+                                </Grid>
+                                <Grid item>
+                                    <Link
+                                        href={"https://traderjoexyz.com/trade?outputCurrency=0xd586E7F844cEa2F87f50152665BCbc2C279D8d70#/"}
+                                    >
+                                        <a target={"_blank"}>
+                                            <Typography fontWeight={"500"}>Buy DEFO</Typography>
+                                        </a>
+                                    </Link>
+                                </Grid>
+                                <Grid item>
+                                    <Link
+                                        href={"https://traderjoexyz.com/trade?outputCurrency=0xd586E7F844cEa2F87f50152665BCbc2C279D8d70#/"}
+                                    >
+                                        <a target={"_blank"}>
+                                            <Typography fontWeight={"500"}>DEFO Chart</Typography>
+                                        </a>
+                                    </Link>
+                                </Grid>
+                            </>
+                        }
+
                     </Grid>
                     <Grid
                         item
