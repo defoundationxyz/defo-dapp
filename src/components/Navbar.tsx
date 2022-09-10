@@ -95,7 +95,7 @@ const Navbar = () => {
                                         <Typography fontWeight={"500"}>Mint DAI</Typography>
                                     </a>
                                 </Grid>
-                                <Grid item>
+                                {/* <Grid item>
                                     <Link
                                         href={"https://testnet.snowtrace.io/address/0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901#writeContract"}
                                     >
@@ -103,7 +103,7 @@ const Navbar = () => {
                                             <Typography fontWeight={"500"}>Swap DEFO</Typography>
                                         </a>
                                     </Link>
-                                </Grid>
+                                </Grid> */}
                             </>
                             :
                             <>
