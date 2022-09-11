@@ -1,7 +1,7 @@
 import { Box, Button, Container, Grid, Paper, Typography, useTheme } from '@mui/material'
 import type { NextPage } from 'next'
 import Footer from 'components/Footer'
-import { ACTIVE_NETOWORKS_COLLECTION, TAX_TIER_MAPPER } from "shared/utils/constants"
+import { ACTIVE_NETOWORKS_COLLECTION, TAX_TIERS } from "shared/utils/constants"
 import { BigNumber, ethers } from 'ethers'
 import { useEffect, useMemo, useState } from 'react'
 import Navbar from 'components/Navbar'
@@ -27,8 +27,7 @@ const Home: NextPage = () => {
 	const theme = useTheme()
 	const { Moralis } = useMoralis()
 
-	const { provider, isWeb3Enabled, account } = useWeb3()
-	const { chainId } = useChain()
+	const { provider, isWeb3Enabled, account, chainId } = useWeb3()
 	const { diamondContract } = useDiamondContext()
 	const { gemsCollection } = useGemsContext()
 	const { defoPrice, protocolConfig } = useStatsContext()
@@ -41,7 +40,7 @@ const Home: NextPage = () => {
 	}
 
 	const claimRewardsDisabled = () => {
-		const isActive = ((selectedRows.length !== 0 && chainId && ACTIVE_NETOWORKS_COLLECTION.includes(parseInt(chainId, 16))))
+		const isActive = ((selectedRows.length !== 0 && chainId && ACTIVE_NETOWORKS_COLLECTION.includes(chainId)))
 		const isClaimable = areSelectedGemsClaimable();
 
 		return !isActive || !isClaimable;
@@ -126,7 +125,7 @@ const Home: NextPage = () => {
 				renderCell: (params) => {
 					const gem: Gem = params.row;
 					return (
-						<Typography variant="body2">{TAX_TIER_MAPPER[gem.taxTier.toString()]}</Typography>
+						<Typography variant="body2">{TAX_TIERS[chainId][gem.taxTier.toString()]}</Typography>
 					)
 				}
 			},
@@ -189,7 +188,7 @@ const Home: NextPage = () => {
 			<Navbar />
 			{isWeb3Enabled ?
 				<>
-					{(chainId && ACTIVE_NETOWORKS_COLLECTION.includes(parseInt(chainId, 16))) ?
+					{(chainId && ACTIVE_NETOWORKS_COLLECTION.includes(chainId)) ?
 						<Container>
 							<Typography variant="h4" fontWeight={"bold"}>
 								Welcome Philanthropist!
