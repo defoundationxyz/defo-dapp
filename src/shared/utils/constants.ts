@@ -158,14 +158,8 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
 export const ACTIVE_NETWORK = SUPPORTED_NETWORKS.hardhat
 
 
-export const GEM_MINT_LIMIT_HOURS = 12;
 export const MIN_REWARD_TIME = (3600 * 24) * 7; // (seconds in a day) * count days
 
-export const NATIVE_CURRENCY = {
-    name: "AVAX",
-    symbol: "AVAX",
-    decimals: 18
-}
 
 export const TAX_TIER_MAPPER: any = {
     '0': "30%",
@@ -175,7 +169,6 @@ export const TAX_TIER_MAPPER: any = {
     '4': "0%"
 }
 
-// 43114: "https://api.avax.network/ext/bc/C/rpc",
 
 export type ConfigType = {
     chainName: string,
@@ -215,22 +208,6 @@ export type ConfigType = {
             }
         }
     }
-}
-
-export type GemType = {
-    id: string;
-    MintTime: number;
-    LastReward: number;
-    LastMaintained: number;
-    GemType: number;
-    TaperCount: number;
-    Booster: number;
-    claimedReward: BigNumber;
-    pendingReward: BigNumber;
-    vaultAmount?: BigNumber;
-    isEligableForClaim?: any,
-    taxTier: BigNumber,
-    nextTaxTier: BigNumber,
 }
 
 

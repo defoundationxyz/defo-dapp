@@ -12,7 +12,7 @@ import { formatDecimalNumber } from "shared/utils/format"
 
 
 export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows: any, isOpen: boolean, closeModal: () => void }) => {
-    const { gemsCollection, updateGemsCollection } = useGemsContext()
+    const { gemsCollection, gemsConfig, updateGemsCollection } = useGemsContext()
     const { diamondContract } = useDiamondContext()
     const {
         updateDonations, updateStake,
@@ -24,6 +24,9 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
     const theme = useTheme()
 
     const [selectedVaultStrategy, setSelectedVaultStrategy] = useState(20)
+
+    // console.log('gemsConfig: ', gemsConfig);
+    
 
     // CORE
     const handlePayFee = async (gemIds: string[]) => {
@@ -335,7 +338,9 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     <Typography fontWeight={"bold"} variant="body2" mr={6}>Maintenance FEE:</Typography>
                                     <Typography variant="body2">
                                         {formatDecimalNumber(+ethers.utils.formatEther(maintenanceFee), 2)} DAI
-                                    </Typography>
+                                        {/* { gemsConfig.maintenanceFeeDai } DAI */}
+                                    </
+                                    Typography>
                                 </Box>
 
                             </Box>

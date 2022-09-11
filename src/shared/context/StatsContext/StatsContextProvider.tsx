@@ -89,7 +89,7 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
         //     contractAddress: config.deployments.diamond.address
         // }
         // totalDonations = await runContractFunction({ params: { ...options, functionName: "getTotalDonatedAllUsers" }});
-        
+
         try {
             userDonations = await diamondContract.getTotalDonated();
             totalDonations = await diamondContract.getTotalDonatedAllUsers();
@@ -104,7 +104,12 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
     const updateProtocolConfig = async () => {
         try {
             const currentProtocolConfig = await diamondContract.getConfig()
-            setProtocolConfig(currentProtocolConfig)
+            const maintenancePeriodDays = Math.floor(currentProtocolConfig.maintenancePeriod / (3600 * 24)) 
+            console.log('maintenancePeriodDays: ', maintenancePeriodDays);
+            setProtocolConfig({
+                ...currentProtocolConfig,
+                maintenancePeriodDays
+            })
         } catch (error) {
             console.log('Error while fetching PROTOCOL CONFIG');
             // console.log(error);
@@ -115,9 +120,9 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
         if (!config.deployments) { return; }
         if (!config.deployments.dex || !config.deployments.dex.router.address || !config.deployments.dex.router.abi
             || !config.deployments.dex.factory.abi || !config.deployments.dex.pair.abi) {
-                console.error('No DEX config provided for this network');
-                setDefoPrice(5.723567756562) 
-                return
+            console.error('No DEX config provided for this network');
+            setDefoPrice(5.723567756562)
+            return
         }
         const dexRouterContract = new Contract(config.deployments.dex.router.address, config.deployments.dex.router.abi, signer);
         const factoryAddress = await dexRouterContract.factory();

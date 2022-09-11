@@ -31,7 +31,7 @@ const Home: NextPage = () => {
 	const { chainId } = useChain()
 	const { diamondContract } = useDiamondContext()
 	const { gemsCollection } = useGemsContext()
-	const { defoPrice } = useStatsContext()
+	const { defoPrice, protocolConfig } = useStatsContext()
 
 	const [selectedRows, setSelectedRows] = useState<string[]>([])
 	const [claimRewardsModalOpen, setClaimRewardsModalOpen] = useState(false)
@@ -145,7 +145,7 @@ const Home: NextPage = () => {
 				headerName: 'Maint. fee until', // Fees due in
 				renderCell: (params) => {
 					const gem: Gem = params.row;
-					return <Typography variant='body2'>{moment(gem.lastMaintenanceTime, "X").add(1, 'month').format("MMM DD YYYY HH:mm")}</Typography>
+					return <Typography variant='body2'>{gem.maintenanceFeeUntil.format("MMM DD YYYY HH:mm")}</Typography>
 				}
 			},
 			{

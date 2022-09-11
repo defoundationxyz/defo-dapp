@@ -1,9 +1,10 @@
 import { BigNumber } from "ethers";
+import moment from "moment";
 import { useContext, useEffect, useState } from "react";
 import { useWeb3Contract } from "react-moralis";
 import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes";
 import { GemTypeMetadata } from "shared/utils/constants";
-import { getNextTier, getNextTier2 } from "shared/utils/helper";
+import { getNextTier } from "shared/utils/helper";
 import { useDiamondContext } from "../DiamondContext/DiamondContextProvider";
 import { useWeb3 } from "../Web3/Web3Provider";
 import GemContext from "./GemContext";
@@ -106,7 +107,13 @@ const GemContextProvider = ({ children }: { children: any }) => {
         try {
             const gemsInfo: any = await runContractFunction({ params: options })
             // const gemsInfo = await diamondContract.getGemsInfo()
+            // console.log('protocolConfig: ', protocolConfig);
+            const protocolConfig = await diamondContract.getConfig()
+            const taxScaleSinceLastClaimPeriodDays = Math.floor(protocolConfig.taxScaleSinceLastClaimPeriod / (3600 * 24))
+            // const maintenancePeriodDays = Math.floor(protocolConfig.maintenancePeriod / (3600 * 24))
 
+            // console.log('protocolConfig: ', protocolConfig);
+            
             for (let i = 0; i < gemsInfo[0].length; i++) {
                 const gemId: BigNumber = gemsInfo[0][i]
                 const gemData = gemsInfo[1][i]
@@ -115,10 +122,11 @@ const GemContextProvider = ({ children }: { children: any }) => {
                 const rewardAmount = await diamondContract.getRewardAmount(gemId)
                 const isClaimable = await diamondContract.isClaimable(gemId)
                 const staked = await diamondContract.getStaked(gemId)
+                const maintenanceFeeUntil = moment(gemData.lastMaintenanceTime, "X").add(protocolConfig.maintenancePeriodDays, 'days')  
 
                 let nextTier: any = "";
                 if(taxTier < 4) { 
-                    nextTier = await getNextTier2(provider, gemData.lastRewardWithdrawalTime);
+                    nextTier = await getNextTier(provider, gemData.lastRewardWithdrawalTime, taxScaleSinceLastClaimPeriodDays);
                 }
 
                 const newGem: Gem = {
@@ -129,6 +137,7 @@ const GemContextProvider = ({ children }: { children: any }) => {
                     boostTime: gemData.boostTime,
                     lastRewardWithdrawalTime: gemData.lastRewardWithdrawalTime,
                     lastMaintenanceTime: gemData.lastMaintenanceTime,
+                    maintenanceFeeUntil, 
                     nextTierDaysLeft: nextTier,
                     pendingMaintenanceFee,
                     taxTier,
