@@ -10,33 +10,8 @@ export async function getIsEligableForClaim(diamondContract: any, provider: any,
 	return rewardPoints > MIN_REWARD_TIME;
 }
 
-export const getNextTier = async (provider: any, lastMaintenanceTimestamp: any, mintTimestamp: any) => {
-	const lastMaintenanceDate = moment(lastMaintenanceTimestamp, "X");
-	const mintDate = moment(mintTimestamp, "X");
-	const endOfMaintenanceDate = mintDate.clone().add(1, 'month')
 
-	const currBlock = await getCurrentBlock(provider);
-	const todayDate = moment.unix(currBlock.timestamp)
-
-	if (todayDate.diff(mintDate, "day") < 7) {
-		return null
-	}
-
-	let nextTierDate = lastMaintenanceDate.clone();
-
-	while (nextTierDate.isBefore(todayDate)) {
-		nextTierDate.add(1, 'week')
-	}
-
-	if (endOfMaintenanceDate.isBefore(nextTierDate)) return null
-
-	const leftDays = nextTierDate.diff(todayDate, 'day')
-	return leftDays + 1;
-}
-
-// lastRewardWithdrawalTime
-
-export const getNextTier2 = async (provider: any, lastRewardWithdrawalTime: any) => {
+export const getNextTier = async (provider: any, lastRewardWithdrawalTime: any, taxScaleSinceLastClaimPeriodDays: number) => {
 	const startTierDate = moment(lastRewardWithdrawalTime, 'X');
 
 	const currBlock = await getCurrentBlock(provider);
@@ -44,20 +19,23 @@ export const getNextTier2 = async (provider: any, lastRewardWithdrawalTime: any)
 
 	// console.log('startTierCountDate: ', startTierDate.format("MMM DD YYYY"));
 	// console.log('todayDate: ', todayDate.format("MMM DD YYYY"));
+	// console.log('taxScaleSinceLastClaimPeriodDays: ', taxScaleSinceLastClaimPeriodDays);
 
-	if (todayDate.diff(startTierDate, "month") >= 1) {
-		// console.log('No Tax tier - after');
+	// todayDate.diff(startTierDate, "month") >= 1
+	const hasNoTierTax = todayDate.diff(startTierDate, "days") >= taxScaleSinceLastClaimPeriodDays * 4
+	if (hasNoTierTax) {
 		return null;
 	}
 
 	let nextTierDate = startTierDate.clone();
 	while (nextTierDate.isSameOrBefore(todayDate)) {
-		nextTierDate.add(1, 'week')
+		nextTierDate.add(taxScaleSinceLastClaimPeriodDays, 'days') // taxScale
 	}
 	// console.log('nextTierDate: ', nextTierDate.format("MMM DD YYYY"));
 
 	const leftDays = nextTierDate.diff(todayDate, 'day')
 	const leftHours = nextTierDate.diff(todayDate, 'hours')
+	
 	if (leftDays === 1) {
 		return `${leftDays} day left`
 	} else if (leftDays > 1) {

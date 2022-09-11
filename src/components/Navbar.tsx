@@ -65,7 +65,7 @@ const Navbar = () => {
                                 alignItems: "center"
                             }}>
                             <a
-                                href="https://defoundation.xyz/"
+                                href="https://start.defo.app/"
                                 target={"_blank"}
                                 rel="noreferrer"
                             >

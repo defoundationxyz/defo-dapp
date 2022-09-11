@@ -14,10 +14,9 @@ import { useChain } from 'react-moralis'
 
 const YieldGems = () => {
     const gemsModalRef = useRef<any>();
-    const { status, isWeb3Enabled } = useWeb3()
+    const { isWeb3Enabled } = useWeb3()
     const { chainId } = useChain()
 
-    // index representing the GemType
     const [gemsCount, setGemsCount] = useState([0, 0, 0])
     const { diamondContract } = useDiamondContext()
 

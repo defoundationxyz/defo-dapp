@@ -29,6 +29,7 @@ interface Gem {
     boostTime: number;
     lastRewardWithdrawalTime: Date;
     lastMaintenanceTime: Date;
+    maintenanceFeeUntil: any;
     pendingMaintenanceFee: BigNumber;
     taxTier: number;
     rewardAmount: BigNumber;
