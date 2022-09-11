@@ -102,14 +102,14 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
                 address: "0xf0d26dD82f6beE798cB677ee17E5466d009193Eb"
             },
             dex: {
-                router: { 
+                router: {
                     abi: JoeRouterABI,
                     address: "0xd7f655E3376cE2D7A2b08fF01Eb3B1023191A901"
                 },
-                factory: { 
+                factory: {
                     abi: JoeFactoryABI
                 },
-                pair: { 
+                pair: {
                     abi: JoePairABI
                 }
             }
@@ -161,12 +161,21 @@ export const ACTIVE_NETWORK = SUPPORTED_NETWORKS.hardhat
 export const MIN_REWARD_TIME = (3600 * 24) * 7; // (seconds in a day) * count days
 
 
-export const TAX_TIER_MAPPER: any = {
-    '0': "30%",
-    '1': "30%",
-    '2': "30%",
-    '3': "15%",
-    '4': "0%"
+export const TAX_TIERS: any = {
+    43114: {
+        '0': "30%",
+        '1': "30%",
+        '2': "30%",
+        '3': "15%",
+        '4': "0%"
+    },
+    43113: {
+        '0': "30%",
+        '1': "20%",
+        '2': "15%",
+        '3': "10%",
+        '4': "0%"
+    }
 }
 
 
@@ -203,7 +212,7 @@ export type ConfigType = {
             factory: {
                 abi: any[],
             },
-            pair: { 
+            pair: {
                 abi: any[]
             }
         }
