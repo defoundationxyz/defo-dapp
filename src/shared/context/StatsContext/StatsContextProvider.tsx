@@ -105,7 +105,6 @@ const StatsContextProvider = ({ children }: { children: ReactChild }) => {
         try {
             const currentProtocolConfig = await diamondContract.getConfig()
             const maintenancePeriodDays = Math.floor(currentProtocolConfig.maintenancePeriod / (3600 * 24)) 
-            console.log('maintenancePeriodDays: ', maintenancePeriodDays);
             setProtocolConfig({
                 ...currentProtocolConfig,
                 maintenancePeriodDays
