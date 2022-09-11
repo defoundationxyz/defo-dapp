@@ -124,6 +124,9 @@ const Home: NextPage = () => {
 				headerName: 'Tax Tier',
 				renderCell: (params) => {
 					const gem: Gem = params.row;
+					if(!chainId) {
+						return <></>
+					}
 					return (
 						<Typography variant="body2">{TAX_TIERS[chainId][gem.taxTier.toString()]}</Typography>
 					)
@@ -176,7 +179,7 @@ const Home: NextPage = () => {
 				}
 			},
 		]
-	}, [])
+	}, [chainId])
 
 	return (
 		<Box height={"100%"}>
