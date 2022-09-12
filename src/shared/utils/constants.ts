@@ -179,6 +179,12 @@ export const TAX_TIERS: any = {
 }
 
 
+export const GEM_TYPE_NAMES: any = { 
+    0: "Sapphire",
+    1: "Ruby",
+    2: "Diamond"
+}
+
 export type ConfigType = {
     chainName: string,
     chainId: number,

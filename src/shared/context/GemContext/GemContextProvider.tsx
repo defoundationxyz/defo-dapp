@@ -1,10 +1,10 @@
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import moment from "moment";
 import { useContext, useEffect, useState } from "react";
 import { useWeb3Contract } from "react-moralis";
 import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes";
 import { GemTypeMetadata } from "shared/utils/constants";
-import { getNextTier } from "shared/utils/helper";
+import { getMaintenanceFeeDaiForGem, getNextTier } from "shared/utils/helper";
 import { useDiamondContext } from "../DiamondContext/DiamondContextProvider";
 import { useWeb3 } from "../Web3/Web3Provider";
 import GemContext from "./GemContext";
@@ -42,12 +42,20 @@ const GemContextProvider = ({ children }: { children: any }) => {
     useEffect(() => {
         const load = async () => {
             if (isWeb3Enabled && diamondContract) {
-                await updateGemsCollection();
                 await updateGemsConfig();
             }
         }
         load()
-    }, [account, signer, provider, diamondContract])
+    }, [account, signer, provider, diamondContract,])
+
+    useEffect(() => {
+        const load = async () => {
+            if (isWeb3Enabled && diamondContract && !gemsConfig.gem0.maintenanceFeeDai.isZero()) {
+                await updateGemsCollection();
+            }
+        }
+        load()
+    }, [account, signer, provider, diamondContract, gemsConfig])
 
 
     const fetchGemMetadata = async (gemType: 0 | 1 | 2) => {
@@ -74,7 +82,6 @@ const GemContextProvider = ({ children }: { children: any }) => {
     const updateGemsConfig = async () => {
         try {
             const gemsConfig = await diamondContract.getGemTypesConfig()
-            // console.log('gemsConfig: ', gemsConfig);
 
             let gem0Config: GemTypeConfig = gemsConfig[0]
             let gem1Config: GemTypeConfig = gemsConfig[1]
@@ -106,11 +113,13 @@ const GemContextProvider = ({ children }: { children: any }) => {
 
         try {
             const gemsInfo: any = await runContractFunction({ params: options })
+            // console.log('gemsConfig: ', gemsConfig.gem0);
+
             // const gemsInfo = await diamondContract.getGemsInfo()
             const protocolConfig = await diamondContract.getConfig()
             const taxScaleSinceLastClaimPeriodDays = Math.floor(protocolConfig.taxScaleSinceLastClaimPeriod / (3600 * 24))
             const maintenancePeriodDays = Math.floor(protocolConfig.maintenancePeriod / (3600 * 24))
-            
+
             for (let i = 0; i < gemsInfo[0].length; i++) {
                 const gemId: BigNumber = gemsInfo[0][i]
                 const gemData = gemsInfo[1][i]
@@ -119,10 +128,11 @@ const GemContextProvider = ({ children }: { children: any }) => {
                 const rewardAmount = await diamondContract.getRewardAmount(gemId)
                 const isClaimable = await diamondContract.isClaimable(gemId)
                 const staked = await diamondContract.getStaked(gemId)
-                const maintenanceFeeUntil = moment(gemData.lastMaintenanceTime, "X").add(maintenancePeriodDays, 'days')  
+                const maintenanceFeeUntil = moment(gemData.lastMaintenanceTime, "X").add(maintenancePeriodDays, 'days')
+                const gemMaintenanceFeeDai = getMaintenanceFeeDaiForGem(gemsConfig, gemData.gemTypeId)
 
                 let nextTier: any = "";
-                if(taxTier < 4) { 
+                if (taxTier < 4) {
                     nextTier = await getNextTier(provider, gemData.lastRewardWithdrawalTime, taxScaleSinceLastClaimPeriodDays);
                 }
 
@@ -134,7 +144,8 @@ const GemContextProvider = ({ children }: { children: any }) => {
                     boostTime: gemData.boostTime,
                     lastRewardWithdrawalTime: gemData.lastRewardWithdrawalTime,
                     lastMaintenanceTime: gemData.lastMaintenanceTime,
-                    maintenanceFeeUntil, 
+                    maintenanceFeeUntil,
+                    gemMaintenanceFeeDai,
                     nextTierDaysLeft: nextTier,
                     pendingMaintenanceFee,
                     taxTier,

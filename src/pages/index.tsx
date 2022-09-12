@@ -27,7 +27,7 @@ const Home: NextPage = () => {
 	const theme = useTheme()
 	const { Moralis } = useMoralis()
 
-	const { provider, isWeb3Enabled, account, chainId } = useWeb3()
+	const { isWeb3Enabled, account, chainId } = useWeb3()
 	const { diamondContract } = useDiamondContext()
 	const { gemsCollection } = useGemsContext()
 	const { defoPrice, protocolConfig } = useStatsContext()
@@ -80,7 +80,6 @@ const Home: NextPage = () => {
 		})
 	}
 
-
 	const columns = useMemo((): GridColDef[] => {
 		return [
 			{
@@ -124,7 +123,7 @@ const Home: NextPage = () => {
 				headerName: 'Tax Tier',
 				renderCell: (params) => {
 					const gem: Gem = params.row;
-					if(!chainId) {
+					if (!chainId) {
 						return <></>
 					}
 					return (
@@ -147,7 +146,14 @@ const Home: NextPage = () => {
 				headerName: 'Maint. fee until', // Fees due in
 				renderCell: (params) => {
 					const gem: Gem = params.row;
-					return <Typography variant='body2'>{gem.maintenanceFeeUntil.format("MMM DD YYYY HH:mm")}</Typography>
+					const todayDate = moment()
+					const isExpired = gem.maintenanceFeeUntil.isBefore(todayDate)
+					return <Typography
+						variant='body2'
+						style={{ color: isExpired ? 'red': ''}}
+					>
+						{gem.maintenanceFeeUntil.format("MMM DD YYYY HH:mm")}
+					</Typography>
 				}
 			},
 			{

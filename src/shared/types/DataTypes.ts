@@ -31,6 +31,7 @@ interface Gem {
     lastMaintenanceTime: Date;
     maintenanceFeeUntil: any;
     pendingMaintenanceFee: BigNumber;
+    gemMaintenanceFeeDai: BigNumber;
     taxTier: number;
     rewardAmount: BigNumber;
     isClaimable: boolean;
