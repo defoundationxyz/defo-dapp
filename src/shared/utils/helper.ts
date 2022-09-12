@@ -1,4 +1,6 @@
+import { BigNumber } from "ethers";
 import moment from "moment";
+import { GemsConfigState, GemTypeConfig } from "shared/types/DataTypes";
 import { MIN_REWARD_TIME } from "./constants";
 
 export async function getIsEligableForClaim(diamondContract: any, provider: any, gemId: number) {
@@ -47,6 +49,24 @@ export const getNextTier = async (provider: any, lastRewardWithdrawalTime: any, 
 	// return leftDays === 7 ? 7 : leftDays + 1;
 }
 
-const getCurrentBlock = async (provider: any) => {
+export const getMaintenanceFeeDaiForGem = (gemsConfig: GemsConfigState, gemTypeId: 0 | 1 | 2, ) => {
+	// console.log('config: ', gemsConfig);
+	// console.log('gemTypeId: ', gemTypeId);
+	let currentGemConfig: GemTypeConfig;
+	if(gemTypeId === 0) {
+		currentGemConfig = gemsConfig.gem0;
+	} else if(gemTypeId === 1) { 
+		currentGemConfig = gemsConfig.gem1;
+	} else if(gemTypeId === 2) { 
+		currentGemConfig = gemsConfig.gem2;
+	} else { 
+		return BigNumber.from(0)
+	}
+	
+	// TODO: CHECK IF GEM IS BOOSTED => reduce the fee
+	return currentGemConfig.maintenanceFeeDai
+}
+
+export const getCurrentBlock = async (provider: any) => {
 	return await provider.getBlock("latest");
 }

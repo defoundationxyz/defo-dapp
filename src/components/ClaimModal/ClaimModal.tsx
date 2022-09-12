@@ -8,11 +8,12 @@ import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
 import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
 import { Gem } from "shared/types/DataTypes"
+import { GEM_TYPE_NAMES } from "shared/utils/constants"
 import { formatDecimalNumber } from "shared/utils/format"
 
 
 export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows: any, isOpen: boolean, closeModal: () => void }) => {
-    const { gemsCollection, gemsConfig, updateGemsCollection } = useGemsContext()
+    const { gemsCollection, updateGemsCollection } = useGemsContext()
     const { diamondContract } = useDiamondContext()
     const {
         updateDonations, updateStake,
@@ -25,8 +26,6 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
 
     const [selectedVaultStrategy, setSelectedVaultStrategy] = useState(20)
 
-    // console.log('gemsConfig: ', gemsConfig);
-    
 
     // CORE
     const handlePayFee = async (gemIds: string[]) => {
@@ -167,9 +166,9 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                     n: BigNumber,
                     { rewardAmount, taxTier }: Gem
                 ) => {
-                    if (taxTier === 0) {
-                        return n.add(BigNumber.from(0))
-                    }
+                    // if (taxTier === 0) {
+                    //     return n.add(BigNumber.from(0))
+                    // }
                     const taxTierPercentage = +(protocolConfig.taxRates[taxTier].toString()) / 100
                     const calculatedAmount = rewardAmount.div(100).mul(taxTierPercentage)
                     return n.add(calculatedAmount)
@@ -178,7 +177,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
             )
     }, [gemsCollection, selectedRows])
 
-    const maintenanceFee = useMemo(() => {
+    const pendingMaintenanceFee = useMemo(() => {
         return gemsCollection
             .filter((gem: Gem) => selectedRows.includes(gem.id))
             .reduce(
@@ -190,9 +189,53 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
             )
     }, [gemsCollection, selectedRows])
 
+    const maintenanceFee = useMemo(() => {
+        return gemsCollection
+            .filter((gem: Gem) => selectedRows.includes(gem.id))
+            .reduce(
+                (
+                    n: BigNumber,
+                    { gemMaintenanceFeeDai }: Gem
+                ) => gemMaintenanceFeeDai.add(n),
+                BigNumber.from(0)
+            )
+    }, [gemsCollection, selectedRows])
+
     const claimableAmount = useMemo(() => {
         return pendingRewards.sub(tierTax.add(charityTax))
     }, [gemsCollection, selectedRows])
+
+    const displayMaintFeeForGems = () => {
+        const selectedGems = gemsCollection.filter((gem: Gem) => selectedRows.includes(gem.id))
+
+        return (
+            <Box>
+                {selectedGems.map((gem: Gem) => {
+                    const boosterText = gem.booster === 1 ? "Delta" : gem.booster === 2 ? "Omega" : "";
+                    return (
+                        <Box key={gem.id} display="flex" justifyContent={"space-between"}>
+                            <Typography variant="body2" mr={2} mb={0.5}>
+                                {`${boosterText} ${GEM_TYPE_NAMES[gem.gemTypeId]}`}
+                                :
+                            </Typography>
+                            <Typography variant="body2">
+                                {formatDecimalNumber(+ethers.utils.formatEther(gem.gemMaintenanceFeeDai), 2)} DAI
+                            </Typography>
+                        </Box>
+                    )
+                })}
+                <Box display="flex" justifyContent={"space-between"} mt={1}>
+                    <Typography variant="body1" fontWeight={"bold"}>
+                        TOTAL:
+                    </Typography>
+
+                    <Typography variant="body1" fontWeight={"bold"}>
+                        {formatDecimalNumber(+ethers.utils.formatEther(maintenanceFee), 2)} DAI
+                    </Typography>
+                </Box>
+            </Box>
+        )
+    }
 
     return (
         <Modal
@@ -275,7 +318,6 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 </Grid>
                             </Grid>
                         </Grid>
-
                         <Grid item xs={12} md={5.5}>
                             <Box sx={{ textAlign: 'end' }}>
                                 <Tooltip title="All pending rewards will be claimed to your wallet after taxes are deducted.">
@@ -335,13 +377,19 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     Pay Maintenance fee
                                 </Button>
                                 <Box display={'flex'} justifyContent='end' mt={1.5}>
-                                    <Typography fontWeight={"bold"} variant="body2" mr={6}>Maintenance FEE:</Typography>
-                                    <Typography variant="body2">
-                                        {formatDecimalNumber(+ethers.utils.formatEther(maintenanceFee), 2)} DAI
-                                        {/* { gemsConfig.maintenanceFeeDai } DAI */}
-                                    </
-                                    Typography>
+
+                                    {selectedRows.length > 1 ? displayMaintFeeForGems()
+                                        :
+                                        <>
+                                            <Typography fontWeight={"bold"} variant="body2" mr={6}>Maintenance FEE:</Typography>
+                                            <Typography variant="body2">
+                                                {formatDecimalNumber(+ethers.utils.formatEther(maintenanceFee), 2)} DAI
+                                            </Typography>
+                                        </>
+                                    }
                                 </Box>
+                            </Box>
+                            <Box>
 
                             </Box>
                         </Grid>
