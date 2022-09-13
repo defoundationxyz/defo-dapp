@@ -212,9 +212,10 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
             <Box>
                 {selectedGems.map((gem: Gem) => {
                     const boosterText = gem.booster === 1 ? "Delta" : gem.booster === 2 ? "Omega" : "";
+                    const isGemFeePaid = gem.pendingMaintenanceFee.isZero()
                     return (
                         <Box key={gem.id} display="flex" justifyContent={"space-between"}>
-                            <Typography variant="body2" mr={2} mb={0.5}>
+                            <Typography variant="body2" mr={2} mb={0.5} sx={{ color: isGemFeePaid ? '#2EBE73' : 'red' }}>
                                 {`${boosterText} ${GEM_TYPE_NAMES[gem.gemTypeId]}`}
                                 :
                             </Typography>
@@ -224,14 +225,23 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                         </Box>
                     )
                 })}
-                <Box display="flex" justifyContent={"space-between"} mt={1}>
-                    <Typography variant="body1" fontWeight={"bold"}>
-                        TOTAL:
-                    </Typography>
-
-                    <Typography variant="body1" fontWeight={"bold"}>
-                        {formatDecimalNumber(+ethers.utils.formatEther(maintenanceFee), 2)} DAI
-                    </Typography>
+                <Box mt={1}>
+                    <Box display="flex" justifyContent={"space-between"}>
+                        {/* <Typography variant="body1" fontWeight={"bold"} mr={1}>
+                            Due now:
+                        </Typography>
+                        <Typography variant="body1" fontWeight={"bold"}>
+                            0.00 DAI
+                        </Typography> */}
+                    </Box>
+                    <Box display="flex" justifyContent={"space-between"}>
+                        <Typography variant="body1" fontWeight={"bold"} mr={1}>
+                            Total:
+                        </Typography>
+                        <Typography variant="body1" fontWeight={"bold"}>
+                            {formatDecimalNumber(+ethers.utils.formatEther(maintenanceFee), 2)} DAI
+                        </Typography>
+                    </Box>
                 </Box>
             </Box>
         )
@@ -296,10 +306,10 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                     <Grid
                         container
                         justifyContent={"space-between"}
-                        alignItems="center"
+                        alignItems="start"
                     >
 
-                        <Grid item xs={12} md={5.5}>
+                        <Grid item xs={12} md={5.5} mb={5}>
                             <Typography variant='body1'>PENDING REWARDS</Typography>
                             <Grid container alignItems="center">
                                 <Grid item>
@@ -378,26 +388,24 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 </Button>
                                 <Box display={'flex'} justifyContent='end' mt={1.5}>
 
-                                    {selectedRows.length > 1 ? displayMaintFeeForGems()
-                                        :
+                                    { displayMaintFeeForGems() }
+                                        {/* :
                                         <>
                                             <Typography fontWeight={"bold"} variant="body2" mr={6}>Maintenance FEE:</Typography>
                                             <Typography variant="body2">
                                                 {formatDecimalNumber(+ethers.utils.formatEther(maintenanceFee), 2)} DAI
                                             </Typography>
                                         </>
-                                    }
+                                    } */}
                                 </Box>
                             </Box>
                             <Box>
 
                             </Box>
                         </Grid>
-                        <Grid item xs={12} md={5.5} sx={{
-                            margin: theme.spacing(4, 0),
-                        }} >
-                            <Grid container justifyContent={"space-between"}  >
-                                <Grid item>
+                        <Grid item xs={12} md={5.5} mb={5}>
+                            <Grid container justifyContent={"space-between"} >
+                                <Grid>
                                     <Typography fontWeight={"bold"} variant="body2">CHARITY TAX:</Typography>
                                 </Grid>
                                 <Grid item>
