@@ -188,6 +188,34 @@ export const GEM_TYPE_NAMES: any = {
     2: "Diamond"
 }
 
+export type BOOSTER_INFO_TYPE = {
+    name: string,
+    rewardsBoost: number,
+    maintenanceFeeReduction: number,
+    vaultFeeReduction: number
+}
+
+export const BOOSTERS_TYPE: { [key: number | string]: BOOSTER_INFO_TYPE } = {
+    0: {
+        name: 'None',
+        rewardsBoost: 0,
+        maintenanceFeeReduction: 0,
+        vaultFeeReduction: 0,
+    },
+    1: {
+        name: 'Delta',
+        rewardsBoost: 25,
+        maintenanceFeeReduction: 25,
+        vaultFeeReduction: 50,
+    },
+    2: {
+        name: 'Omega',
+        rewardsBoost: 50,
+        maintenanceFeeReduction: 50,
+        vaultFeeReduction: 90,
+    }
+}
+
 export type ConfigType = {
     chainName: string,
     chainId: number,

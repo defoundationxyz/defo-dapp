@@ -167,8 +167,56 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint8",
+                "name": "_gemType",
+                "type": "uint8"
+            },
+            {
+                "internalType": "enum Booster",
+                "name": "_booster",
+                "type": "uint8"
+            }
+        ],
+        "name": "getBooster",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "getGemIds",
+        "outputs": [
+            {
+                "internalType": "uint256[]",
+                "name": "",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_user",
+                "type": "address"
+            }
+        ],
+        "name": "getGemIdsOf",
         "outputs": [
             {
                 "internalType": "uint256[]",
@@ -272,6 +320,11 @@
                         "internalType": "struct Fi",
                         "name": "fi",
                         "type": "tuple"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "presold",
+                        "type": "bool"
                     }
                 ],
                 "internalType": "struct Gem",
@@ -374,6 +427,11 @@
                         "internalType": "struct Fi",
                         "name": "fi",
                         "type": "tuple"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "presold",
+                        "type": "bool"
                     }
                 ],
                 "internalType": "struct Gem[]",
@@ -561,6 +619,29 @@
         "inputs": [
             {
                 "internalType": "address",
+                "name": "_to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint8",
+                "name": "_gemType",
+                "type": "uint8"
+            },
+            {
+                "internalType": "enum Booster",
+                "name": "_booster",
+                "type": "uint8"
+            }
+        ],
+        "name": "removeBooster",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
                 "name": "_from",
                 "type": "address"
             },
@@ -715,7 +796,7 @@
         "type": "function"
     },
     {
-        "inputs": [ 
+        "inputs": [
             {
                 "internalType": "address",
                 "name": "_from",
