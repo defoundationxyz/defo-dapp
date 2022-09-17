@@ -1,4 +1,0 @@
-[
-    "constructor()",
-    "function transferLog(address,address,uint256) returns (bool)"
-]

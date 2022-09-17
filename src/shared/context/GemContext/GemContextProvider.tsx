@@ -113,7 +113,6 @@ const GemContextProvider = ({ children }: { children: any }) => {
 
         try {
             const gemsInfo: any = await runContractFunction({ params: options })
-            // console.log('gemsConfig: ', gemsConfig.gem0);
 
             // const gemsInfo = await diamondContract.getGemsInfo()
             const protocolConfig = await diamondContract.getConfig()
@@ -129,7 +128,7 @@ const GemContextProvider = ({ children }: { children: any }) => {
                 const isClaimable = await diamondContract.isClaimable(gemId)
                 const staked = await diamondContract.getStaked(gemId)
                 const maintenanceFeeUntil = moment(gemData.lastMaintenanceTime, "X").add(maintenancePeriodDays, 'days')
-                const gemMaintenanceFeeDai = getMaintenanceFeeDaiForGem(gemsConfig, gemData.gemTypeId)
+                const gemMaintenanceFeeDai = getMaintenanceFeeDaiForGem(gemsConfig, gemData.gemTypeId, gemData.booster)
 
                 let nextTier: any = "";
                 if (taxTier < 4) {
