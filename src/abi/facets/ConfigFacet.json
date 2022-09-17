@@ -68,6 +68,28 @@
                         "internalType": "uint32",
                         "name": "mintLimitWindow",
                         "type": "uint32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "saleLimitPeriod",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "saleLimitAmount",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "bool",
+                                "name": "limitByReward",
+                                "type": "bool"
+                            }
+                        ],
+                        "internalType": "struct DefoTokenLimitConfig",
+                        "name": "defoTokenLimitConfig",
+                        "type": "tuple"
                     }
                 ],
                 "indexed": false,
@@ -189,6 +211,28 @@
                         "internalType": "uint32",
                         "name": "mintLimitWindow",
                         "type": "uint32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "saleLimitPeriod",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "saleLimitAmount",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "bool",
+                                "name": "limitByReward",
+                                "type": "bool"
+                            }
+                        ],
+                        "internalType": "struct DefoTokenLimitConfig",
+                        "name": "defoTokenLimitConfig",
+                        "type": "tuple"
                     }
                 ],
                 "internalType": "struct ProtocolConfig",
@@ -256,6 +300,268 @@
     {
         "inputs": [
             {
+                "internalType": "uint256",
+                "name": "_charityContributionRate",
+                "type": "uint256"
+            }
+        ],
+        "name": "setCharityContributionRate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "contract IERC20[2]",
+                        "name": "paymentTokens",
+                        "type": "address[2]"
+                    },
+                    {
+                        "internalType": "address[7]",
+                        "name": "wallets",
+                        "type": "address[7]"
+                    },
+                    {
+                        "internalType": "uint256[3][2]",
+                        "name": "incomeDistributionOnMint",
+                        "type": "uint256[3][2]"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "maintenancePeriod",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "rewardPeriod",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "taxScaleSinceLastClaimPeriod",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint256[5]",
+                        "name": "taxRates",
+                        "type": "uint256[5]"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "charityContributionRate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "vaultWithdrawalTaxRate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "taperRate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "mintLock",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "transferLock",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "mintLimitWindow",
+                        "type": "uint32"
+                    },
+                    {
+                        "components": [
+                            {
+                                "internalType": "uint256",
+                                "name": "saleLimitPeriod",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "uint256",
+                                "name": "saleLimitAmount",
+                                "type": "uint256"
+                            },
+                            {
+                                "internalType": "bool",
+                                "name": "limitByReward",
+                                "type": "bool"
+                            }
+                        ],
+                        "internalType": "struct DefoTokenLimitConfig",
+                        "name": "defoTokenLimitConfig",
+                        "type": "tuple"
+                    }
+                ],
+                "internalType": "struct ProtocolConfig",
+                "name": "_config",
+                "type": "tuple"
+            }
+        ],
+        "name": "setConfig",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "uint256",
+                        "name": "saleLimitPeriod",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "saleLimitAmount",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "limitByReward",
+                        "type": "bool"
+                    }
+                ],
+                "internalType": "struct DefoTokenLimitConfig",
+                "name": "_defoTokenLimitConfig",
+                "type": "tuple"
+            }
+        ],
+        "name": "setConfigDefoTokenLimitConfig",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256[3][2]",
+                "name": "_incomeDistributionOnMint",
+                "type": "uint256[3][2]"
+            }
+        ],
+        "name": "setConfigIncomeDistributionOnMint",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "_maintenancePeriod",
+                "type": "uint32"
+            }
+        ],
+        "name": "setConfigMaintenancePeriod",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "_mintLimitWindow",
+                "type": "uint32"
+            }
+        ],
+        "name": "setConfigMintLimitWindow",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "_rewardPeriod",
+                "type": "uint32"
+            }
+        ],
+        "name": "setConfigRewardPeriod",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_taperRate",
+                "type": "uint256"
+            }
+        ],
+        "name": "setConfigTaperRate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256[5]",
+                "name": "_taxRates",
+                "type": "uint256[5]"
+            }
+        ],
+        "name": "setConfigTaxRates",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "_taxScaleSinceLastClaimPeriod",
+                "type": "uint32"
+            }
+        ],
+        "name": "setConfigTaxScaleSinceLastClaimPeriod",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_vaultWithdrawalTaxRate",
+                "type": "uint256"
+            }
+        ],
+        "name": "setConfigVaultWithdrawalTaxRate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address[7]",
+                "name": "_wallets",
+                "type": "address[7]"
+            }
+        ],
+        "name": "setConfigWallets",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "components": [
                     {
                         "internalType": "uint256",
@@ -284,7 +590,7 @@
                     }
                 ],
                 "internalType": "struct GemTypeConfig[]",
-                "name": "_gemTypesConfig",
+                "name": "_gemTypeConfig",
                 "type": "tuple[]"
             }
         ],

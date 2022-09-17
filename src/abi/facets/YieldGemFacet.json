@@ -434,6 +434,19 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "initialized",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -702,7 +715,7 @@
         "type": "function"
     },
     {
-        "inputs": [
+        "inputs": [ 
             {
                 "internalType": "address",
                 "name": "_from",

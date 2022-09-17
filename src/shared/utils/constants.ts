@@ -2,14 +2,12 @@ import { BigNumber } from 'ethers'
 import DAI_ABI from 'abi/DAI.json'
 import DEFO_ABI from 'abi/DEFO.json'
 import ConfigFacet from 'abi/facets/ConfigFacet.json'
-import LimiterFacet from 'abi/facets/LimiterFacet.json'
 import MaintenanceFacet from 'abi/facets/MaintenanceFacet.json'
-import RedeemFacet from 'abi/facets/RedeemFacet.json'
 import RewardFacet from 'abi/facets/RewardFacet.json'
 import VaultFacet from 'abi/facets/VaultFacet.json'
 import YieldGemFacet from 'abi/facets/YieldGemFacet.json'
-import GettersFacet from 'abi/facets/GettersFacet.json'
 import DonationsFacet from 'abi/facets/DonationsFacet.json'
+import TransferLimitFacet from 'abi/facets/TransferLimitFacet.json'
 import JoeRouterABI from "abi/JoeRouter.json"
 import JoeFactoryABI from "abi/JoeFactory.json"
 import JoePairABI from "abi/JoePair.json"
@@ -25,13 +23,11 @@ export const RPC = {
 
 export const CONTRACTS_ABI = [
     ...ConfigFacet,
-    ...LimiterFacet,
     ...MaintenanceFacet,
-    ...RedeemFacet,
     ...RewardFacet,
+    ...TransferLimitFacet,
     ...VaultFacet,
     ...YieldGemFacet,
-    ...GettersFacet,
     ...DonationsFacet
 ]
 
@@ -186,7 +182,7 @@ export const TAX_TIERS: any = {
 }
 
 
-export const GEM_TYPE_NAMES: any = { 
+export const GEM_TYPE_NAMES: any = {
     0: "Sapphire",
     1: "Ruby",
     2: "Diamond"
