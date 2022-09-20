@@ -10,11 +10,12 @@ import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextP
 import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 import { ACTIVE_NETOWORKS_COLLECTION } from "shared/utils/constants"
 import { useChain } from 'react-moralis'
+import { BigNumber } from "ethers"
 
 
 const YieldGems = () => {
     const gemsModalRef = useRef<any>();
-    const { isWeb3Enabled } = useWeb3()
+    const { isWeb3Enabled, account } = useWeb3()
     const { chainId } = useChain()
 
     const [gemsCount, setGemsCount] = useState([0, 0, 0])
@@ -22,13 +23,25 @@ const YieldGems = () => {
 
     const { gemsConfig, gemsCollection } = useGemsContext()
 
-    useEffect(() => {
-        const currentGemsCount = [0, 0, 0];
+    const [availableBoosts, setAvailableBoosts] = useState({
+        delta: [BigNumber.from(0), BigNumber.from(0), BigNumber.from(0)],
+        omega: [BigNumber.from(0), BigNumber.from(0), BigNumber.from(0)]
+    })
 
-        gemsCollection.forEach((gem: Gem) => {
-            currentGemsCount[gem.gemTypeId]++;
-        })
-        setGemsCount(currentGemsCount);
+    useEffect(() => {
+        const load = async () => {
+            const currentGemsCount = [0, 0, 0];
+            const currAvailableBoosts: any = await getBoosts()
+            console.log('currAvailableBoosts: ', currAvailableBoosts);
+
+            gemsCollection.forEach((gem: Gem) => {
+                currentGemsCount[gem.gemTypeId]++;
+            })
+            setGemsCount(currentGemsCount);
+            setAvailableBoosts(currAvailableBoosts)
+        }
+
+        load()
     }, [gemsCollection])
 
 
@@ -49,6 +62,28 @@ const YieldGems = () => {
             endOfMintLimitWindow: currentMintWindow.endOfMintLimitWindow
         }
     }
+
+    const getBoosts = async () => {
+        // available boosts
+
+        // gemType, booster
+        const boosterPromise = await Promise.all([
+            diamondContract.getBooster(account, 0, 1),
+            diamondContract.getBooster(account, 1, 1),
+            diamondContract.getBooster(account, 2, 1),
+
+            diamondContract.getBooster(account, 0, 2),
+            diamondContract.getBooster(account, 1, 2),
+            diamondContract.getBooster(account, 2, 2),
+        ])
+
+        const currentBoosts = {
+            delta: [boosterPromise[0], boosterPromise[1], boosterPromise[2]],
+            omega: [boosterPromise[3], boosterPromise[4], boosterPromise[5]],
+        }
+        return currentBoosts
+    }
+
 
     return (
         <>
@@ -110,6 +145,8 @@ const YieldGems = () => {
                 >
 
                     <YieldGemModalBox
+                        deltaBoosts={availableBoosts.delta[0]}
+                        omegaBoosts={availableBoosts.omega[0]}
                         name={"Sapphire"}
                         gemType={0}
                         gemConfig={gemsConfig.gem0}
@@ -118,6 +155,8 @@ const YieldGems = () => {
                     />
 
                     <YieldGemModalBox
+                        deltaBoosts={availableBoosts.delta[1]}
+                        omegaBoosts={availableBoosts.omega[1]}
                         name={"Ruby"}
                         gemType={1}
                         gemTypeMintWindow={() => getMintWindow(1)}
@@ -126,6 +165,8 @@ const YieldGems = () => {
                     />
 
                     <YieldGemModalBox
+                        deltaBoosts={availableBoosts.delta[2]}
+                        omegaBoosts={availableBoosts.omega[2]}
                         name={"Diamond"}
                         gemType={2}
                         gemTypeMintWindow={() => getMintWindow(2)}

@@ -8,14 +8,17 @@ import { useGemsContext } from "shared/context/GemContext/GemContextProvider";
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider";
 import { useWeb3 } from "shared/context/Web3/Web3Provider";
 import { GemTypeConfig, GemTypeMintWindow } from "shared/types/DataTypes";
+import { BOOSTERS_TYPE, GEM_TYPE_NAMES } from "shared/utils/constants";
 import { primaryColorMapper, secondaryColorMapper } from "../utils/colorMapper";
 
-const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleCloseModal }: {
+const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleCloseModal, deltaBoosts, omegaBoosts }: {
     gemType: 0 | 1 | 2,
     name: "Sapphire" | "Ruby" | "Diamond",
     gemConfig: GemTypeConfig,
     gemTypeMintWindow: () => Promise<GemTypeMintWindow>
     handleCloseModal: () => void
+    deltaBoosts: BigNumber,
+    omegaBoosts: BigNumber,
 }) => {
     const theme = useTheme();
     const { diamondContract, config } = useDiamondContext()
@@ -24,17 +27,20 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
     const { signer, account } = useWeb3();
     const { updateGemsCollection } = useGemsContext()
 
-    const [mintWindow, setMintWindow] = useState({ 
+    const [mintWindow, setMintWindow] = useState({
         leftHours: 0,
         availableMintCount: BigNumber.from(0)
-    })    
+    })
 
     useEffect(() => {
         const loadData = async () => {
             const currentGemMintWindow = await gemTypeMintWindow()
             const current = moment()
             const endOfMintLimitWindow = moment(currentGemMintWindow.endOfMintLimitWindow, "X") //.format("MMM DD YYYY HH:mm")
+
             const diffHours = endOfMintLimitWindow.diff(current, "hours")
+            // const diffMinutes = endOfMintLimitWindow.diff(current, "minutes")
+
             setMintWindow({
                 leftHours: diffHours,
                 availableMintCount: currentGemMintWindow.mintCount
@@ -43,13 +49,14 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
         loadData()
     }, [gemTypeMintWindow])
 
+
     const createYieldGem = async (gemType: 0 | 1 | 2) => {
         try {
-            if(!config?.deployments) { 
+            if (!config?.deployments) {
                 console.log('MISSING DEPLOYMENTS');
                 return
             }
-            
+
 
             const defo = new Contract(config.deployments.defo.address, config.deployments.defo.abi, signer)
             const defoAllowance = await defo.allowance(account, config.deployments.diamond.address)
@@ -66,13 +73,13 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
                 await tx.wait()
             }
 
-                const tx = await diamondContract.mint(gemType.toString())
-                snackbar.execute("Creating, please wait.", "info")
-                await tx.wait()
-                
-                await updateGemsCollection()
-                snackbar.execute("Created", "success")
-                handleCloseModal()
+            const tx = await diamondContract.mint(gemType.toString())
+            snackbar.execute("Creating, please wait.", "info")
+            await tx.wait()
+
+            await updateGemsCollection()
+            snackbar.execute("Created", "success")
+            handleCloseModal()
         } catch (error: any) {
             console.log(error)
             snackbar.execute(error?.reason || error?.message || "Error", "error")
@@ -110,7 +117,22 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
                             fontSize: "16px",
                             color: primaryColorMapper[gemType]
                         }} />
-                        <Typography variant="body2" fontWeight={"bold"} color={primaryColorMapper[gemType]}>{name}</Typography>
+                        <Typography flexGrow={1} variant="body2" fontWeight={"bold"} color={primaryColorMapper[gemType]}>{name}</Typography>
+                        {deltaBoosts.isZero() === false || omegaBoosts.isZero() === false ?
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    border: '1px solid #1E7E4C',
+                                    borderRadius: '10px',
+                                    padding: '5px 8px',
+                                    backgroundColor: '#1E7E4C'
+                                }}
+                            >
+                                Boost Available
+                            </Typography>
+                            :
+                            <></>
+                        }
                     </Box>
                     <Box sx={{
                         display: "flex",
@@ -142,10 +164,11 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
                         justifyContent: "space-between",
                         margin: theme.spacing(0.5, 0)
                     }}>
-                        <Typography variant="body2" fontWeight={"600"}>Available:</Typography>
+                        <Typography variant="body2" fontWeight={"600"}>Status:</Typography>
                         <Typography variant="body2">
 
-                            {+gemConfig.maxMintsPerLimitWindow - +(mintWindow.availableMintCount.toString())} / {gemConfig.maxMintsPerLimitWindow}
+                            {/* {+gemConfig.maxMintsPerLimitWindow - +(mintWindow.availableMintCount.toString())} / {gemConfig.maxMintsPerLimitWindow} */}
+                            {+gemConfig.maxMintsPerLimitWindow - +(mintWindow.availableMintCount.toString()) > 0 ? "Available" : "Unavailable"}
                         </Typography>
                     </Box>
                     <Box sx={{
