@@ -11,7 +11,7 @@ import { Gem } from "shared/types/DataTypes"
 import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
 import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 import { useChain } from 'react-moralis'
-import { ACTIVE_NETOWORKS_COLLECTION } from "shared/utils/constants"
+import { ACTIVE_NETOWORKS_COLLECTION, BOOSTERS_TYPE } from "shared/utils/constants"
 import { formatDecimalNumber } from "shared/utils/format"
 
 
@@ -59,17 +59,18 @@ const P2VaultBox = () => {
     const columns = useMemo((): GridColDef[] => {
         return [
             {
-                flex: 0.5,
+                flex: 1,
                 field: 'name',
                 headerName: 'Gem Type',
                 renderCell: (params) => {
                     const gem: Gem = params.row;
+                    const boosterText = gem.booster === 1 ? "Delta" : gem.booster === 2 ? "Omega" : "";
                     if (gem.gemTypeId === 0) {
-                        return "Sapphire"
+                        return `${boosterText} Sapphire`
                     } else if (gem.gemTypeId === 1) {
-                        return "Ruby"
+                        return `${boosterText} Ruby`
                     } else if (gem.gemTypeId === 2) {
-                        return "Diamond"
+                        return `${boosterText} Diamond`
                     }
                 }
             },
@@ -90,7 +91,8 @@ const P2VaultBox = () => {
                 headerName: 'Withdrawable Amount',
                 renderCell: (params) => {
                     const gem: Gem = params.row;
-                    const WITHDRAW_VAULT_FEE_PERCENTAGE = 10
+
+                    const WITHDRAW_VAULT_FEE_PERCENTAGE = 10 - (BOOSTERS_TYPE[gem.booster].vaultFeeReduction / 10)
                     const amountToWithdraw = gem.staked.div(100).mul(WITHDRAW_VAULT_FEE_PERCENTAGE)
                     const amount = +ethers.utils.formatEther(gem.staked.sub(amountToWithdraw))
                     const price = formatDecimalNumber(amount * defoPrice, 2)
@@ -235,12 +237,12 @@ const P2VaultBox = () => {
                     flexDirection: "row",
                     justifyContent: "center",
                     alignItems: "center",
-                    height: "100vh"
+                    height: "100vh",
                 }}
                 BackdropProps={{
                     sx: {
                         backdropFilter: "blur(3px)",
-                        backgroundColor: 'rgba(0,0,30,0.4)'
+                        backgroundColor: 'rgba(0,0,30,0.4)',
                     }
                 }}
             >
@@ -253,6 +255,7 @@ const P2VaultBox = () => {
                             xs: "90%",
                             md: "70%"
                         },
+                        maxWidth: "1100px",
                         backgroundColor: "#1f1d2b",
                         padding: theme.spacing(4),
                         position: "relative",
