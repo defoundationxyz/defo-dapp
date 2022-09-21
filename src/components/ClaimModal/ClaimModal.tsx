@@ -387,16 +387,13 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     Pay Maintenance fee
                                 </Button>
                                 <Box display={'flex'} justifyContent='end' mt={1.5}>
-
-                                    { displayMaintFeeForGems() }
-                                        {/* :
-                                        <>
-                                            <Typography fontWeight={"bold"} variant="body2" mr={6}>Maintenance FEE:</Typography>
-                                            <Typography variant="body2">
-                                                {formatDecimalNumber(+ethers.utils.formatEther(maintenanceFee), 2)} DAI
-                                            </Typography>
-                                        </>
-                                    } */}
+                                    {/* { displayMaintFeeForGems() } */}
+                                    <>
+                                        <Typography fontWeight={"bold"} variant="body2" mr={6}>Maintenance Fee:</Typography>
+                                        <Typography variant="body2">
+                                            {formatDecimalNumber(+ethers.utils.formatEther(pendingMaintenanceFee), 2)} DAI
+                                        </Typography>
+                                    </>
                                 </Box>
                             </Box>
                             <Box>

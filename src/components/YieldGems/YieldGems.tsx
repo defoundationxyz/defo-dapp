@@ -32,8 +32,7 @@ const YieldGems = () => {
         const load = async () => {
             const currentGemsCount = [0, 0, 0];
             const currAvailableBoosts: any = await getBoosts()
-            console.log('currAvailableBoosts: ', currAvailableBoosts);
-
+            
             gemsCollection.forEach((gem: Gem) => {
                 currentGemsCount[gem.gemTypeId]++;
             })

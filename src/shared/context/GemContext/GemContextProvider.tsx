@@ -1,7 +1,6 @@
 import { BigNumber, ethers } from "ethers";
 import moment from "moment";
 import { useContext, useEffect, useState } from "react";
-import { useWeb3Contract } from "react-moralis";
 import { Gem, GemsConfigState, GemTypeConfig } from "shared/types/DataTypes";
 import { GemTypeMetadata } from "shared/utils/constants";
 import { getMaintenanceFeeDaiForGem, getNextTier } from "shared/utils/helper";
@@ -36,8 +35,6 @@ const GemContextProvider = ({ children }: { children: any }) => {
         gem1: initialGemConfigState,
         gem2: initialGemConfigState,
     })
-
-    const { runContractFunction } = useWeb3Contract({});
 
     useEffect(() => {
         const load = async () => {
@@ -87,9 +84,15 @@ const GemContextProvider = ({ children }: { children: any }) => {
             let gem1Config: GemTypeConfig = gemsConfig[1]
             let gem2Config: GemTypeConfig = gemsConfig[2]
 
-            gem0Config = { ...gem0Config, isMintAvailable: await diamondContract.isMintAvailable(0) }
-            gem1Config = { ...gem1Config, isMintAvailable: await diamondContract.isMintAvailable(1) }
-            gem2Config = { ...gem2Config, isMintAvailable: await diamondContract.isMintAvailable(2) }
+            const [mint0, mint1, mint2] = await Promise.all([
+                diamondContract.isMintAvailable(0),
+                diamondContract.isMintAvailable(1),
+                diamondContract.isMintAvailable(2)
+            ])
+
+            gem0Config = { ...gem0Config, isMintAvailable: mint0 }
+            gem1Config = { ...gem1Config, isMintAvailable: mint1 }
+            gem2Config = { ...gem2Config, isMintAvailable: mint2 }
 
             setGemsConfig({
                 gem0: gem0Config,
@@ -105,17 +108,12 @@ const GemContextProvider = ({ children }: { children: any }) => {
     const updateGemsCollection = async () => {
         const currentGems: Gem[] = []
 
-        const options = {
-            abi: config.deployments.diamond.abi,
-            contractAddress: config.deployments.diamond.address,
-            functionName: "getGemsInfo"
-        }
-
         try {
-            const gemsInfo: any = await runContractFunction({ params: options })
+            const [gemsInfo, protocolConfig] = await Promise.all([
+                diamondContract.getGemsInfo(),
+                diamondContract.getConfig()
+            ])
 
-            // const gemsInfo = await diamondContract.getGemsInfo()
-            const protocolConfig = await diamondContract.getConfig()
             const taxScaleSinceLastClaimPeriodDays = Math.floor(protocolConfig.taxScaleSinceLastClaimPeriod / (3600 * 24))
             const maintenancePeriodDays = Math.floor(protocolConfig.maintenancePeriod / (3600 * 24))
 
@@ -123,10 +121,12 @@ const GemContextProvider = ({ children }: { children: any }) => {
                 const gemId: BigNumber = gemsInfo[0][i]
                 const gemData = gemsInfo[1][i]
                 const pendingMaintenanceFee = await diamondContract.getPendingMaintenanceFee(gemId)
-                const taxTier = await diamondContract.getTaxTier(gemId)
-                const rewardAmount = await diamondContract.getRewardAmount(gemId)
-                const isClaimable = await diamondContract.isClaimable(gemId)
-                const staked = await diamondContract.getStaked(gemId)
+                const [taxTier, rewardAmount, isClaimable, staked] = await Promise.all([
+                    diamondContract.getTaxTier(gemId),
+                    diamondContract.getRewardAmount(gemId),
+                    diamondContract.isClaimable(gemId),
+                    diamondContract.getStaked(gemId),
+                ])
                 const maintenanceFeeUntil = moment(gemData.lastMaintenanceTime, "X").add(maintenancePeriodDays, 'days')
                 const gemMaintenanceFeeDai = getMaintenanceFeeDaiForGem(gemsConfig, gemData.gemTypeId, gemData.booster)
 
