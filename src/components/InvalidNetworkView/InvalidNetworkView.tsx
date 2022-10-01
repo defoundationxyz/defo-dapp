@@ -17,9 +17,8 @@ export const InvalidNetworkView = ({ }: {}) => {
             <h2>Network Not Supported</h2>
             <Box>
                 <Button
-                    onClick={() => handleSwitchNetwork(SUPPORTED_NETWORKS.hardhat.chainId)}
+                    onClick={() => handleSwitchNetwork(SUPPORTED_NETWORKS.avax_mainnet.chainId)}
                     variant="contained"
-                    disabled
                     sx={{
                         margin: 1,
                         padding: 2,
