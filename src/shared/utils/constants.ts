@@ -72,6 +72,18 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
                 abi: CONTRACTS_ABI,
                 address: "0xa47f856CD11513DB4E723c03990292f6c2FAC6b7"
             },
+            dex: {
+                router: {
+                    abi: JoeRouterABI,
+                    address: "0xC7f372c62238f6a5b79136A9e5D16A2FD7A3f0F5"
+                },
+                factory: {
+                    abi: JoeFactoryABI
+                },
+                pair: {
+                    abi: JoePairABI
+                }
+            }
         }
     },
     fuji_testnet: {
