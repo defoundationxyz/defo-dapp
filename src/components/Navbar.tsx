@@ -64,20 +64,18 @@ const Navbar = () => {
                                 display: "flex",
                                 alignItems: "center"
                             }}>
-                            <a
-                                href="https://start.defo.app/"
-                                target={"_blank"}
-                                rel="noreferrer"
-                            >
-                                <img
-                                    src="/logo.png"
-                                    style={{
-                                        height: "auto",
-                                        width: "100%"
-                                    }}
-                                    alt="logo"
-                                />
-                            </a>
+                            <Link href="/">
+                                <a>
+                                    <img
+                                        src="/logo.png"
+                                        style={{
+                                            height: "auto",
+                                            width: "100%"
+                                        }}
+                                        alt="logo"
+                                    />
+                                </a>
+                            </Link>
                         </Box>
                     </Grid>
                     <Grid
@@ -108,31 +106,25 @@ const Navbar = () => {
                             :
                             <>
                                 <Grid item>
-                                    <Link
-                                        href={"https://traderjoexyz.com/trade?outputCurrency=0xd586E7F844cEa2F87f50152665BCbc2C279D8d70#/"}
-                                    >
-                                        <a target={"_blank"}>
+                                    <Link href="https://www.swapsicle.io/swap">
+                                        <a>
                                             <Typography fontWeight={"500"}>Buy DAI</Typography>
                                         </a>
                                     </Link>
                                 </Grid>
                                 <Grid item>
-                                    <Link
-                                        href={"https://traderjoexyz.com/trade?outputCurrency=0xd586E7F844cEa2F87f50152665BCbc2C279D8d70#/"}
-                                    >
-                                        <a target={"_blank"}>
+                                    <Link href="/buyDefo">
+                                        <a>
                                             <Typography fontWeight={"500"}>Buy DEFO</Typography>
                                         </a>
                                     </Link>
                                 </Grid>
                                 <Grid item>
-                                    <Link
-                                        href={"https://traderjoexyz.com/trade?outputCurrency=0xd586E7F844cEa2F87f50152665BCbc2C279D8d70#/"}
-                                    >
-                                        <a target={"_blank"}>
-                                            <Typography fontWeight={"500"}>DEFO Chart</Typography>
-                                        </a>
-                                    </Link>
+                                    {/* <Link> 
+                                        <a target={"_blank"}> */}
+                                    <Typography fontWeight={"500"} sx={{ cursor: 'pointer', color: 'gray'}}>DEFO Chart</Typography>
+                                    {/* </a>
+                                    </Link> */}
                                 </Grid>
                             </>
                         }
