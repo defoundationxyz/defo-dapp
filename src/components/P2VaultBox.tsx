@@ -242,8 +242,16 @@ const P2VaultBox = () => {
                                 fontWeight={"600"}
                             >
                                 {(() => {
-                                    // const vaultIndex = formatDecimalNumber((+ethers.utils.formatEther(stake.totalStake) / +ethers.utils.formatEther(stake.userStake)), 2)
-                                    return <>{`0.00`}</>
+                                    if (stake.totalStake.isZero() || stake.userStake.isZero()) {
+                                        return <>0.00</>
+                                    }
+                                    try {
+                                        const vaultIndex = formatDecimalNumber(+ethers.utils.formatEther(stake.totalStake) / +ethers.utils.formatEther(stake.userStake), 2) 
+                                        return <>{vaultIndex}</>    
+                                    } catch (error) {
+                                        console.error('Error while calculating Vault Index');
+                                        return <>0.00</>
+                                    }
                                 })()}
                             </Typography>
                         </Paper>
