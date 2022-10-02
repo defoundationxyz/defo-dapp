@@ -91,7 +91,7 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
             <Grid item xs={12} md={3.7} sx={{
                 margin: {
                     xs: theme.spacing(2, 0),
-                    md: 0,
+                    md: 0
                 },
             }} >
                 <Paper
@@ -131,7 +131,15 @@ const YieldGemModalBox = ({ gemType, name, gemConfig, gemTypeMintWindow, handleC
                                 Boost Available
                             </Typography>
                             :
-                            <></>
+                            <Box sx={{
+                                padding: '5px 8px',
+                                '::before': {
+                                    content: '""',
+                                    display: 'inline-block',
+                                    height: '20px',
+                                    width: '20px',
+                                }
+                            }} />
                         }
                     </Box>
                     <Box sx={{

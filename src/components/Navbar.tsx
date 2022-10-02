@@ -106,7 +106,7 @@ const Navbar = () => {
                             :
                             <>
                                 <Grid item>
-                                    <Link href="https://www.swapsicle.io/swap">
+                                    <Link href="https://www.swapsicle.io/swap?outputCurrency=0xd586e7f844cea2f87f50152665bcbc2c279d8d70">
                                         <a>
                                             <Typography fontWeight={"500"}>Buy DAI</Typography>
                                         </a>
@@ -120,11 +120,11 @@ const Navbar = () => {
                                     </Link>
                                 </Grid>
                                 <Grid item>
-                                    {/* <Link> 
-                                        <a target={"_blank"}> */}
-                                    <Typography fontWeight={"500"} sx={{ cursor: 'pointer', color: 'gray'}}>DEFO Chart</Typography>
-                                    {/* </a>
-                                    </Link> */}
+                                    <Link href="https://dexscreener.com/avalanche/0x22cf679582b2d95648322bd581a3ed65555220a5">
+                                        <a target={"_blank"}>
+                                            <Typography fontWeight={"500"}>DEFO Chart</Typography>
+                                        </a>
+                                    </Link>
                                 </Grid>
                             </>
                         }
