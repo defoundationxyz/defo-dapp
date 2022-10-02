@@ -35,7 +35,7 @@ const P2VaultBox = () => {
     useEffect(() => {
         const load = async () => {
             const filteredGems = gemsCollection.filter((gem: Gem) => !gem.staked.isZero())
-            setVaultGems(filteredGems)    
+            setVaultGems(filteredGems)
         }
 
         if (gemsCollection.length === 0) { return; }
@@ -155,7 +155,7 @@ const P2VaultBox = () => {
                     container
                     justifyContent={"space-between"}
                 >
-                    <Grid item xs={5.8}>
+                    <Grid item xs={3.7}>
                         <Paper
                             sx={{
                                 padding: {
@@ -179,7 +179,7 @@ const P2VaultBox = () => {
                     </Grid>
 
 
-                    <Grid item xs={5.8}>
+                    <Grid item xs={3.7}>
                         <Paper
                             sx={{
                                 padding: {
@@ -224,6 +224,28 @@ const P2VaultBox = () => {
                             <LinearProgress sx={{
                                 marginTop: theme.spacing(1)
                             }} color='warning' variant="determinate" value={65} /> */}
+                        </Paper>
+                    </Grid>
+
+                    <Grid item xs={3.7}>
+                        <Paper
+                            sx={{
+                                padding: {
+                                    xs: theme.spacing(2),
+                                    md: theme.spacing(2, 4)
+                                },
+                            }}>
+                            <Typography variant="body2">VAULT INDEX</Typography>
+                            <Typography
+                                sx={{ margin: theme.spacing(1, 0) }}
+                                variant="h4"
+                                fontWeight={"600"}
+                            >
+                                {(() => {
+                                    const vaultIndex = formatDecimalNumber((+ethers.utils.formatEther(stake.totalStake) / +ethers.utils.formatEther(stake.userStake)), 2)
+                                    return <>{`${vaultIndex}`}</>
+                                })()}
+                            </Typography>
                         </Paper>
                     </Grid>
                 </Grid>
