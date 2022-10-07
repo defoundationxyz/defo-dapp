@@ -114,6 +114,19 @@
     {
         "inputs": [
             {
+                "internalType": "uint256[]",
+                "name": "_tokenids",
+                "type": "uint256[]"
+            }
+        ],
+        "name": "batchtransferToStabilizer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "tokenId",
                 "type": "uint256"
@@ -584,6 +597,62 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "uint8[]",
+                "name": "_gemType",
+                "type": "uint8[]"
+            },
+            {
+                "internalType": "address[]",
+                "name": "_to",
+                "type": "address[]"
+            },
+            {
+                "internalType": "enum Booster[]",
+                "name": "_booster",
+                "type": "uint8[]"
+            },
+            {
+                "internalType": "uint8[]",
+                "name": "_number",
+                "type": "uint8[]"
+            }
+        ],
+        "name": "mintToBulk",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint8",
+                "name": "_gemType",
+                "type": "uint8"
+            },
+            {
+                "internalType": "address",
+                "name": "_to",
+                "type": "address"
+            },
+            {
+                "internalType": "enum Booster",
+                "name": "_booster",
+                "type": "uint8"
+            },
+            {
+                "internalType": "uint8",
+                "name": "_number",
+                "type": "uint8"
+            }
+        ],
+        "name": "mintToFew",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "name",
         "outputs": [
@@ -708,6 +777,31 @@
         "type": "function"
     },
     {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_tokenId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "enum Booster",
+                "name": "_booster",
+                "type": "uint8"
+            }
+        ],
+        "name": "setBooster",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "setLaunchTime",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
         "inputs": [],
         "name": "symbol",
         "outputs": [
@@ -814,6 +908,19 @@
             }
         ],
         "name": "transferFrom",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "transferToStabilizer",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

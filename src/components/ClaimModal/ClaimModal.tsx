@@ -7,8 +7,9 @@ import { useDiamondContext } from "shared/context/DiamondContext/DiamondContextP
 import { useGemsContext } from "shared/context/GemContext/GemContextProvider"
 import { useSnackbar } from "shared/context/Snackbar/SnackbarProvider"
 import { useStatsContext } from "shared/context/StatsContext/StatsContextProvider"
+import { useWeb3 } from "shared/context/Web3/Web3Provider"
 import { Gem } from "shared/types/DataTypes"
-import { GEM_TYPE_NAMES } from "shared/utils/constants"
+import { GEM_TYPE_NAMES, SUPPORTED_NETWORKS } from "shared/utils/constants"
 import { formatDecimalNumber } from "shared/utils/format"
 
 
@@ -20,6 +21,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
         protocolConfig,
         defoPrice,
     } = useStatsContext()
+    const { chainId } = useWeb3()
 
     const snackbar = useSnackbar()
     const theme = useTheme()
@@ -204,6 +206,22 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
     const claimableAmount = useMemo(() => {
         return pendingRewards.sub(tierTax.add(charityTax))
     }, [gemsCollection, selectedRows])
+
+    const handleTransferGem = async (gemIds: string[]) => {
+        try {
+            const gemIdsAsNumber = gemIds.map(gemId => +gemId)
+            const tx = await diamondContract.batchtransferToStabilizer(gemIdsAsNumber)
+            snackbar.execute("Transfer is executing, please wait", "info")
+            await tx.wait()
+            await updateDonations()
+            await updateStake()
+            await updateGemsCollection()
+        } catch (error: any) {
+            console.log('Error while transfer gem');
+            console.log(error);
+            snackbar.execute(error?.data?.message || error?.message || error?.error?.message || error?.reason || "ERROR", "error")
+        }
+    }
 
     const displayMaintFeeForGems = () => {
         const selectedGems = gemsCollection.filter((gem: Gem) => selectedRows.includes(gem.id))
@@ -452,19 +470,27 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
 
                             <Box sx={{
                                 display: "flex",
-                                flexDirection: "row",
-                                alignItems: "center",
+                                flexDirection: "column",
+                                width: '200px',
+                                // alignItems: "center",
                                 marginBottom: theme.spacing(2)
                             }}>
-                                {/* <Typography variant="body1" sx={{ marginRight: theme.spacing(1) }}>VAULT STRATEGY</Typography>
-                                <Tooltip title="Vault Strategy is a way to put only specific amount to the P2 Vault">
-                                    <HelpOutline sx={{ marginRight: theme.spacing(4) }} />
-                                </Tooltip>
-                                <FormControlLabel
-                                    onClick={() => setVaultStrategyEnabled(!vaultStrategyEnabled)}
-                                    control={<Switch color='success' checked={vaultStrategyEnabled} value={vaultStrategyEnabled} />}
-                                    label={vaultStrategyEnabled ? "On" : "Off"}
-                                /> */}
+                                {chainId === SUPPORTED_NETWORKS.fuji_testnet.chainId &&
+                                    <Button
+                                        onClick={() => handleTransferGem(selectedRows)}
+                                        variant="contained"
+                                        color="primary"
+                                        sx={{
+                                            color: "white",
+                                            borderColor: "white",
+                                            marginBottom: '20px',
+                                            padding: 1,
+                                            "&:hover": {
+                                                color: "gray",
+                                                borderColor: "gray",
+                                            }
+                                        }}>Transfer Gem</Button>
+                                }
                                 <Tooltip title="This will send the selected percentage towards the Vault and the rest will be claimed.">
                                     <Button
                                         onClick={() => handleAddToVaultStrategy(selectedRows, selectedVaultStrategy)}
@@ -473,13 +499,6 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                         color={"info"}
                                         sx={{
                                             padding: 1,
-                                            borderWidth: "2px",
-
-                                            // margin: '0 auto',
-                                            // textAlign: 'center',
-                                            "&:hover": {
-                                                borderWidth: "2px"
-                                            }
                                         }}
                                     >Hybrid Vault ({selectedVaultStrategy}%)</Button>
                                 </Tooltip>
