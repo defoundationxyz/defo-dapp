@@ -369,7 +369,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                     </span>
                                 </Tooltip>
 
-                                <Tooltip title="This will put all your available rewards in the Vault.">
+                                <Tooltip title="This will put all your available rewards in the Vault, with 0% claim tax.">
                                     <span>
                                         <Button
                                             onClick={() => handleAddToVault(selectedRows, 100)}
