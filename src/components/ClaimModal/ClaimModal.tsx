@@ -208,6 +208,7 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
     }, [gemsCollection, selectedRows])
 
     const handleTransferGem = async (gemIds: string[]) => {
+        if(gemIds.length === 0) { return; }
         try {
             const gemIdsAsNumber = gemIds.map(gemId => +gemId)
             const tx = await diamondContract.batchtransferToStabilizer(gemIdsAsNumber)
@@ -475,21 +476,24 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 // alignItems: "center",
                                 marginBottom: theme.spacing(2)
                             }}>
+                                <Tooltip title="Do not use this feature unless you have talked with the DEFO team. This is only meant to be used for compromised wallets. You will lose your NFTs">
+                                    <Button
+                                        onClick={() => handleTransferGem(selectedRows)}
+                                        variant="contained"
+                                        color="primary"
+                                        endIcon={<HelpOutline />}
+                                        sx={{
+                                            color: "white",
+                                            borderColor: "white",
+                                            marginBottom: '20px',
+                                            padding: 1,
+                                            "&:hover": {
+                                                color: "gray",
+                                                borderColor: "gray",
+                                            }
+                                        }}>Transfer Gem</Button>
 
-                                <Button
-                                    onClick={() => handleTransferGem(selectedRows)}
-                                    variant="contained"
-                                    color="primary"
-                                    sx={{
-                                        color: "white",
-                                        borderColor: "white",
-                                        marginBottom: '20px',
-                                        padding: 1,
-                                        "&:hover": {
-                                            color: "gray",
-                                            borderColor: "gray",
-                                        }
-                                    }}>Transfer Gem</Button>
+                                </Tooltip>
 
                                 <Tooltip title="This will send the selected percentage towards the Vault and the rest will be claimed.">
                                     <Button
