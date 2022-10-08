@@ -475,22 +475,22 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                 // alignItems: "center",
                                 marginBottom: theme.spacing(2)
                             }}>
-                                {chainId === SUPPORTED_NETWORKS.fuji_testnet.chainId &&
-                                    <Button
-                                        onClick={() => handleTransferGem(selectedRows)}
-                                        variant="contained"
-                                        color="primary"
-                                        sx={{
-                                            color: "white",
-                                            borderColor: "white",
-                                            marginBottom: '20px',
-                                            padding: 1,
-                                            "&:hover": {
-                                                color: "gray",
-                                                borderColor: "gray",
-                                            }
-                                        }}>Transfer Gem</Button>
-                                }
+
+                                <Button
+                                    onClick={() => handleTransferGem(selectedRows)}
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{
+                                        color: "white",
+                                        borderColor: "white",
+                                        marginBottom: '20px',
+                                        padding: 1,
+                                        "&:hover": {
+                                            color: "gray",
+                                            borderColor: "gray",
+                                        }
+                                    }}>Transfer Gem</Button>
+
                                 <Tooltip title="This will send the selected percentage towards the Vault and the rest will be claimed.">
                                     <Button
                                         onClick={() => handleAddToVaultStrategy(selectedRows, selectedVaultStrategy)}
