@@ -246,8 +246,9 @@ const P2VaultBox = () => {
                                         return <>0.00</>
                                     }
                                     try {
-                                        const vaultIndex = formatDecimalNumber(+ethers.utils.formatEther(stake.totalStake) / +ethers.utils.formatEther(stake.userStake), 2) 
-                                        return <>{vaultIndex}</>    
+                                        const vaultIndex = formatDecimalNumber((+ethers.utils.formatEther(stake.userStake) * 100) / +ethers.utils.formatEther(stake.totalStake), 2);
+                                        // const vaultIndex = formatDecimalNumber(+ethers.utils.formatEther(stake.totalStake) / +ethers.utils.formatEther(stake.userStake), 2)
+                                        return <>{vaultIndex}</>
                                     } catch (error) {
                                         console.error('Error while calculating Vault Index');
                                         return <>0.00</>
