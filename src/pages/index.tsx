@@ -145,7 +145,7 @@ const Home: NextPage = () => {
             {
                 flex: 1,
                 field: 'feesDueIn',
-                headerName: 'Fee deadline', // Fees due in
+                headerName: 'Fee pay date', // Fees due in
                 renderCell: (params) => {
                     const gem: Gem = params.row;
                     const todayDate = moment()

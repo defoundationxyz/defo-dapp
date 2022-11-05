@@ -3,6 +3,25 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": true,
+                "internalType": "address",
+                "name": "minter",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amountDefo",
+                "type": "uint256"
+            }
+        ],
+        "name": "GiveAway",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": false,
                 "internalType": "uint256",
                 "name": "numberOfWinners",
@@ -146,6 +165,19 @@
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_defoAmount",
+                "type": "uint256"
+            }
+        ],
+        "name": "giveaway",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {

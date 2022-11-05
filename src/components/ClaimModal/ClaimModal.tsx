@@ -444,6 +444,9 @@ export const ClaimModal = ({ selectedRows, isOpen, closeModal }: { selectedRows:
                                         {(() => {
                                             const formattedAmount = ethers.utils.formatEther(tierTax)
                                             const price = formatDecimalNumber(+formattedAmount * defoPrice, 2)
+                                            if(+formattedAmount < 0) { 
+                                                return <>0.00 DEFO</>
+                                            }
                                             return <>{`${formatDecimalNumber(+formattedAmount, 3)} DEFO ($${price})`}</>
                                         })()}
                                     </Typography>
