@@ -495,7 +495,7 @@ export const ClaimModal = ({
                                 // alignItems: "center",
                                 marginBottom: theme.spacing(2)
                             }}>
-                                <Tooltip
+                                {/* <Tooltip
                                     title="Do not use this feature unless you have talked with the DEFO team. This is only meant to be used for compromised wallets. You will lose your NFTs">
                                     <Button
                                         onClick={() => handleTransferGem(selectedRows)}
@@ -513,8 +513,7 @@ export const ClaimModal = ({
                                             }
                                         }}>Transfer Gem</Button>
 
-                                </Tooltip>
-
+                                </Tooltip> */}
                                 <Tooltip
                                     title="This will send the selected percentage towards the Vault and the rest will be claimed.">
                                     <Button
