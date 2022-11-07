@@ -338,6 +338,11 @@
                         "internalType": "bool",
                         "name": "presold",
                         "type": "bool"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "maintenanceFeePaid",
+                        "type": "uint256"
                     }
                 ],
                 "internalType": "struct Gem",
