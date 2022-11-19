@@ -1,31 +1,31 @@
-import {Close, HelpOutline} from '@mui/icons-material'
-import {Paper, IconButton, Grid, Typography, Box, Tooltip, Button, Modal, useTheme} from '@mui/material'
+import { Close, HelpOutline } from '@mui/icons-material'
+import { Paper, IconButton, Grid, Typography, Box, Tooltip, Button, Modal, useTheme } from '@mui/material'
 import ContentBox from 'components/ContentBox'
-import {ethers, BigNumber, Contract} from 'ethers'
-import {useMemo, useState} from 'react'
-import {useDiamondContext} from 'shared/context/DiamondContext/DiamondContextProvider'
-import {useGemsContext} from 'shared/context/GemContext/GemContextProvider'
-import {useSnackbar} from 'shared/context/Snackbar/SnackbarProvider'
-import {useStatsContext} from 'shared/context/StatsContext/StatsContextProvider'
-import {useWeb3} from 'shared/context/Web3/Web3Provider'
-import {Gem} from 'shared/types/DataTypes'
-import {GEM_TYPE_NAMES, SUPPORTED_NETWORKS} from 'shared/utils/constants'
-import {formatDecimalNumber} from 'shared/utils/format'
+import { ethers, BigNumber, Contract } from 'ethers'
+import { useMemo, useState } from 'react'
+import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextProvider'
+import { useGemsContext } from 'shared/context/GemContext/GemContextProvider'
+import { useSnackbar } from 'shared/context/Snackbar/SnackbarProvider'
+import { useStatsContext } from 'shared/context/StatsContext/StatsContextProvider'
+import { useWeb3 } from 'shared/context/Web3/Web3Provider'
+import { Gem } from 'shared/types/DataTypes'
+import { GEM_TYPE_NAMES, SUPPORTED_NETWORKS } from 'shared/utils/constants'
+import { formatDecimalNumber } from 'shared/utils/format'
 
 
 export const ClaimModal = ({
-                               selectedRows,
-                               isOpen,
-                               closeModal
-                           }: { selectedRows: any, isOpen: boolean, closeModal: () => void }) => {
-    const {gemsCollection, updateGemsCollection} = useGemsContext()
-    const {diamondContract, config} = useDiamondContext()
+    selectedRows,
+    isOpen,
+    closeModal
+}: { selectedRows: any, isOpen: boolean, closeModal: () => void }) => {
+    const { gemsCollection, updateGemsCollection } = useGemsContext()
+    const { diamondContract, config } = useDiamondContext()
     const {
         updateDonations, updateStake,
         protocolConfig,
         defoPrice,
     } = useStatsContext()
-    const {chainId, account, signer} = useWeb3()
+    const { chainId, account, signer } = useWeb3()
 
     const snackbar = useSnackbar()
     const theme = useTheme()
@@ -151,7 +151,7 @@ export const ClaimModal = ({
             .reduce(
                 (
                     n: BigNumber,
-                    {rewardAmount}: Gem
+                    { rewardAmount }: Gem
                 ) => {
                     return rewardAmount.add(n)
                 },
@@ -165,7 +165,7 @@ export const ClaimModal = ({
             .reduce(
                 (
                     n: BigNumber,
-                    {rewardAmount}: Gem
+                    { rewardAmount }: Gem
                 ) => rewardAmount.add(n),
                 BigNumber.from(0)
             ).div(100).mul(5)
@@ -177,7 +177,7 @@ export const ClaimModal = ({
             .reduce(
                 (
                     n: BigNumber,
-                    {rewardAmount, taxTier}: Gem
+                    { rewardAmount, taxTier }: Gem
                 ) => {
                     // if (taxTier === 0) {
                     //     return n.add(BigNumber.from(0))
@@ -196,7 +196,7 @@ export const ClaimModal = ({
             .reduce(
                 (
                     n: BigNumber,
-                    {pendingMaintenanceFee}: Gem
+                    { pendingMaintenanceFee }: Gem
                 ) => pendingMaintenanceFee.add(n),
                 BigNumber.from(0)
             )
@@ -208,7 +208,7 @@ export const ClaimModal = ({
             .reduce(
                 (
                     n: BigNumber,
-                    {gemMaintenanceFeeDai}: Gem
+                    { gemMaintenanceFeeDai }: Gem
                 ) => gemMaintenanceFeeDai.add(n),
                 BigNumber.from(0)
             )
@@ -247,7 +247,7 @@ export const ClaimModal = ({
                     const isGemFeePaid = gem.pendingMaintenanceFee.isZero()
                     return (
                         <Box key={gem.id} display="flex" justifyContent={'space-between'}>
-                            <Typography variant="body2" mr={2} mb={0.5} sx={{color: isGemFeePaid ? '#2EBE73' : 'red'}}>
+                            <Typography variant="body2" mr={2} mb={0.5} sx={{ color: isGemFeePaid ? '#2EBE73' : 'red' }}>
                                 {`${boosterText} ${GEM_TYPE_NAMES[gem.gemTypeId]}`}
                                 :
                             </Typography>
@@ -329,7 +329,7 @@ export const ClaimModal = ({
                         borderBottomRightRadius: 0,
                         borderTopRightRadius: '10%'
                     }}>
-                    <Close/>
+                    <Close />
                 </IconButton>
                 <ContentBox
                     title="Claim Rewards"
@@ -361,14 +361,14 @@ export const ClaimModal = ({
                             </Grid>
                         </Grid>
                         <Grid item xs={12} md={5.5}>
-                            <Box sx={{textAlign: 'end'}}>
+                            <Box sx={{ textAlign: 'end' }}>
                                 <Tooltip
                                     title="All pending rewards will be claimed to your wallet after taxes are deducted.">
                                     <span>
                                         <Button
                                             variant="contained"
                                             color="primary"
-                                            endIcon={<HelpOutline/>}
+                                            endIcon={<HelpOutline />}
                                             onClick={() => handleBatchClaimRewards(selectedRows)}
                                             disabled={!areSelectedGemsClaimable()}
                                             sx={{
@@ -391,7 +391,7 @@ export const ClaimModal = ({
                                             disabled={!areSelectedGemsClaimable()}
                                             variant="outlined"
                                             color={'info'}
-                                            endIcon={<HelpOutline/>}
+                                            endIcon={<HelpOutline />}
                                             sx={{
                                                 color: 'white',
                                                 borderColor: 'white',
@@ -460,7 +460,7 @@ export const ClaimModal = ({
                                         {(() => {
                                             const formattedAmount = ethers.utils.formatEther(tierTax)
                                             const price = formatDecimalNumber(+formattedAmount * defoPrice, 2)
-                                            if(+formattedAmount < 0) { 
+                                            if (+formattedAmount < 0) {
                                                 return <>0.00 DEFO</>
                                             }
                                             return <>{`${formatDecimalNumber(+formattedAmount, 3)} DEFO ($${price})`}</>
@@ -468,7 +468,7 @@ export const ClaimModal = ({
                                     </Typography>
                                 </Grid>
                             </Grid>
-                            <hr/>
+                            <hr />
                             <Grid container justifyContent={'space-between'}>
                                 <Grid item>
                                     <Typography fontWeight={'bold'} variant="body2">CLAIMABLE:</Typography>
@@ -478,6 +478,9 @@ export const ClaimModal = ({
                                         {(() => {
                                             const formattedAmount = ethers.utils.formatEther(claimableAmount)
                                             const price = formatDecimalNumber(+formattedAmount * defoPrice, 2)
+                                            if (+formattedAmount < 0) {
+                                                return <>0.00 DEFO</>
+                                            }
                                             return <>{`${formatDecimalNumber(+formattedAmount, 3)} DEFO ($${price})`}</>
                                         })()}
                                     </Typography>
@@ -519,7 +522,7 @@ export const ClaimModal = ({
                                     <Button
                                         onClick={() => handleAddToVaultStrategy(selectedRows, selectedVaultStrategy)}
                                         variant="outlined"
-                                        endIcon={<HelpOutline/>}
+                                        endIcon={<HelpOutline />}
                                         color={'info'}
                                         sx={{
                                             padding: 1,

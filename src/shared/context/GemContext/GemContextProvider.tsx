@@ -121,10 +121,10 @@ const GemContextProvider = ({ children }: { children: any }) => {
                 const gemId: BigNumber = gemsInfo[0][i]
                 const gemData = gemsInfo[1][i]
                 const pendingMaintenanceFee = await diamondContract.getPendingMaintenanceFee(gemId)
-                const [taxTier, rewardAmount, isClaimable, staked] = await Promise.all([
+                const isClaimable = diamondContract.isClaimable(gemId)
+                const [taxTier, rewardAmount, staked] = await Promise.all([
                     diamondContract.getTaxTier(gemId),
                     diamondContract.getRewardAmount(gemId),
-                    diamondContract.isClaimable(gemId),
                     diamondContract.getStaked(gemId),
                 ])
                 const maintenanceFeeUntil = moment(gemData.lastMaintenanceTime, "X").add(maintenancePeriodDays, 'days')
