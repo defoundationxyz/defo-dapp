@@ -169,7 +169,6 @@ const Home: NextPage = () => {
 
                     return (<Box sx={{
                     }}>
-                        ///todo generally this should be reduced using getMaintenanceReductionTable
                         {ethers.utils.formatEther(gem.gemMaintenanceFeeDai.div(2))} DAI
                     </Box>)
                 }
