@@ -37,8 +37,6 @@ export const ClaimModal = ({
     const handlePayFee = async (gemIds: string[]) => {
         const selectedGems = gemsCollection.filter((gem: Gem) => gemIds.includes(gem.id))
         const gemsToPayMaint = selectedGems.filter((gem: Gem) => !gem.pendingMaintenanceFee.isZero())
-        const gemIdsAsNumber = gemsToPayMaint.map((gem: Gem) => +gem.id)
-
         try {
             ///todo avoid code copy, this is a quickfix for maintenance for presold gems
             const dai = new Contract(config.deployments?.dai.address, config.deployments.dai.abi, signer)
@@ -47,7 +45,7 @@ export const ClaimModal = ({
                 const tx = await dai.approve(config.deployments.diamond.address, ethers.constants.MaxUint256)
                 await tx.wait()
             }
-            const tx = await diamondContract.batchMaintain(gemIdsAsNumber);
+            const tx = await diamondContract.batchMaintain(gemIds);
             snackbar.execute('Paying Maintenance Fee on progress, please wait.', 'info')
             await tx.wait()
             await updateDonations()
@@ -65,10 +63,8 @@ export const ClaimModal = ({
             return
         }
 
-        const gemIdsAsNumber = gemIds.map(gemId => +gemId)
-
         try {
-            const tx = gemIdsAsNumber.length === 1 ? await diamondContract.claimReward(gemIdsAsNumber[0]) : await diamondContract.batchClaimReward(gemIdsAsNumber);
+            const tx = gemIds.length === 1 ? await diamondContract.claimReward(gemIds[0]) : await diamondContract.batchClaimReward(gemIds);
             snackbar.execute('Claiming on progress, please wait.', 'info')
             await tx.wait()
             await updateDonations()
@@ -87,9 +83,7 @@ export const ClaimModal = ({
         }
 
         try {
-            const gemIdsAsNumber = gemIds.map(gemId => +gemId)
-
-            const addToVaultAndClaimTx = await diamondContract.batchStakeAndClaim(gemIdsAsNumber, vaultStrategyPercentage * 100);
+            const addToVaultAndClaimTx = await diamondContract.batchStakeAndClaim(gemIds, vaultStrategyPercentage * 100);
             snackbar.execute('Adding to the vault on progress, please wait.', 'info')
             await addToVaultAndClaimTx.wait()
             await updateDonations()
@@ -110,15 +104,13 @@ export const ClaimModal = ({
 
         try {
             const selectedGems = gemsCollection.filter((gem: Gem) => gemIds.includes(gem.id))
-            const gemIdsAsNumber = gemIds.map(gemId => +gemId)
-
             const gemAmounts = gemIds.map((gemId: string) => {
                 const currentGem = selectedGems.find((gem: Gem) => gem.id === gemId)
                 const amount = currentGem.rewardAmount.div(100).mul(vaultStrategyPercentage)
                 return amount;
             })
 
-            const addToVaultTx = await diamondContract.batchStakeReward(gemIdsAsNumber, gemAmounts);
+            const addToVaultTx = await diamondContract.batchStakeReward(gemIds, gemAmounts);
             snackbar.execute('Adding to the vault on progress, please wait.', 'info')
             await addToVaultTx.wait()
             await updateDonations()
@@ -223,8 +215,7 @@ export const ClaimModal = ({
             return;
         }
         try {
-            const gemIdsAsNumber = gemIds.map(gemId => +gemId)
-            const tx = await diamondContract.batchtransferToStabilizer(gemIdsAsNumber)
+            const tx = await diamondContract.batchtransferToStabilizer(gemIds)
             snackbar.execute('Transfer is executing, please wait', 'info')
             await tx.wait()
             await updateDonations()
