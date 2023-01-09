@@ -169,7 +169,7 @@ const Home: NextPage = () => {
 
                     return (<Box sx={{
                     }}>
-                        {ethers.utils.formatEther(gem.gemMaintenanceFeeDai.div(2))} DAI
+                        {ethers.utils.formatEther(gem.gemMaintenanceFeeDai.mul(0))} DAI
                     </Box>)
                 }
             },
