@@ -140,11 +140,11 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
             },
             defo: {
                 abi: DEFO_ABI,
-                address: "0xbb6ffeCE837a525A2eAE033ff0161a7CDC60B693"
+                address: "0xEFac7869B91F3dc100340a61dfE77839B89ba86D"
             },
             diamond: {
                 abi: CONTRACTS_ABI,
-                address: "0xa47f856CD11513DB4E723c03990292f6c2FAC6b7"
+                address: "0x93d14C3Ef7DdD5e4d28F435249D904b88ba1EAc7"
             }
         }
     },

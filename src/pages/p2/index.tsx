@@ -2,11 +2,13 @@ import {Box, Button, Container, styled, TextField, Tooltip, Typography} from '@m
 import Navbar from 'components/Navbar';
 import {BigNumber, Contract, ethers} from 'ethers';
 import {NextPage} from 'next/types';
-import {BaseSyntheticEvent, useCallback, useEffect, useMemo, useState} from 'react';
+import {BaseSyntheticEvent, Dispatch, SetStateAction, useCallback, useEffect, useMemo, useState} from 'react';
 import {useDiamondContext} from 'shared/context/DiamondContext/DiamondContextProvider';
 import {useSnackbar} from 'shared/context/Snackbar/SnackbarProvider';
 import {useWeb3} from '../../shared/context/Web3/Web3Provider';
 import {formatDecimalNumber} from '../../shared/utils/format';
+import {BigNumberish} from '@ethersproject/bignumber';
+import {ContractFunction} from '@ethersproject/contracts/src.ts';
 
 const overrideStyles = {
     '& label.Mui-focused': {
@@ -20,30 +22,45 @@ const overrideStyles = {
     width: 250
 }
 
-const Giveaway: NextPage = () => {
+
+const P2Modal: NextPage = () => {
     const snackbar = useSnackbar()
-    const {diamondContract, config} = useDiamondContext();
+    const {diamondContract} = useDiamondContext();
     const {account, signer} = useWeb3();
     const [inputError, setInputError] = useState({hasError: false, message: ''});
 
-    const [alreadyPerformed, setAlreadyPerformed] = useState(false);
-    const [notStarted, setNotStarted] = useState(false);
-    const [rot, setRot] = useState('...');
+    const [startedTransitionToP2, setStartedTransitionToP2] = useState(false);
+    const [rot, setRot] = useState('');
+    const [share, setShare] = useState('');
+    const [daiClaimed, setDaiClaimed] = useState('');
+    const [defoDeposited, setDefoDeposited] = useState('');
+    const [p2Finance, setP2Finance] = useState<{ lpDai: string, totalRot: string }>({lpDai: '', totalRot: ''});
+    const [enabledTransitionToP2, setEnabledTransitionToP2] = useState(false);
 
+    useEffect(() => setEnabledTransitionToP2(!!account && startedTransitionToP2 && defoDeposited == '' && daiClaimed == ''),
+        [account, startedTransitionToP2, defoDeposited, daiClaimed]);
+
+    const logError = (error: any) => {
+        console.error('Error on get p2 data  ', error);
+        snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || 'Error. Please contact DEFO support', 'error')
+    }
+    const formatAmount = (value: BigNumberish) => formatDecimalNumber(+ethers.utils.formatEther(value), 2);
 
     useEffect(() => {
-        const pollContract = async () => {
-            try {
-                setNotStarted(parseInt(await diamondContract.getP2CutOverTime, 10) == 0);
-                setAlreadyPerformed(parseInt(await diamondContract.getP2Status, 10) == 0);
-                setRot(formatDecimalNumber(+ethers.utils.formatEther(await diamondContract.getMyP2RotValue()), 2));
-            } catch (error: any) {
-                console.log('error on giveaway transfer: ', error);
-                snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || 'Please contact DEFO support', 'error')
-            }
+        try {
+            diamondContract.getP2CutOverTime().then((value: BigNumber) => setStartedTransitionToP2(!!value));
+            diamondContract.getMyP2RotValue().then((value: BigNumber) => setRot(formatAmount(value)));
+            diamondContract.getMyP2DaiValue().then((value: BigNumber) => setShare(formatAmount(value)));
+            diamondContract.getMyP2DaiReceived().then((value: BigNumber) => setDaiClaimed(formatAmount(value)));
+            diamondContract.getMyP2DepositedToVault().then((value: BigNumber) => setDefoDeposited(formatAmount(value)));
+            diamondContract.getP2Finance().then((value: [BigNumber, BigNumber]) => setP2Finance({
+                lpDai: formatAmount(value[0]),
+                totalRot: formatAmount(value[1])
+            }));
+        } catch (error: any) {
+            logError(error);
         }
-        pollContract();
-    }, [diamondContract]);
+    }, [diamondContract, account]);
 
     const handlePutToVault = async () => {
         try {
@@ -78,8 +95,16 @@ const Giveaway: NextPage = () => {
                         DEFO ROT for Phase 2
                     </Typography>
                     <Typography variant="h5" sx={{color: 'white', mt: 5, mb: 5}}>
-                        <span style={{fontWeight: 700}}>ROT:<br/></span>
-                        {rot}
+                        <span style={{fontWeight: 700}}>ROT:</span>
+                        {' '}{rot}
+                    </Typography>
+                    <Typography variant="h5" sx={{color: 'white', mt: 5, mb: 5}}>
+                        <span style={{fontWeight: 700}}>Total DAI Liquidity:</span>
+                        {' '}{rot}
+                    </Typography>
+                    <Typography variant="h5" sx={{color: 'white', mt: 5, mb: 5}}>
+                        <span style={{fontWeight: 700}}>Your share:</span>
+                        {' '}{rot}%, which is {rot} Dai
                     </Typography>
                     <Box textAlign="center" mt={3} sx={{display: 'flex', justifyContent: 'space-between'}}>
                         <Tooltip
@@ -87,7 +112,7 @@ const Giveaway: NextPage = () => {
                             <Button
                                 onClick={handlePutToVault}
                                 variant="contained"
-                                disabled={inputError.hasError || alreadyPerformed || notStarted}
+                                disabled={!enabledTransitionToP2}
                                 size="large"
                                 sx={{
                                     color: 'white',
@@ -103,7 +128,7 @@ const Giveaway: NextPage = () => {
                             <Button
                                 onClick={handleClaimDai}
                                 variant="contained"
-                                disabled={inputError.hasError || alreadyPerformed || notStarted}
+                                disabled={!enabledTransitionToP2}
                                 size="large"
                                 sx={{
                                     color: 'white',
@@ -121,4 +146,4 @@ const Giveaway: NextPage = () => {
     )
 }
 
-export default Giveaway
+export default P2Modal
