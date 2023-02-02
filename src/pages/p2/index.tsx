@@ -105,7 +105,6 @@ const P2Modal: NextPage = () => {
         <>
             <Navbar/>
             <Container maxWidth={'xs'}>
-                {/*{enabledTransitionToP2 &&*/}
                 <Box textAlign={'center'}>
                     <Typography variant="h4" sx={{color: 'white', mt: 5, mb: 5}}>
                         DEFO ROT for Phase 2
@@ -118,32 +117,34 @@ const P2Modal: NextPage = () => {
                     </Typography>
                     <Grid container spacing={0} sx={{color: 'white', mt: 5, mb: 5}}>
                         <Grid item xs={6}>
-                            <Typography sx={{fontWeight: 600}}>Total
+                            <Typography sx={{fontWeight: 600, textAlign: 'right', marginRight: '30px'}}>Total
                                 liquidity:</Typography>
                         </Grid>
                         <Grid item xs={6}>
-                            <Typography>{p2Finance != null ? `${p2Finance.lpDai} DAI` :
+                            <Typography sx={{textAlign: 'left'}}>{p2Finance != null ? `${p2Finance.lpDai} DAI` :
                                 <CircularProgress size={10}/>}</Typography>
                         </Grid>
                         <Grid item xs={6}>
-                            <Typography sx={{fontWeight: 600}}>Total ROT:</Typography>
+                            <Typography sx={{fontWeight: 600, textAlign: 'right', marginRight: '30px'}}>Total
+                                ROT:</Typography>
                         </Grid>
                         <Grid item xs={6}>
-                            <Typography>{p2Finance != null ? `${p2Finance.totalRot} DEFO` :
+                            <Typography sx={{textAlign: 'left'}}>{p2Finance != null ? `${p2Finance.totalRot} DEFO` :
                                 <CircularProgress size={10}/>}</Typography>
                         </Grid>
                         <Grid item xs={6}>
-                            <Typography sx={{fontWeight: 600}}>Your share:</Typography>
+                            <Typography sx={{fontWeight: 600, textAlign: 'right', marginRight: '30px'}}>Your
+                                share:</Typography>
                         </Grid>
                         <Grid item xs={6}>
-                            <Typography>
+                            <Typography sx={{textAlign: 'left'}}>
                                 {share != null ? `${share} DAI` :
                                     <CircularProgress size={10}/>}
                             </Typography>
                         </Grid>
                     </Grid>
                     <Box textAlign="center" mt={3} sx={{display: 'flex', justifyContent: 'space-between'}}>
-                        <Tooltip title="Deposit ROT to the Vault">
+                        <Tooltip title="Deposit ROT to the vault">
                             <Box>
                                 <Button
                                     onClick={handlePutToVault}
@@ -165,7 +166,7 @@ const P2Modal: NextPage = () => {
                             </Box>
                         </Tooltip>
                         <Tooltip
-                            title="Claim the DAI liquidity pool share according to the ROT">
+                            title="Claim the liquidity share proportionally to ROT">
                             <Box>
                                 <Button
                                     onClick={handleClaimDai}
