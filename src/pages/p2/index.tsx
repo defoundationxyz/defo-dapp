@@ -94,7 +94,7 @@ const P2Modal: NextPage = () => {
             const tx = await diamondContract.p2ClaimDai();
             snackbar.execute('Claiming dai, please wait.', 'info')
             await tx.wait()
-            snackbar.execute('Successfully deposited', 'success')
+            snackbar.execute('Successfully claimed', 'success')
         } catch (error: any) {
             console.log('error on ROT transfer: ', error);
             snackbar.execute(error?.error?.message || error?.data?.message || error?.reason || 'Please contact DEFO support', 'error')
