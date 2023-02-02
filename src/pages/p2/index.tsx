@@ -48,7 +48,7 @@ const P2Modal: NextPage = () => {
     const [p2Finance, setP2Finance] = useState<{ lpDai: string, totalRot: string } | null>(null);
     const [enabledTransitionToP2, setEnabledTransitionToP2] = useState(false);
 
-    useEffect(() => setEnabledTransitionToP2(!!account && startedTransitionToP2 && defoDeposited == '' && daiClaimed == ''),
+    useEffect(() => setEnabledTransitionToP2(!!account && startedTransitionToP2 && Number(defoDeposited) == 0 && Number(daiClaimed) == 0),
         [account, startedTransitionToP2, defoDeposited, daiClaimed]);
 
     const logError = (error: any) => {
