@@ -1,4 +1,15 @@
-import {Box, Button, Container, styled, TextField, Tooltip, Typography} from '@mui/material';
+import {
+    Badge,
+    Box,
+    Button,
+    CircularProgress,
+    Container,
+    Grid,
+    styled,
+    TextField,
+    Tooltip,
+    Typography
+} from '@mui/material';
 import Navbar from 'components/Navbar';
 import {BigNumber, Contract, ethers} from 'ethers';
 import {NextPage} from 'next/types';
@@ -30,11 +41,11 @@ const P2Modal: NextPage = () => {
     const [inputError, setInputError] = useState({hasError: false, message: ''});
 
     const [startedTransitionToP2, setStartedTransitionToP2] = useState(false);
-    const [rot, setRot] = useState('');
-    const [share, setShare] = useState('');
-    const [daiClaimed, setDaiClaimed] = useState('');
-    const [defoDeposited, setDefoDeposited] = useState('');
-    const [p2Finance, setP2Finance] = useState<{ lpDai: string, totalRot: string }>({lpDai: '', totalRot: ''});
+    const [rot, setRot] = useState(null);
+    const [share, setShare] = useState(null);
+    const [daiClaimed, setDaiClaimed] = useState(null);
+    const [defoDeposited, setDefoDeposited] = useState(null);
+    const [p2Finance, setP2Finance] = useState<{ lpDai: string, totalRot: string } | null>(null);
     const [enabledTransitionToP2, setEnabledTransitionToP2] = useState(false);
 
     useEffect(() => setEnabledTransitionToP2(!!account && startedTransitionToP2 && defoDeposited == '' && daiClaimed == ''),
@@ -47,18 +58,22 @@ const P2Modal: NextPage = () => {
     const formatAmount = (value: BigNumberish) => formatDecimalNumber(+ethers.utils.formatEther(value), 2);
 
     useEffect(() => {
-        try {
-            diamondContract.getP2CutOverTime().then((value: BigNumber) => setStartedTransitionToP2(!!value));
-            diamondContract.getMyP2RotValue().then((value: BigNumber) => setRot(formatAmount(value)));
-            diamondContract.getMyP2DaiValue().then((value: BigNumber) => setShare(formatAmount(value)));
-            diamondContract.getMyP2DaiReceived().then((value: BigNumber) => setDaiClaimed(formatAmount(value)));
-            diamondContract.getMyP2DepositedToVault().then((value: BigNumber) => setDefoDeposited(formatAmount(value)));
-            diamondContract.getP2Finance().then((value: [BigNumber, BigNumber]) => setP2Finance({
-                lpDai: formatAmount(value[0]),
-                totalRot: formatAmount(value[1])
-            }));
-        } catch (error: any) {
-            logError(error);
+        console.log(diamondContract);
+        if (diamondContract) {
+            try {
+
+                diamondContract.getP2CutOverTime().then((value: BigNumber) => setStartedTransitionToP2(!value.eq(0)));
+                diamondContract.getMyP2RotValue().then((value: BigNumber) => setRot(formatAmount(value)));
+                diamondContract.getMyP2DaiValue().then((value: BigNumber) => setShare(formatAmount(value)));
+                diamondContract.getMyP2DaiReceived().then((value: BigNumber) => setDaiClaimed(formatAmount(value)));
+                diamondContract.getMyP2DepositedToVault().then((value: BigNumber) => setDefoDeposited(formatAmount(value)));
+                diamondContract.getP2Finance().then((value: [BigNumber, BigNumber]) => setP2Finance({
+                    lpDai: formatAmount(value[0]),
+                    totalRot: formatAmount(value[1])
+                }));
+            } catch (error: any) {
+                logError(error);
+            }
         }
     }, [diamondContract, account]);
 
@@ -90,54 +105,87 @@ const P2Modal: NextPage = () => {
         <>
             <Navbar/>
             <Container maxWidth={'xs'}>
+                {/*{enabledTransitionToP2 &&*/}
                 <Box textAlign={'center'}>
                     <Typography variant="h4" sx={{color: 'white', mt: 5, mb: 5}}>
                         DEFO ROT for Phase 2
                     </Typography>
                     <Typography variant="h5" sx={{color: 'white', mt: 5, mb: 5}}>
                         <span style={{fontWeight: 700}}>ROT:</span>
-                        {' '}{rot}
+                        {' '}
+                        {rot != null ? `${rot} DEFO` :
+                            <CircularProgress size={30}/>}
                     </Typography>
-                    <Typography variant="h5" sx={{color: 'white', mt: 5, mb: 5}}>
-                        <span style={{fontWeight: 700}}>Total DAI Liquidity:</span>
-                        {' '}{rot}
-                    </Typography>
-                    <Typography variant="h5" sx={{color: 'white', mt: 5, mb: 5}}>
-                        <span style={{fontWeight: 700}}>Your share:</span>
-                        {' '}{rot}%, which is {rot} Dai
-                    </Typography>
+                    <Grid container spacing={0} sx={{color: 'white', mt: 5, mb: 5}}>
+                        <Grid item xs={6}>
+                            <Typography sx={{fontWeight: 600}}>Total
+                                liquidity:</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography>{p2Finance != null ? `${p2Finance.lpDai} DAI` :
+                                <CircularProgress size={10}/>}</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography sx={{fontWeight: 600}}>Total ROT:</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography>{p2Finance != null ? `${p2Finance.totalRot} DEFO` :
+                                <CircularProgress size={10}/>}</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography sx={{fontWeight: 600}}>Your share:</Typography>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Typography>
+                                {share != null ? `${share} DAI` :
+                                    <CircularProgress size={10}/>}
+                            </Typography>
+                        </Grid>
+                    </Grid>
                     <Box textAlign="center" mt={3} sx={{display: 'flex', justifyContent: 'space-between'}}>
-                        <Tooltip
-                            title="Deposit ROT to the Vault">
-                            <Button
-                                onClick={handlePutToVault}
-                                variant="contained"
-                                disabled={!enabledTransitionToP2}
-                                size="large"
-                                sx={{
-                                    color: 'white',
-                                    borderColor: 'white',
-                                    '&:hover': {
-                                        color: 'gray',
-                                        borderColor: 'gray',
-                                    }
-                                }}>Vault</Button>
+                        <Tooltip title="Deposit ROT to the Vault">
+                            <Box>
+                                <Button
+                                    onClick={handlePutToVault}
+                                    variant="contained"
+                                    disabled={!enabledTransitionToP2}
+                                    size="large"
+                                    sx={{
+                                        marginBottom: '20px',
+                                        minWidth: '150px',
+                                        color: 'white',
+                                        borderColor: 'white',
+                                        '&:hover': {
+                                            color: 'gray',
+                                            borderColor: 'gray',
+                                        }
+                                    }}>Vault</Button>
+                                {Number(defoDeposited) != 0 &&
+                                    <Typography>already deposited to vault {defoDeposited} DEFO</Typography>}
+                            </Box>
                         </Tooltip>
                         <Tooltip
-                            title="Claim the share of the DAI liquidity pool according to the ROT by all users ROT ratio.">
-                            <Button
-                                onClick={handleClaimDai}
-                                variant="contained"
-                                disabled={!enabledTransitionToP2}
-                                size="large"
-                                sx={{
-                                    color: 'white',
-                                    borderColor: 'white',
-                                    '&:hover': {
-                                        color: 'gray',
-                                        borderColor: 'gray',
-                                    }
-                                }}>DAI</Button>
+                            title="Claim the DAI liquidity pool share according to the ROT">
+                            <Box>
+                                <Button
+                                    onClick={handleClaimDai}
+                                    variant="contained"
+                                    disabled={!enabledTransitionToP2}
+                                    size="large"
+                                    sx={{
+                                        marginBottom: '20px',
+                                        minWidth: '150px',
+                                        color: 'white',
+                                        borderColor: 'white',
+                                        '&:hover': {
+                                            color: 'gray',
+                                            borderColor: 'gray',
+                                        }
+                                    }}>DAI</Button>
+                                {Number(daiClaimed) != 0 &&
+                                    <Typography>already claimed {daiClaimed} DAI</Typography>}
+
+                            </Box>
                         </Tooltip>
                     </Box>
                 </Box>

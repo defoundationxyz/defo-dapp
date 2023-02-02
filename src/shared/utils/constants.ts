@@ -3,7 +3,7 @@ import DAI_ABI from 'abi/DAI.json'
 import DEFO_ABI from 'abi/DEFO.json'
 import ConfigFacet from 'abi/facets/ConfigFacet.json'
 import MaintenanceFacet from 'abi/facets/MaintenanceFacet.json'
-import RewardFacet from 'abi/facets/RewardFacet.json'
+import RewardsFacet from 'abi/facets/RewardsFacet.json'
 import VaultFacet from 'abi/facets/VaultFacet.json'
 import YieldGemFacet from 'abi/facets/YieldGemFacet.json'
 import DonationsFacet from 'abi/facets/DonationsFacet.json'
@@ -24,7 +24,7 @@ export const RPC = {
 export const CONTRACTS_ABI = [
     ...ConfigFacet,
     ...MaintenanceFacet,
-    ...RewardFacet,
+    ...RewardsFacet,
     ...TransferLimitFacet,
     ...VaultFacet,
     ...YieldGemFacet,
@@ -144,7 +144,7 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
             },
             diamond: {
                 abi: CONTRACTS_ABI,
-                address: "0x93d14C3Ef7DdD5e4d28F435249D904b88ba1EAc7"
+                address: "0x2BE8e6dBb39a3f3D88bCf9BD2e472143bb4fF36F"
             }
         }
     },
