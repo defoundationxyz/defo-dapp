@@ -48,6 +48,8 @@ const P2Modal: NextPage = () => {
     const [p2Finance, setP2Finance] = useState<{ lpDai: string, totalRot: string } | null>(null);
     const [enabledTransitionToP2, setEnabledTransitionToP2] = useState(false);
 
+    const [transactionHash, setTransactionHash] = useState(null);
+
     useEffect(() => setEnabledTransitionToP2(!!account && startedTransitionToP2 && Number(defoDeposited) == 0 && Number(daiClaimed) == 0),
         [account, startedTransitionToP2, defoDeposited, daiClaimed]);
 
@@ -75,13 +77,13 @@ const P2Modal: NextPage = () => {
                 logError(error);
             }
         }
-    }, [diamondContract, account]);
+    }, [diamondContract, account, transactionHash]);
 
     const handlePutToVault = async () => {
         try {
             const tx = await diamondContract.p2PutIntoVault();
             snackbar.execute('Transferring ROT to the vault, please wait.', 'info')
-            await tx.wait()
+            setTransactionHash(await tx.wait());
             snackbar.execute('Successfully deposited', 'success')
         } catch (error: any) {
             console.log('error on ROT transfer: ', error);
@@ -93,7 +95,7 @@ const P2Modal: NextPage = () => {
         try {
             const tx = await diamondContract.p2ClaimDai();
             snackbar.execute('Claiming dai, please wait.', 'info')
-            await tx.wait()
+            setTransactionHash(await tx.wait());
             snackbar.execute('Successfully claimed', 'success')
         } catch (error: any) {
             console.log('error on ROT transfer: ', error);
@@ -162,7 +164,7 @@ const P2Modal: NextPage = () => {
                                         }
                                     }}>Vault</Button>
                                 {Number(defoDeposited) != 0 &&
-                                    <Typography>already deposited to vault {defoDeposited} DEFO</Typography>}
+                                    <Typography>already deposited<br/>{defoDeposited} DEFO</Typography>}
                             </Box>
                         </Tooltip>
                         <Tooltip
@@ -184,7 +186,7 @@ const P2Modal: NextPage = () => {
                                         }
                                     }}>DAI</Button>
                                 {Number(daiClaimed) != 0 &&
-                                    <Typography>already claimed {daiClaimed} DAI</Typography>}
+                                    <Typography>already claimed<br/> {daiClaimed} DAI</Typography>}
 
                             </Box>
                         </Tooltip>
