@@ -5,6 +5,7 @@ import ContentBox from "components/ContentBox";
 import { forwardRef, useImperativeHandle, useState } from "react";
 
 
+// eslint-disable-next-line react/display-name
 const ModalLayout = forwardRef(({ children }: any, ref) => {
     const [open, setOpen] = useState(false);
     const theme = useTheme();
