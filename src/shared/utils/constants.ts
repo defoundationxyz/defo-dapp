@@ -144,7 +144,7 @@ export const SUPPORTED_NETWORKS: { [key: string]: ConfigType } = {
             },
             diamond: {
                 abi: CONTRACTS_ABI,
-                address: "0x2BE8e6dBb39a3f3D88bCf9BD2e472143bb4fF36F"
+                address: "0x93d14C3Ef7DdD5e4d28F435249D904b88ba1EAc7"
             }
         }
     },
