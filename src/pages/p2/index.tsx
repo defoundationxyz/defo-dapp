@@ -35,6 +35,9 @@ const overrideStyles = {
 
 
 const P2Modal: NextPage = () => {
+    /// P2 is over, this is a hardcoded stop disabling the buttons
+    const P2IsOver = true;
+
     const snackbar = useSnackbar()
     const {diamondContract} = useDiamondContext();
     const {account, signer} = useWeb3();
@@ -108,9 +111,14 @@ const P2Modal: NextPage = () => {
             <Navbar/>
             <Container maxWidth={'xs'}>
                 <Box textAlign={'center'}>
-                    <Typography variant="h4" sx={{color: 'white', mt: 5, mb: 5}}>
-                        DEFO ROT for Phase 2
-                    </Typography>
+                    {P2IsOver ?
+                        <Typography variant="h4" sx={{color: 'white', mt: 5, mb: 5}}>
+                            DEFO ROT<br/>Claim Period<br/> Is Over
+                        </Typography>
+                        :
+                        <Typography variant="h4" sx={{color: 'white', mt: 5, mb: 5}}>
+                            DEFO ROT for Phase 2
+                        </Typography>}
                     <Typography variant="h5" sx={{color: 'white', mt: 5, mb: 5}}>
                         <span style={{fontWeight: 700}}>ROT:</span>
                         {' '}
