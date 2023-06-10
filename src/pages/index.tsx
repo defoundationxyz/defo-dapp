@@ -1,36 +1,36 @@
-import { Box, Button, Container, Grid, Paper, Typography, useTheme } from '@mui/material'
-import type { NextPage } from 'next'
+import {Box, Button, Container, Grid, Paper, Typography, useTheme} from '@mui/material'
+import type {NextPage} from 'next'
 import Footer from 'components/Footer'
-import { ACTIVE_NETOWORKS_COLLECTION, TAX_TIERS } from "shared/utils/constants"
-import { BigNumber, ethers } from 'ethers'
-import { useEffect, useMemo, useState } from 'react'
+import {ACTIVE_NETOWORKS_COLLECTION, TAX_TIERS} from 'shared/utils/constants'
+import {BigNumber, ethers} from 'ethers'
+import {useEffect, useMemo, useState} from 'react'
 import Navbar from 'components/Navbar'
 import Head from 'next/head'
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import {DataGrid, GridColDef} from '@mui/x-data-grid';
 import ContentBox from 'components/ContentBox'
 import DonationsBox from 'components/DonationsBox'
-import YieldGems from "components/YieldGems/YieldGems";
+import YieldGems from 'components/YieldGems/YieldGems';
 import P2VaultBox from 'components/P2VaultBox'
 import moment from 'moment'
-import { useDiamondContext } from 'shared/context/DiamondContext/DiamondContextProvider'
-import { Gem } from 'shared/types/DataTypes'
-import { useGemsContext } from 'shared/context/GemContext/GemContextProvider'
-import { InvalidNetworkView } from 'components/InvalidNetworkView/InvalidNetworkView'
-import { useChain, useMoralis } from 'react-moralis'
-import { ClaimModal } from 'components/ClaimModal/ClaimModal'
-import { useWeb3 } from 'shared/context/Web3/Web3Provider'
-import { formatDecimalNumber } from 'shared/utils/format'
-import { useStatsContext } from 'shared/context/StatsContext/StatsContextProvider'
+import {useDiamondContext} from 'shared/context/DiamondContext/DiamondContextProvider'
+import {Gem} from 'shared/types/DataTypes'
+import {useGemsContext} from 'shared/context/GemContext/GemContextProvider'
+import {InvalidNetworkView} from 'components/InvalidNetworkView/InvalidNetworkView'
+import {useMoralis} from 'react-moralis'
+import {ClaimModal} from 'components/ClaimModal/ClaimModal'
+import {useWeb3} from 'shared/context/Web3/Web3Provider'
+import {formatDecimalNumber} from 'shared/utils/format'
+import {useStatsContext} from 'shared/context/StatsContext/StatsContextProvider'
 
 
 const Home: NextPage = () => {
     const theme = useTheme()
-    const { Moralis } = useMoralis()
+    const {Moralis} = useMoralis()
 
-    const { isWeb3Enabled, account, chainId } = useWeb3()
-    const { diamondContract } = useDiamondContext()
-    const { gemsCollection } = useGemsContext()
-    const { defoPrice, protocolConfig } = useStatsContext()
+    const {isWeb3Enabled, account, chainId} = useWeb3()
+    const {diamondContract} = useDiamondContext()
+    const {gemsCollection} = useGemsContext()
+    const {defoPrice, protocolConfig} = useStatsContext()
 
     const [selectedRows, setSelectedRows] = useState<string[]>([])
     const [claimRewardsModalOpen, setClaimRewardsModalOpen] = useState(false)
@@ -89,7 +89,7 @@ const Home: NextPage = () => {
                 minWidth: 90,
                 renderCell: (params) => {
                     const gem: Gem = params.row;
-                    const boosterText = gem.booster === 1 ? "Delta" : gem.booster === 2 ? "Omega" : "";
+                    const boosterText = gem.booster === 1 ? 'Delta' : gem.booster === 2 ? 'Omega' : '';
                     if (gem.gemTypeId === 0) {
                         return `${boosterText} Sapphire`
                     } else if (gem.gemTypeId === 1) {
@@ -105,7 +105,7 @@ const Home: NextPage = () => {
                 headerName: 'Created',
                 renderCell: (params) => {
                     const gem: Gem = params.row;
-                    return moment(gem.mintTime, "X").format("MMM DD YYYY HH:mm")
+                    return moment(gem.mintTime, 'X').format('MMM DD YYYY HH:mm')
                 }
             },
             {
@@ -151,10 +151,10 @@ const Home: NextPage = () => {
                     const todayDate = moment()
                     const isExpired = gem.maintenanceFeeUntil.isBefore(todayDate)
                     return <Typography
-                        variant='body2'
-                        style={{ color: isExpired ? 'red' : '' }}
+                        variant="body2"
+                        style={{color: isExpired ? 'red' : ''}}
                     >
-                        {gem.maintenanceFeeUntil.format("MMM DD YYYY")} {/* HH:mm */}
+                        {gem.maintenanceFeeUntil.format('MMM DD YYYY')} {/* HH:mm */}
                     </Typography>
                 }
             },
@@ -167,8 +167,7 @@ const Home: NextPage = () => {
                 renderCell: (params) => {
                     const gem: Gem = params.row;
 
-                    return (<Box sx={{
-                    }}>
+                    return (<Box sx={{}}>
                         {ethers.utils.formatEther(gem.gemMaintenanceFeeDai.mul(0))} DAI
                     </Box>)
                 }
@@ -180,8 +179,7 @@ const Home: NextPage = () => {
                 // minWidth: 100,
                 renderCell: (params) => {
                     const gem: Gem = params.row;
-                    return (<Box sx={{
-                    }}>
+                    return (<Box sx={{}}>
                         <Button
                             onClick={() => {
                                 setSelectedRows([gem.id])
@@ -191,11 +189,11 @@ const Home: NextPage = () => {
                             variant="contained"
                             color="primary"
                             sx={{
-                                color: "white",
-                                borderColor: "white",
-                                "&:hover": {
-                                    color: "gray",
-                                    borderColor: "gray",
+                                color: 'white',
+                                borderColor: 'white',
+                                '&:hover': {
+                                    color: 'gray',
+                                    borderColor: 'gray',
                                 }
                             }}>CLAIM</Button>
                     </Box>)
@@ -205,21 +203,21 @@ const Home: NextPage = () => {
     }, [chainId])
 
     return (
-        <Box height={"100%"}>
+        <Box height={'100%'}>
             <Head>
                 <title>DEFO</title>
-                <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+                <meta name="viewport" content="initial-scale=1.0, width=device-width"/>
                 {/* <link rel="shortcut icon" href="/logo.png" /> */}
             </Head>
-            <Navbar />
+            <Navbar/>
             {isWeb3Enabled ?
                 <>
                     {(chainId && ACTIVE_NETOWORKS_COLLECTION.includes(chainId)) ?
                         <Container>
-                            <Typography variant="h4" fontWeight={"bold"}>
+                            <Typography variant="h4" fontWeight={'bold'}>
                                 Welcome Philanthropist!
                             </Typography>
-                            <Typography variant='body1' color={"gray"}>
+                            <Typography variant="body1" color={'gray'}>
                                 Ready to make the world a better place for the less fortunate?
                             </Typography>
 
@@ -228,27 +226,27 @@ const Home: NextPage = () => {
                                     {/* Donations */}
                                     <Grid
                                         container
-                                        justifyContent={"space-between"}
+                                        justifyContent={'space-between'}
                                         sx={{
                                             margin: theme.spacing(8, 0),
                                         }}
                                     >
                                         <Grid item xs={12} md={5.8}>
-                                            <DonationsBox />
+                                            <DonationsBox/>
                                         </Grid>
 
                                         <Grid item xs={12} md={5.8}>
-                                            <YieldGems />
+                                            <YieldGems/>
                                         </Grid>
                                     </Grid>
 
                                     {/* P2 Vault */}
                                     <Grid
                                         container
-                                        justifyContent={"space-between"}
+                                        justifyContent={'space-between'}
                                     >
                                         <Grid item xs={12} md={7.9}>
-                                            <P2VaultBox />
+                                            <P2VaultBox/>
                                         </Grid>
 
                                         <Grid item xs={12} md={3.75}>
@@ -258,7 +256,7 @@ const Home: NextPage = () => {
                                             >
                                                 <Grid
                                                     container
-                                                    justifyContent={"space-between"}
+                                                    justifyContent={'space-between'}
                                                 >
                                                     <Grid item xs={12}>
                                                         <Paper
@@ -268,19 +266,22 @@ const Home: NextPage = () => {
                                                                     md: theme.spacing(2, 4)
                                                                 },
                                                             }}>
-                                                            <Typography variant="body2">PENDING DEFO REWARDS</Typography>
-                                                            <Box display={"flex"} alignItems="center">
+                                                            <Typography variant="body2">PENDING DEFO
+                                                                REWARDS</Typography>
+                                                            <Box display={'flex'} alignItems="center">
                                                                 {(() => {
                                                                     const rewardAmount = +ethers.utils.formatEther(
                                                                         gemsCollection.reduce(
-                                                                            (n: BigNumber, { rewardAmount }: Gem) => rewardAmount.add(n),
+                                                                            (n: BigNumber, {rewardAmount}: Gem) => rewardAmount.add(n),
                                                                             BigNumber.from(0))
                                                                     )
                                                                     const price = formatDecimalNumber(+rewardAmount * defoPrice, 2)
 
                                                                     return (
                                                                         <>
-                                                                            <Typography sx={{ margin: theme.spacing(1, 0) }} variant="h4" fontWeight={"600"}>
+                                                                            <Typography
+                                                                                sx={{margin: theme.spacing(1, 0)}}
+                                                                                variant="h4" fontWeight={'600'}>
                                                                                 {formatDecimalNumber(rewardAmount, 3)}
                                                                             </Typography>
                                                                             <Typography ml={1} variant="h6">
@@ -305,8 +306,8 @@ const Home: NextPage = () => {
                                         }}
                                     >
 
-                                        <Grid container alignItems={"center"}>
-                                            <Grid item xs={12} md="auto" >
+                                        <Grid container alignItems={'center'}>
+                                            <Grid item xs={12} md="auto">
                                                 <Typography>{selectedRows?.length || 0} nodes selected</Typography>
                                             </Grid>
                                             <Grid item>
@@ -320,12 +321,12 @@ const Home: NextPage = () => {
                                                     variant="contained"
                                                     color="primary"
                                                     sx={{
-                                                        color: "white",
-                                                        borderColor: "white",
+                                                        color: 'white',
+                                                        borderColor: 'white',
                                                         marginLeft: theme.spacing(1),
-                                                        "&:hover": {
-                                                            color: "gray",
-                                                            borderColor: "gray",
+                                                        '&:hover': {
+                                                            color: 'gray',
+                                                            borderColor: 'gray',
                                                         }
                                                     }}>CLAIM REWARDS</Button>
                                             </Grid>
@@ -333,7 +334,7 @@ const Home: NextPage = () => {
 
 
                                         <Box sx={{
-                                            height: "400px",
+                                            height: '400px',
                                             marginTop: theme.spacing(2)
                                         }}>
                                             <DataGrid
@@ -353,16 +354,16 @@ const Home: NextPage = () => {
                                                 disableColumnSelector
                                                 rowHeight={59}
                                                 sx={{
-                                                    border: "none",
-                                                    ".MuiDataGrid-columnHeaders": {
-                                                        border: "none"
+                                                    border: 'none',
+                                                    '.MuiDataGrid-columnHeaders': {
+                                                        border: 'none'
                                                     },
-                                                    ".MuiDataGrid-virtualScrollerContent": {
-                                                        backgroundColor: "rgba(255,255,255,0.05)",
-                                                        borderRadius: "10px"
+                                                    '.MuiDataGrid-virtualScrollerContent': {
+                                                        backgroundColor: 'rgba(255,255,255,0.05)',
+                                                        borderRadius: '10px'
                                                     },
-                                                    "& .Mui-checked": {
-                                                        color: "#2EBE73 !important",
+                                                    '& .Mui-checked': {
+                                                        color: '#2EBE73 !important',
                                                     }
                                                 }}
                                             />
@@ -375,15 +376,15 @@ const Home: NextPage = () => {
                             }
                         </Container>
                         :
-                        <InvalidNetworkView />
+                        <InvalidNetworkView/>
                     }
                 </>
                 :
-                <Box height="70%" textAlign={"center"}>
+                <Box height="70%" textAlign={'center'}>
                     <h3>Connect your Metamask Wallet</h3>
                 </Box>
             }
-            <Footer />
+            <Footer/>
 
             {/* Claim Modal */}
             <ClaimModal
