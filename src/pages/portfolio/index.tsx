@@ -8,6 +8,18 @@ import {
 import {NextPage} from 'next/types';
 import {useEffect, useState} from 'react';
 import SimpleFooter from '../../components/SimpleFooter';
+import {createProtobufRpcClient, QueryClient, StargateClient} from '@cosmjs/stargate';
+import {Tendermint34Client} from '@cosmjs/tendermint-rpc';
+import {QueryClientImpl} from 'cosmjs-types/cosmwasm/wasm/v1/query';
+
+
+const getPriceOfATOM = async () => {
+    const url = 'https://api.coingecko.com/api/v3/simple/price?ids=cosmos&vs_currencies=usd';
+    const response = await fetch(url);
+    const data = await response.json();
+    console.log(`The price of ATOM in USD is: ${data.cosmos.usd}`);
+    return data.cosmos.usd;
+};
 
 const P2Modal: NextPage = () => {
     const [vaultWorth, setVaultWorth] = useState<number | null>(null);
@@ -20,6 +32,8 @@ const P2Modal: NextPage = () => {
             res.json().then(
                 (datamain) => {
                     console.log(datamain)
+                    let debankWorth = datamain.data.usd_value_list[(datamain.data.usd_value_list.length - 1)][1];
+                    console.log(`debankWorth: ${debankWorth}`);
                     const url2 = 'https://thornode.ninerealms.com/bank/balances/thor1pjy3skfpynxwane8m3gp203ud46vwyc98qeq4q';
                     fetch(url2, {
                         'headers': {
@@ -45,11 +59,27 @@ const P2Modal: NextPage = () => {
                         fetch('https://midgard.ninerealms.com/v2/stats', {
                             method: 'GET'
                         }).then((res) => res.json().then((info) => {
-                            let thorPrice = Number(info.runePriceUSD);
-                            let thorWorth = (runAmount * thorPrice);
-                            setVaultWorth(1500 + thorWorth + datamain.data.usd_value_list[(datamain.data.usd_value_list.length - 1)][1]);
-                        }))
-
+                            getPriceOfATOM().then((atomPrice) => {
+                                let thorPrice = Number(info.runePriceUSD);
+                                let thorWorth = (runAmount * thorPrice);
+                                Tendermint34Client.connect('https://rpc.cosmos.directory/cosmoshub').then((rpcClient) => {
+                                    StargateClient.create(rpcClient).then((client) => {
+                                        // const client = QueryClient.withExtensions(rpcClient);
+                                        // const protobufRpcClient = createProtobufRpcClient(client);
+                                        // const bankQueryService = new QueryClientImpl(protobufRpcClient);
+                                        // bankQueryService.Balance({
+                                        client.getBalance(
+                                            'cosmos1dy6ndu0wc5n29lfkw5gh6zpvlh2vf0u8ug8lae',
+                                            'uatom'
+                                        ).then((cosmosBalance) => {
+                                            console.log(JSON.stringify(cosmosBalance));
+                                            let cosmosWorth = Number(cosmosBalance.amount) / 1000000;
+                                            setVaultWorth(thorWorth + debankWorth + cosmosWorth * atomPrice);
+                                        });
+                                    });
+                                });
+                            });
+                        }));
                     }));
                 })
         });
