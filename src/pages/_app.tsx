@@ -12,9 +12,9 @@ import { MoralisProvider } from 'react-moralis'
 
 function MyApp({ Component, pageProps }: AppProps) {
     return (
-        <MoralisProvider initializeOnMount={false}>
-            <Web3Provider>
-                <DiamondContextProvider>
+        // <MoralisProvider initializeOnMount={false}>
+        //     <Web3Provider>
+        //         <DiamondContextProvider>
                     <ThemeProvider>
                         <SnackbarProvider>
                             <GemContextProvider>
@@ -24,9 +24,9 @@ function MyApp({ Component, pageProps }: AppProps) {
                             </GemContextProvider>
                         </SnackbarProvider>
                     </ThemeProvider>
-                </DiamondContextProvider>
-            </Web3Provider>
-        </MoralisProvider>
+        //         </DiamondContextProvider>
+        //     </Web3Provider>
+        // </MoralisProvider>
     )
 }
 

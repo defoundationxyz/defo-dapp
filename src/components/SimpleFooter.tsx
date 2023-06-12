@@ -1,6 +1,6 @@
 import {GitHub, Twitter} from '@mui/icons-material'
 import {Box, Container, Divider, Grid, Icon, IconButton, Typography, useTheme} from '@mui/material'
-
+import {Icon as OpenSeaIcon} from '@iconify/react';
 
 const SimpleFooter = () => {
 
@@ -38,6 +38,14 @@ const SimpleFooter = () => {
                     }}>
                     <IconButton
                         LinkComponent={'a'}
+                        href="https://opensea.io/collection/defo-vault"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        <OpenSeaIcon icon="simple-icons:opensea"/>
+                    </IconButton>
+                    <IconButton
+                        LinkComponent={'a'}
                         href="https://twitter.com/defo_app"
                         target="_blank"
                         rel="noreferrer"
@@ -46,7 +54,7 @@ const SimpleFooter = () => {
                     </IconButton>
                     <IconButton
                         LinkComponent={'a'}
-                        href="https://github.com/defoundationxyz"
+                        href="https://github.com/defoundationxyz/defo-contract"
                         target="_blank"
                         rel="noreferrer"
                     >
